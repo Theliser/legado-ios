@@ -7,39 +7,92 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03AF360CB2D64647EBBB9C49 /* CookieJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F0D52F259EE065DB61E0384 /* CookieJar.swift */; };
 		1F95F2E0B418C91491491E48 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F745F58D070587F9128C8B82 /* AppTheme.swift */; };
+		34923805166AC511E92EB236 /* RuleEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A9BF92309334C790BDC19D /* RuleEngineTests.swift */; };
+		36A679B29B3AC90A9D0DE4B2 /* JSONPathParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26DADC92553447DCFE369BD /* JSONPathParser.swift */; };
+		385A62FC83CE45B963A8D79C /* CSSSelectorParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47EB65BE6993603DE7AF01CB /* CSSSelectorParser.swift */; };
+		4083FE8D2F41F76B86A64615 /* ParseBookSourceUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4C9201EF1DAA6DD28D04875 /* ParseBookSourceUseCase.swift */; };
+		4842CACE34A69C810C820C33 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = F679ABA63CD2BD11E85A4BA4 /* SwiftSoup */; };
 		49DC6A201BD1CCFEC076A2E1 /* BookshelfViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3777B09847394FBF2114ABBB /* BookshelfViewModel.swift */; };
+		4F209A78B51F8972C035027E /* RuleAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C34BCC5CD20CA995450349A /* RuleAnalyzer.swift */; };
 		6BD6C55E9B5E2D781A09DB6B /* BookshelfIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D19B918137E163267DB3305 /* BookshelfIntent.swift */; };
 		85F3664EB88C09D78AE55377 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 745D29A1C38C7CC05B260B2B /* Assets.xcassets */; };
 		920BAD93009B86B44AA1082B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA8683896300F879605C423 /* ContentView.swift */; };
+		A27AA8BDF6A6A27595D26D20 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = CB6899744A7A3C1DBDBC7980 /* SwiftSoup */; };
 		AC2662E33EE3C06E9C4939F6 /* BookshelfState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45DB483B476C3B988230547 /* BookshelfState.swift */; };
 		BC4F3DBE6AE72F01D9ACE782 /* LegadoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 605CC8429F35E3D40CB97EC7 /* LegadoApp.swift */; };
+		C4D1A92471A9AFA848B3EC84 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030ED8BE6A4C9E7AD0DD4733 /* HTTPClient.swift */; };
+		C80CB720B93D55ADAE23CC6D /* JSEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D38C56D6EE9C6C7CE33E1B7 /* JSEngine.swift */; };
 		C89E020B7E12AF89F987E13A /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CCF173694648950ED00AD47 /* GlassCard.swift */; };
 		D0F0FEA61625B516034C73B4 /* BookshelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA58C58347B5CD0D9E3EBF1 /* BookshelfView.swift */; };
 		D6F70266DA8CB742427C71B4 /* MVIViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FD9C38A2DC037B9B813B7B /* MVIViewModel.swift */; };
+		D8EEF2102493E3ABFD4EE2FF /* BookSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D204B151D78639C6699FC860 /* BookSource.swift */; };
 		FCCC968B3F3B6C3F0D712D43 /* GlassFloatingBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21DD55CED5927B17EB1DC7 /* GlassFloatingBar.swift */; };
+		FEB003479C06B006CD3B9301 /* CharsetDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0A9B1557AB0BF07D145FE8 /* CharsetDetector.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		6EFBA978D2E19D135BA78261 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C88D041936DFBF20C4AA23 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 545F723F8243B8264D863A84;
+			remoteInfo = Legado;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		030ED8BE6A4C9E7AD0DD4733 /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
+		1F0D52F259EE065DB61E0384 /* CookieJar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookieJar.swift; sourceTree = "<group>"; };
 		3777B09847394FBF2114ABBB /* BookshelfViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfViewModel.swift; sourceTree = "<group>"; };
 		3AA58C58347B5CD0D9E3EBF1 /* BookshelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfView.swift; sourceTree = "<group>"; };
 		3CCF173694648950ED00AD47 /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
 		3DA8683896300F879605C423 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		47EB65BE6993603DE7AF01CB /* CSSSelectorParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSSSelectorParser.swift; sourceTree = "<group>"; };
+		4C34BCC5CD20CA995450349A /* RuleAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleAnalyzer.swift; sourceTree = "<group>"; };
+		4D38C56D6EE9C6C7CE33E1B7 /* JSEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSEngine.swift; sourceTree = "<group>"; };
 		50FD9C38A2DC037B9B813B7B /* MVIViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MVIViewModel.swift; sourceTree = "<group>"; };
 		5E494EB6E5276C0FA16C637F /* Legado.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Legado.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		605CC8429F35E3D40CB97EC7 /* LegadoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegadoApp.swift; sourceTree = "<group>"; };
 		745D29A1C38C7CC05B260B2B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7C21DD55CED5927B17EB1DC7 /* GlassFloatingBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassFloatingBar.swift; sourceTree = "<group>"; };
 		7D19B918137E163267DB3305 /* BookshelfIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfIntent.swift; sourceTree = "<group>"; };
+		A0A9BF92309334C790BDC19D /* RuleEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEngineTests.swift; sourceTree = "<group>"; };
 		A45DB483B476C3B988230547 /* BookshelfState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfState.swift; sourceTree = "<group>"; };
+		A4C9201EF1DAA6DD28D04875 /* ParseBookSourceUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseBookSourceUseCase.swift; sourceTree = "<group>"; };
+		B26DADC92553447DCFE369BD /* JSONPathParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONPathParser.swift; sourceTree = "<group>"; };
+		D204B151D78639C6699FC860 /* BookSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookSource.swift; sourceTree = "<group>"; };
+		EF0A9B1557AB0BF07D145FE8 /* CharsetDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharsetDetector.swift; sourceTree = "<group>"; };
 		F745F58D070587F9128C8B82 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		FE0C1C8D2F318FBFA601C6B7 /* LegadoTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LegadoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5E1B8EEB9508C40F44974A16 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A27AA8BDF6A6A27595D26D20 /* SwiftSoup in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BDE26A88C38E7B77E5A21773 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4842CACE34A69C810C820C33 /* SwiftSoup in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		2EFA8535A04955DF845418B2 = {
 			isa = PBXGroup;
 			children = (
 				5D63B928D47EE3FF922ED119 /* Legado */,
+				8A026352A08576F4BA363FAC /* LegadoTests */,
 				7A9998A08F31415169D8903D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -60,6 +113,14 @@
 			path = ViewModel;
 			sourceTree = "<group>";
 		};
+		570E78ABD43B9CB12AA7B56A /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				D204B151D78639C6699FC860 /* BookSource.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		5D63B928D47EE3FF922ED119 /* Legado */ = {
 			isa = PBXGroup;
 			children = (
@@ -68,17 +129,54 @@
 				605CC8429F35E3D40CB97EC7 /* LegadoApp.swift */,
 				F6652446051FEC479B6F81D6 /* Core */,
 				EABA6EAB0A303A00C8C31500 /* DesignSystem */,
+				73AAA23639D7CD16A6C4DAAF /* Domain */,
 				C5EDD4BFDEC5481019E52B11 /* Features */,
 			);
 			path = Legado;
+			sourceTree = "<group>";
+		};
+		6DDABC5DF9C2009CBA800646 /* RuleParser */ = {
+			isa = PBXGroup;
+			children = (
+				47EB65BE6993603DE7AF01CB /* CSSSelectorParser.swift */,
+				B26DADC92553447DCFE369BD /* JSONPathParser.swift */,
+				4C34BCC5CD20CA995450349A /* RuleAnalyzer.swift */,
+			);
+			path = RuleParser;
+			sourceTree = "<group>";
+		};
+		73AAA23639D7CD16A6C4DAAF /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				570E78ABD43B9CB12AA7B56A /* Model */,
+				896AC08836B78EB5AFD677AE /* UseCases */,
+			);
+			path = Domain;
 			sourceTree = "<group>";
 		};
 		7A9998A08F31415169D8903D /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				5E494EB6E5276C0FA16C637F /* Legado.app */,
+				FE0C1C8D2F318FBFA601C6B7 /* LegadoTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		896AC08836B78EB5AFD677AE /* UseCases */ = {
+			isa = PBXGroup;
+			children = (
+				E7CC7F0358ADA4E63C8267F1 /* Source */,
+			);
+			path = UseCases;
+			sourceTree = "<group>";
+		};
+		8A026352A08576F4BA363FAC /* LegadoTests */ = {
+			isa = PBXGroup;
+			children = (
+				A0A9BF92309334C790BDC19D /* RuleEngineTests.swift */,
+			);
+			path = LegadoTests;
 			sourceTree = "<group>";
 		};
 		99404FD77BB34131F7BCF722 /* Theme */ = {
@@ -105,6 +203,14 @@
 			path = Intent;
 			sourceTree = "<group>";
 		};
+		B457E0A96D8E0C686E93A633 /* ScriptEngine */ = {
+			isa = PBXGroup;
+			children = (
+				4D38C56D6EE9C6C7CE33E1B7 /* JSEngine.swift */,
+			);
+			path = ScriptEngine;
+			sourceTree = "<group>";
+		};
 		C5EDD4BFDEC5481019E52B11 /* Features */ = {
 			isa = PBXGroup;
 			children = (
@@ -129,6 +235,24 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
+		DC56C86ED55D9193AA1C6091 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				EF0A9B1557AB0BF07D145FE8 /* CharsetDetector.swift */,
+				1F0D52F259EE065DB61E0384 /* CookieJar.swift */,
+				030ED8BE6A4C9E7AD0DD4733 /* HTTPClient.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		E7CC7F0358ADA4E63C8267F1 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				A4C9201EF1DAA6DD28D04875 /* ParseBookSourceUseCase.swift */,
+			);
+			path = Source;
+			sourceTree = "<group>";
+		};
 		EABA6EAB0A303A00C8C31500 /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
@@ -151,6 +275,9 @@
 			isa = PBXGroup;
 			children = (
 				F35943A49C8BCD3B895A5CCD /* Architecture */,
+				DC56C86ED55D9193AA1C6091 /* Network */,
+				6DDABC5DF9C2009CBA800646 /* RuleParser */,
+				B457E0A96D8E0C686E93A633 /* ScriptEngine */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -176,6 +303,7 @@
 				D8A65BB4C1DAB7DDF9EF7925 /* SwiftLint */,
 				CCC49AA83A8F2A053690E358 /* Sources */,
 				FB93DF81CD275AAACC1099D7 /* Resources */,
+				BDE26A88C38E7B77E5A21773 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -183,10 +311,31 @@
 			);
 			name = Legado;
 			packageProductDependencies = (
+				F679ABA63CD2BD11E85A4BA4 /* SwiftSoup */,
 			);
 			productName = Legado;
 			productReference = 5E494EB6E5276C0FA16C637F /* Legado.app */;
 			productType = "com.apple.product-type.application";
+		};
+		8086C70D204522BE22D900CC /* LegadoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 451503E854E225B81AFF0929 /* Build configuration list for PBXNativeTarget "LegadoTests" */;
+			buildPhases = (
+				5A75EE015A537D14B822DE9A /* Sources */,
+				5E1B8EEB9508C40F44974A16 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				17A0898F1AAAAAB662625624 /* PBXTargetDependency */,
+			);
+			name = LegadoTests;
+			packageProductDependencies = (
+				CB6899744A7A3C1DBDBC7980 /* SwiftSoup */,
+			);
+			productName = LegadoTests;
+			productReference = FE0C1C8D2F318FBFA601C6B7 /* LegadoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -201,6 +350,10 @@
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
+					8086C70D204522BE22D900CC = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = C5A9AF168B7272EB87E8395A /* Build configuration list for PBXProject "Legado" */;
@@ -212,12 +365,16 @@
 			);
 			mainGroup = 2EFA8535A04955DF845418B2;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				572B4A14EB4F81BFF47EB37F /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7A9998A08F31415169D8903D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				545F723F8243B8264D863A84 /* Legado */,
+				8086C70D204522BE22D900CC /* LegadoTests */,
 			);
 		};
 /* End PBXProject section */
@@ -256,24 +413,49 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5A75EE015A537D14B822DE9A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34923805166AC511E92EB236 /* RuleEngineTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CCC49AA83A8F2A053690E358 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				1F95F2E0B418C91491491E48 /* AppTheme.swift in Sources */,
+				D8EEF2102493E3ABFD4EE2FF /* BookSource.swift in Sources */,
 				6BD6C55E9B5E2D781A09DB6B /* BookshelfIntent.swift in Sources */,
 				AC2662E33EE3C06E9C4939F6 /* BookshelfState.swift in Sources */,
 				D0F0FEA61625B516034C73B4 /* BookshelfView.swift in Sources */,
 				49DC6A201BD1CCFEC076A2E1 /* BookshelfViewModel.swift in Sources */,
+				385A62FC83CE45B963A8D79C /* CSSSelectorParser.swift in Sources */,
+				FEB003479C06B006CD3B9301 /* CharsetDetector.swift in Sources */,
 				920BAD93009B86B44AA1082B /* ContentView.swift in Sources */,
+				03AF360CB2D64647EBBB9C49 /* CookieJar.swift in Sources */,
 				C89E020B7E12AF89F987E13A /* GlassCard.swift in Sources */,
 				FCCC968B3F3B6C3F0D712D43 /* GlassFloatingBar.swift in Sources */,
+				C4D1A92471A9AFA848B3EC84 /* HTTPClient.swift in Sources */,
+				C80CB720B93D55ADAE23CC6D /* JSEngine.swift in Sources */,
+				36A679B29B3AC90A9D0DE4B2 /* JSONPathParser.swift in Sources */,
 				BC4F3DBE6AE72F01D9ACE782 /* LegadoApp.swift in Sources */,
 				D6F70266DA8CB742427C71B4 /* MVIViewModel.swift in Sources */,
+				4083FE8D2F41F76B86A64615 /* ParseBookSourceUseCase.swift in Sources */,
+				4F209A78B51F8972C035027E /* RuleAnalyzer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		17A0898F1AAAAAB662625624 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 545F723F8243B8264D863A84 /* Legado */;
+			targetProxy = 6EFBA978D2E19D135BA78261 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1008F408AA1428A45896270A /* Release */ = {
@@ -336,6 +518,42 @@
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
+		};
+		279372C4A648B73D30A64ED3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.theliser.legadotests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Legado.app/Legado";
+			};
+			name = Release;
+		};
+		3A170A988C78DAA1B821D2F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.theliser.legadotests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Legado.app/Legado";
+			};
+			name = Debug;
 		};
 		8AB3E3FCC8820D9722F576DE /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -467,6 +685,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		451503E854E225B81AFF0929 /* Build configuration list for PBXNativeTarget "LegadoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3A170A988C78DAA1B821D2F0 /* Debug */,
+				279372C4A648B73D30A64ED3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		C5A9AF168B7272EB87E8395A /* Build configuration list for PBXProject "Legado" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -477,6 +704,30 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		572B4A14EB4F81BFF47EB37F /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.7.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CB6899744A7A3C1DBDBC7980 /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 572B4A14EB4F81BFF47EB37F /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+		F679ABA63CD2BD11E85A4BA4 /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 572B4A14EB4F81BFF47EB37F /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 97C88D041936DFBF20C4AA23 /* Project object */;
 }
