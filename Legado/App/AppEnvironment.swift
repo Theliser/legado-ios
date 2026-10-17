@@ -15,6 +15,9 @@ public final class AppEnvironment: ObservableObject {
     public let saveBookToShelfUseCase: SaveBookToShelfUseCase
     public let getBookshelfUseCase: GetBookshelfUseCase
     public let removeBookFromShelfUseCase: RemoveBookFromShelfUseCase
+    public let getBookDetailUseCase: GetBookDetailUseCase
+    public let getBookTocUseCase: GetBookTocUseCase
+    public let checkBookUpdatesUseCase: CheckBookUpdatesUseCase
 
     public init(inMemory: Bool = false) {
         let provider = ModelContainerProvider(inMemory: inMemory)
@@ -30,6 +33,9 @@ public final class AppEnvironment: ObservableObject {
         self.saveBookToShelfUseCase = SaveBookToShelfUseCase(bookRepository: bookRepo)
         self.getBookshelfUseCase = GetBookshelfUseCase(bookRepository: bookRepo)
         self.removeBookFromShelfUseCase = RemoveBookFromShelfUseCase(bookRepository: bookRepo)
+        self.getBookDetailUseCase = GetBookDetailUseCase(sourceRepository: sourceRepo, bookRepository: bookRepo)
+        self.getBookTocUseCase = GetBookTocUseCase(sourceRepository: sourceRepo, bookRepository: bookRepo)
+        self.checkBookUpdatesUseCase = CheckBookUpdatesUseCase(bookRepository: bookRepo, sourceRepository: sourceRepo)
     }
 
     /// 创建搜索 ViewModel
@@ -38,5 +44,24 @@ public final class AppEnvironment: ObservableObject {
             searchBooksUseCase: searchBooksUseCase,
             saveBookToShelfUseCase: saveBookToShelfUseCase,
             getBookshelfUseCase: getBookshelfUseCase)
+    }
+
+    /// 创建书籍详情 ViewModel
+    public func makeBookDetailViewModel(book: Book) -> BookDetailViewModel {
+        BookDetailViewModel(
+            book: book,
+            getBookDetailUseCase: getBookDetailUseCase,
+            getBookTocUseCase: getBookTocUseCase,
+            saveBookToShelfUseCase: saveBookToShelfUseCase,
+            removeBookFromShelfUseCase: removeBookFromShelfUseCase,
+            bookRepository: bookRepository)
+    }
+
+    /// 创建书架 ViewModel
+    public func makeBookshelfViewModel() -> BookshelfViewModel {
+        BookshelfViewModel(
+            getBookshelfUseCase: getBookshelfUseCase,
+            removeBookFromShelfUseCase: removeBookFromShelfUseCase,
+            checkBookUpdatesUseCase: checkBookUpdatesUseCase)
     }
 }
