@@ -25,6 +25,9 @@ public final class AppEnvironment: ObservableObject {
     public let deleteBookSourceUseCase: DeleteBookSourceUseCase
     public let importBookSourcesUseCase: ImportBookSourcesUseCase
     public let debugBookSourceUseCase: DebugBookSourceUseCase
+    public let purifyContentUseCase: PurifyContentUseCase
+    public let backupToWebDAVUseCase: BackupToWebDAVUseCase
+    public let restoreFromWebDAVUseCase: RestoreFromWebDAVUseCase
 
     public init(inMemory: Bool = false) {
         let provider = ModelContainerProvider(inMemory: inMemory)
@@ -51,6 +54,13 @@ public final class AppEnvironment: ObservableObject {
         self.deleteBookSourceUseCase = DeleteBookSourceUseCase(sourceRepository: sourceRepo)
         self.importBookSourcesUseCase = ImportBookSourcesUseCase(sourceRepository: sourceRepo)
         self.debugBookSourceUseCase = DebugBookSourceUseCase()
+        self.purifyContentUseCase = PurifyContentUseCase()
+        self.backupToWebDAVUseCase = BackupToWebDAVUseCase(
+            bookRepository: bookRepo,
+            sourceRepository: sourceRepo)
+        self.restoreFromWebDAVUseCase = RestoreFromWebDAVUseCase(
+            bookRepository: bookRepo,
+            sourceRepository: sourceRepo)
 
         if !inMemory {
             primeSampleChapterCache()
@@ -230,5 +240,12 @@ public final class AppEnvironment: ObservableObject {
             deleteSourceUseCase: deleteBookSourceUseCase,
             importSourcesUseCase: importBookSourcesUseCase,
             debugSourceUseCase: debugBookSourceUseCase)
+    }
+
+    /// 创建系统设置 ViewModel
+    public func makeSettingsViewModel() -> SettingsViewModel {
+        SettingsViewModel(
+            backupUseCase: backupToWebDAVUseCase,
+            restoreUseCase: restoreFromWebDAVUseCase)
     }
 }

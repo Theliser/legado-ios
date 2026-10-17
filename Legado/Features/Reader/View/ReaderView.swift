@@ -6,6 +6,7 @@ public struct ReaderView: View {
     @StateObject private var viewModel: ReaderViewModel
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
+    @State private var isTTSSpeaking = false
 
     public init(viewModel: ReaderViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -63,12 +64,41 @@ public struct ReaderView: View {
                         },
                         onSelectTheme: { theme in
                             viewModel.send(.selectTheme(theme))
+                        },
+                        onStartTTS: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                                viewModel.send(.toggleHUD)
+                                isTTSSpeaking = true
+                            }
+                            let text = viewModel.state.currentChapterText
+                            TTSPlayer.shared.startReading(
+                                content: text,
+                                bookTitle: viewModel.state.book.name,
+                                chapterTitle: viewModel.state.currentChapter?.title ?? "",
+                                author: viewModel.state.book.author)
                         })
                         .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                }
+
+                // 朗读悬浮控制胶囊条
+                if isTTSSpeaking {
+                    VStack {
+                        Spacer()
+                        TTSFloatingBar {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                                isTTSSpeaking = false
+                            }
+                        }
+                        .padding(.bottom, 24)
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .onAppear {
                 viewModel.send(.updateScreenBounds(geometry.frame(in: .local)))
+            }
+            .onDisappear {
+                TTSPlayer.shared.stop()
             }
             .onChange(of: geometry.size) { _, newSize in
                 viewModel.send(.updateScreenBounds(CGRect(origin: .zero, size: newSize)))
