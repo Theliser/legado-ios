@@ -19,6 +19,12 @@ public final class AppEnvironment: ObservableObject {
     public let getBookTocUseCase: GetBookTocUseCase
     public let checkBookUpdatesUseCase: CheckBookUpdatesUseCase
     public let getChapterContentUseCase: GetChapterContentUseCase
+    public let getExploreCategoriesUseCase: GetExploreCategoriesUseCase
+    public let exploreBooksUseCase: ExploreBooksUseCase
+    public let toggleBookSourceEnabledUseCase: ToggleBookSourceEnabledUseCase
+    public let deleteBookSourceUseCase: DeleteBookSourceUseCase
+    public let importBookSourcesUseCase: ImportBookSourcesUseCase
+    public let debugBookSourceUseCase: DebugBookSourceUseCase
 
     public init(inMemory: Bool = false) {
         let provider = ModelContainerProvider(inMemory: inMemory)
@@ -38,6 +44,13 @@ public final class AppEnvironment: ObservableObject {
         self.getBookTocUseCase = GetBookTocUseCase(sourceRepository: sourceRepo, bookRepository: bookRepo)
         self.checkBookUpdatesUseCase = CheckBookUpdatesUseCase(bookRepository: bookRepo, sourceRepository: sourceRepo)
         self.getChapterContentUseCase = GetChapterContentUseCase(sourceRepository: sourceRepo)
+
+        self.getExploreCategoriesUseCase = GetExploreCategoriesUseCase(sourceRepository: sourceRepo)
+        self.exploreBooksUseCase = ExploreBooksUseCase(sourceRepository: sourceRepo)
+        self.toggleBookSourceEnabledUseCase = ToggleBookSourceEnabledUseCase(sourceRepository: sourceRepo)
+        self.deleteBookSourceUseCase = DeleteBookSourceUseCase(sourceRepository: sourceRepo)
+        self.importBookSourcesUseCase = ImportBookSourcesUseCase(sourceRepository: sourceRepo)
+        self.debugBookSourceUseCase = DebugBookSourceUseCase()
 
         if !inMemory {
             primeSampleChapterCache()
@@ -71,15 +84,27 @@ public final class AppEnvironment: ObservableObject {
 
     private func seedSampleSourcesIfNeeded() async {
         let sources = (try? await bookSourceRepository.fetchSources()) ?? []
-        guard sources.isEmpty else { return }
-
         let sampleSource = BookSource(
             bookSourceUrl: "https://biquge.example.com",
             bookSourceName: "笔趣阁官方",
             bookSourceType: 0,
+            exploreUrl: """
+            玄幻奇幻::/sort/1_{{page}}.html
+            武侠仙侠::/sort/2_{{page}}.html
+            都市言情::/sort/3_{{page}}.html
+            历史军事::/sort/4_{{page}}.html
+            """,
             bookSourceComment: "内置演示书源",
             ruleSearch: RuleSearch(
                 checkKeyWord: "宿命",
+                bookList: ".item",
+                name: "dt a@text",
+                author: "dt span@text",
+                kind: ".book-kind@text",
+                intro: ".intro@text",
+                coverUrl: "img@src",
+                bookUrl: "dt a@href"),
+            ruleExplore: RuleExplore(
                 bookList: ".item",
                 name: "dt a@text",
                 author: "dt span@text",
@@ -97,7 +122,14 @@ public final class AppEnvironment: ObservableObject {
                 chapterUrl: "href"),
             ruleContent: RuleContent(
                 content: "#content@text"))
-        try? await bookSourceRepository.saveSources([sampleSource])
+
+        if let existing = sources.first(where: { $0.bookSourceUrl == sampleSource.bookSourceUrl }) {
+            if existing.exploreUrl == nil || existing.ruleExplore == nil {
+                try? await bookSourceRepository.saveSources([sampleSource])
+            }
+        } else {
+            try? await bookSourceRepository.saveSources([sampleSource])
+        }
     }
 
     private func seedSampleBookshelfIfNeeded() async {
@@ -181,5 +213,22 @@ public final class AppEnvironment: ObservableObject {
             getChapterContentUseCase: getChapterContentUseCase,
             getBookTocUseCase: getBookTocUseCase,
             bookRepository: bookRepository)
+    }
+
+    /// 创建发现 ViewModel
+    public func makeExploreViewModel() -> ExploreViewModel {
+        ExploreViewModel(
+            getExploreCategoriesUseCase: getExploreCategoriesUseCase,
+            exploreBooksUseCase: exploreBooksUseCase)
+    }
+
+    /// 创建书源管理 ViewModel
+    public func makeSourceManageViewModel() -> SourceManageViewModel {
+        SourceManageViewModel(
+            sourceRepository: bookSourceRepository,
+            toggleEnabledUseCase: toggleBookSourceEnabledUseCase,
+            deleteSourceUseCase: deleteBookSourceUseCase,
+            importSourcesUseCase: importBookSourcesUseCase,
+            debugSourceUseCase: debugBookSourceUseCase)
     }
 }
