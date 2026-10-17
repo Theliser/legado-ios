@@ -59,3 +59,9 @@ open class BaseMVIViewModel<State: ViewState, Intent: ViewIntent, Effect: ViewEf
         effectSubject.send(effect)
     }
 }
+
+public typealias MVIViewModel<
+    State: ViewState,
+    Intent: ViewIntent,
+    Effect: ViewEffect
+> = BaseMVIViewModel<State, Intent, Effect>
