@@ -52,4 +52,8 @@ public struct ReaderState: ViewState, Equatable, Sendable {
         guard currentPageIndex >= 0, currentPageIndex < pages.count else { return nil }
         return pages[currentPageIndex]
     }
+
+    public var currentChapterText: String {
+        pages.map(\.contentText).joined()
+    }
 }

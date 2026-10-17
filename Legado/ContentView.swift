@@ -57,16 +57,7 @@ struct ContentView: View {
             }
 
             Tab(MainTab.settings.title, systemImage: MainTab.settings.icon, value: .settings) {
-                NavigationStack {
-                    ZStack {
-                        Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
-                        ContentUnavailableView(
-                            "系统设置",
-                            systemImage: "gearshape.fill",
-                            description: Text("排版偏好、WebDAV 云备份及外观配置"))
-                    }
-                    .navigationTitle("设置")
-                }
+                SettingsView(viewModel: environment.makeSettingsViewModel())
             }
         }
         .fullScreenCover(isPresented: $demoReaderPresented) {
@@ -93,6 +84,8 @@ struct ContentView: View {
                 selectedTab = .explore
             } else if ProcessInfo.processInfo.arguments.contains("--tab-source") {
                 selectedTab = .sourceManage
+            } else if ProcessInfo.processInfo.arguments.contains("--tab-settings") {
+                selectedTab = .settings
             }
         }
     }
