@@ -1,0 +1,172 @@
+import SwiftUI
+
+/// 沉浸式阅读器主视图 (纯声明式渲染 View = f(State))
+public struct ReaderView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var viewModel: ReaderViewModel
+    @State private var toastMessage: String?
+    @State private var hapticTrigger = false
+
+    public init(viewModel: ReaderViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
+
+    public var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // 背景配色
+                viewModel.state.config.theme.backgroundColor
+                    .ignoresSafeArea()
+
+                // 单页正文排版
+                if let page = viewModel.state.currentPage {
+                    ReaderPageView(
+                        page: page,
+                        totalPages: viewModel.state.pages.count,
+                        config: viewModel.state.config)
+                } else if viewModel.state.isLoading {
+                    ProgressView("正在排版正文...")
+                        .tint(viewModel.state.config.theme.textColor)
+                } else {
+                    ContentUnavailableView(
+                        "章节内容加载失败",
+                        systemImage: "book.pages",
+                        description: Text("轻触屏幕中央呼出控制栏"))
+                }
+
+                // 全屏交互手势热区 (左30% 上一页，中40% 呼出HUD，右30% 下一页)
+                tapGestureOverlay(width: geometry.size.width)
+
+                // 液态玻璃 HUD 控制面板
+                if viewModel.state.isHUDVisible {
+                    ReaderHUDView(
+                        bookTitle: viewModel.state.book.name,
+                        currentChapterTitle: viewModel.state.currentChapter?.title ?? "",
+                        currentChapterIndex: viewModel.state.currentChapterIndex,
+                        totalChapters: viewModel.state.chapters.count,
+                        config: viewModel.state.config,
+                        isConfigOpen: viewModel.state.isConfigSheetVisible,
+                        onBack: { dismiss() },
+                        onPreviousChapter: {
+                            viewModel.send(.loadChapter(viewModel.state.currentChapterIndex - 1))
+                        },
+                        onNextChapter: {
+                            viewModel.send(.loadChapter(viewModel.state.currentChapterIndex + 1))
+                        },
+                        onSliderChange: { newIndex in
+                            viewModel.send(.loadChapter(Int(newIndex)))
+                        },
+                        onOpenToc: { viewModel.send(.openToc) },
+                        onToggleConfig: { viewModel.send(.openConfig) },
+                        onFontSizeChange: { delta in
+                            viewModel.send(.changeFontSize(delta: delta))
+                        },
+                        onSelectTheme: { theme in
+                            viewModel.send(.selectTheme(theme))
+                        })
+                        .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                }
+            }
+            .onAppear {
+                viewModel.send(.updateScreenBounds(geometry.frame(in: .local)))
+            }
+            .onChange(of: geometry.size) { _, newSize in
+                viewModel.send(.updateScreenBounds(CGRect(origin: .zero, size: newSize)))
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .statusBarHidden(!viewModel.state.isHUDVisible)
+        .sensoryFeedback(.impact(weight: .light), trigger: hapticTrigger)
+        .sheet(isPresented: Binding(
+            get: { viewModel.state.isTocSheetVisible },
+            set: {
+                if !$0 {
+                    viewModel.send(.closeToc)
+                }
+            })) {
+                BookTocSheet(
+                    chapters: viewModel.state.chapters,
+                    durChapterIndex: viewModel.state.currentChapterIndex,
+                    isReverse: false,
+                    searchText: "",
+                    onToggleReverse: {},
+                    onSearchChange: { _ in },
+                    onSelectChapter: { chapter in
+                        viewModel.send(.closeToc)
+                        viewModel.send(.loadChapter(chapter.index))
+                    })
+        }
+        .onReceive(viewModel.effectPublisher) { effect in
+            switch effect {
+            case let .showToast(msg):
+                toastMessage = msg
+                Task {
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    if toastMessage == msg {
+                        toastMessage = nil
+                    }
+                }
+
+            case .hapticFeedback:
+                hapticTrigger.toggle()
+
+            case .navigateBack:
+                dismiss()
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if let toastMessage {
+                Text(toastMessage)
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(.ultraThinMaterial)
+                    .background(Color.black.opacity(0.65))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule().stroke(Color.white.opacity(0.2), lineWidth: 0.5))
+                    .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+                    .padding(.bottom, 32)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .animation(.spring(response: 0.35, dampingFraction: 0.8), value: toastMessage)
+            }
+        }
+    }
+
+    private func tapGestureOverlay(width: CGFloat) -> some View {
+        HStack(spacing: 0) {
+            // 左侧 30% 热区 (上一页)
+            Color.clear
+                .contentShape(Rectangle())
+                .frame(width: width * 0.3)
+                .onTapGesture {
+                    if viewModel.state.isHUDVisible {
+                        viewModel.send(.hideHUD)
+                    } else {
+                        viewModel.send(.prevPage)
+                    }
+                }
+
+            // 中间 40% 热区 (呼出/隐藏 HUD)
+            Color.clear
+                .contentShape(Rectangle())
+                .frame(width: width * 0.4)
+                .onTapGesture {
+                    viewModel.send(.toggleHUD)
+                }
+
+            // 右侧 30% 热区 (下一页)
+            Color.clear
+                .contentShape(Rectangle())
+                .frame(width: width * 0.3)
+                .onTapGesture {
+                    if viewModel.state.isHUDVisible {
+                        viewModel.send(.hideHUD)
+                    } else {
+                        viewModel.send(.nextPage)
+                    }
+                }
+        }
+    }
+}

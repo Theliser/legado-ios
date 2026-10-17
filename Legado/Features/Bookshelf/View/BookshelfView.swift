@@ -7,6 +7,7 @@ public struct BookshelfView: View {
     @State private var activeToast: String?
     @State private var searchText = ""
     @State private var selectedBookForDetail: Book?
+    @State private var readerDestination: ReaderDestination?
     @State private var hapticTrigger = false
 
     public init(viewModel: BookshelfViewModel) {
@@ -90,11 +91,15 @@ public struct BookshelfView: View {
             .navigationDestination(item: $selectedBookForDetail) { book in
                 BookDetailView(viewModel: environment.makeBookDetailViewModel(book: book))
             }
+            .fullScreenCover(item: $readerDestination) { dest in
+                ReaderView(viewModel: environment.makeReaderViewModel(
+                    book: dest.book,
+                    initialChapterIndex: dest.chapterIndex))
+            }
             .onReceive(viewModel.effectPublisher) { effect in
                 switch effect {
                 case let .navigateToReader(book):
-                    // 阅读器导航
-                    activeToast = "进入阅读：《\(book.name)》"
+                    readerDestination = ReaderDestination(book: book, chapterIndex: book.durChapterIndex)
 
                 case let .navigateToDetail(book):
                     selectedBookForDetail = book
@@ -175,7 +180,7 @@ public struct BookshelfView: View {
             } else {
                 ForEach(filteredBooks) { book in
                     Button {
-                        viewModel.send(.openBookDetail(book))
+                        viewModel.send(.didSelectBook(book))
                     } label: {
                         bookRowView(book: book)
                     }

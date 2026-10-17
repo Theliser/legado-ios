@@ -87,7 +87,31 @@ struct ContentView: View {
                 }
             }
         }
+        .fullScreenCover(isPresented: $demoReaderPresented) {
+            let sampleBook = Book(
+                bookUrl: "https://biquge.example.com/book/circle_of_inevitability",
+                tocUrl: "https://biquge.example.com/book/circle_of_inevitability/toc",
+                origin: "https://biquge.example.com",
+                originName: "笔趣阁官方",
+                name: "宿命之环",
+                author: "爱潜水的乌贼",
+                durChapterTitle: "第一章 宿命之始",
+                durChapterIndex: 0)
+            let showHUD = ProcessInfo.processInfo.arguments.contains("--open-reader-hud")
+            ReaderView(viewModel: environment.makeReaderViewModel(
+                book: sampleBook,
+                initialChapterIndex: 0,
+                showHUDInitially: showHUD))
+        }
+        .onAppear {
+            if ProcessInfo.processInfo.arguments.contains("--open-reader-demo") ||
+                ProcessInfo.processInfo.arguments.contains("--open-reader-hud") {
+                demoReaderPresented = true
+            }
+        }
     }
+
+    @State private var demoReaderPresented = false
 }
 
 #Preview {
