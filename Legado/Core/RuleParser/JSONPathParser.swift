@@ -67,4 +67,61 @@ public enum JSONPathParser {
 
         return []
     }
+
+    /// 从 JSON 中提取对象数组（用于列表行解析）
+    public static func parseArray(json: String, path: String) -> [Any]? {
+        guard let data = json.data(using: .utf8),
+              let root = try? JSONSerialization.jsonObject(with: data) else {
+            return nil
+        }
+        var cleanPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        if cleanPath.hasPrefix("@Json:") {
+            cleanPath = String(cleanPath.dropFirst(6))
+        }
+        if cleanPath.hasPrefix("$.") {
+            cleanPath = String(cleanPath.dropFirst(2))
+        } else if cleanPath.hasPrefix("$") {
+            cleanPath = String(cleanPath.dropFirst(1))
+        }
+
+        let segments = cleanPath.split(separator: ".").map(String.init)
+        return extractObjects(current: root, segments: segments)
+    }
+
+    private static func extractObjects(current: Any, segments: [String]) -> [Any]? {
+        guard let first = segments.first else {
+            if let arr = current as? [Any] {
+                return arr
+            }
+            return [current]
+        }
+
+        let remaining = Array(segments.dropFirst())
+        if first.hasSuffix("[*]") {
+            let key = String(first.dropLast(3))
+            var arrayNode: [Any]?
+            if key.isEmpty {
+                arrayNode = current as? [Any]
+            } else if let dict = current as? [String: Any] {
+                arrayNode = dict[key] as? [Any]
+            }
+            guard let items = arrayNode else { return nil }
+            if remaining.isEmpty {
+                return items
+            }
+            var results: [Any] = []
+            for item in items {
+                if let sub = extractObjects(current: item, segments: remaining) {
+                    results.append(contentsOf: sub)
+                }
+            }
+            return results
+        }
+
+        if let dict = current as? [String: Any], let nextNode = dict[first] {
+            return extractObjects(current: nextNode, segments: remaining)
+        }
+
+        return nil
+    }
 }
