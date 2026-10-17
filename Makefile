@@ -29,6 +29,9 @@ format-check:
 build:
 	@xcodebuild -project Legado.xcodeproj -scheme Legado -destination 'platform=iOS Simulator,name=iPhone 17' build | xcbeautify
 
+test:
+	@xcodebuild -project Legado.xcodeproj -scheme Legado -destination 'platform=iOS Simulator,name=iPhone 17' test | xcbeautify
+
 clean:
 	@rm -rf .build DerivedData .derivedData
 	@xcodebuild -project Legado.xcodeproj -scheme Legado clean | xcbeautify
