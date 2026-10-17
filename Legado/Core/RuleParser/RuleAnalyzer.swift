@@ -55,7 +55,7 @@ public final class RuleAnalyzer {
     }
 
     /// 执行正文正则替换：格式为 `##find##replace`
-    public func applyRegexReplace(text: String, regexRule: String) -> String {
+    public static func applyRegexReplace(text: String, regexRule: String) -> String {
         let parts = regexRule.components(separatedBy: "##")
         guard parts.count >= 2 else { return text }
 

@@ -2,9 +2,11 @@ import SwiftUI
 
 /// 书籍详情页面视图 (纯声明式渲染 View = f(State))
 public struct BookDetailView: View {
+    @EnvironmentObject private var environment: AppEnvironment
     @StateObject private var viewModel: BookDetailViewModel
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
+    @State private var readerDestination: ReaderDestination?
 
     public init(viewModel: BookDetailViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -91,10 +93,14 @@ public struct BookDetailView: View {
             case .hapticFeedback:
                 hapticTrigger.toggle()
 
-            case .navigateToReader:
-                // 阅读器导航后续里程碑接驳
-                break
+            case let .navigateToReader(chapterIndex):
+                readerDestination = ReaderDestination(book: viewModel.state.book, chapterIndex: chapterIndex)
             }
+        }
+        .fullScreenCover(item: $readerDestination) { dest in
+            ReaderView(viewModel: environment.makeReaderViewModel(
+                book: dest.book,
+                initialChapterIndex: dest.chapterIndex))
         }
         .overlay(alignment: .bottom) {
             if let toastMessage {
