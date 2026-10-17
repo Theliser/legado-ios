@@ -49,29 +49,11 @@ struct ContentView: View {
             }
 
             Tab(MainTab.explore.title, systemImage: MainTab.explore.icon, value: .explore) {
-                NavigationStack {
-                    ZStack {
-                        Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
-                        ContentUnavailableView(
-                            "发现好书",
-                            systemImage: "compass.drawing",
-                            description: Text("支持从已配置的书源中探索榜单与分类排版"))
-                    }
-                    .navigationTitle("发现")
-                }
+                ExploreView(viewModel: environment.makeExploreViewModel())
             }
 
             Tab(MainTab.sourceManage.title, systemImage: MainTab.sourceManage.icon, value: .sourceManage) {
-                NavigationStack {
-                    ZStack {
-                        Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
-                        ContentUnavailableView(
-                            "书源管理",
-                            systemImage: "network",
-                            description: Text("导入、调试、校验与编辑 Legado 书源规则"))
-                    }
-                    .navigationTitle("书源")
-                }
+                SourceManageView(viewModel: environment.makeSourceManageViewModel())
             }
 
             Tab(MainTab.settings.title, systemImage: MainTab.settings.icon, value: .settings) {
@@ -107,6 +89,10 @@ struct ContentView: View {
             if ProcessInfo.processInfo.arguments.contains("--open-reader-demo") ||
                 ProcessInfo.processInfo.arguments.contains("--open-reader-hud") {
                 demoReaderPresented = true
+            } else if ProcessInfo.processInfo.arguments.contains("--tab-explore") {
+                selectedTab = .explore
+            } else if ProcessInfo.processInfo.arguments.contains("--tab-source") {
+                selectedTab = .sourceManage
             }
         }
     }
