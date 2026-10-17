@@ -41,7 +41,7 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             Tab(MainTab.bookshelf.title, systemImage: MainTab.bookshelf.icon, value: .bookshelf) {
-                BookshelfView()
+                BookshelfView(viewModel: environment.makeBookshelfViewModel())
             }
 
             Tab(MainTab.search.title, systemImage: MainTab.search.icon, value: .search) {
