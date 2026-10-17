@@ -1,0 +1,24 @@
+# Windsurf Rules — Legado iOS
+
+1. **Native-First UI & Liquid Glass Fallback**:
+   - Always prioritize Apple official native components (`TabView` + `Tab`, `NavigationStack`, `.searchable`, `Menu`). Never hand-craft fake bottom bars or containers.
+   - Fallback to iOS Native Liquid Glass design (`.ultraThinMaterial`, 0.5pt subtle borders, SF Symbols 6) ONLY when native components cannot fulfill the requirement (e.g. reader HUDs).
+   - Never use Android Material Design 3.
+2. **Strict MVI Architecture**:
+   - `View` has 0 business logic and no direct data calculation. `View = f(State)`.
+   - All user actions send an `Intent` via `viewModel.send(...)`.
+   - `ViewModel` manages single immutable `State: Equatable`.
+   - Business use cases live in `Domain/UseCases/` (Pure Swift, zero UI dependencies).
+3. **Module & File Locations**:
+   - Feature screens belong in `Legado/Features/<FeatureName>/` containing:
+     - `View/<FeatureName>View.swift`
+     - `Intent/<FeatureName>Intent.swift`
+     - `State/<FeatureName>State.swift`
+     - `ViewModel/<FeatureName>ViewModel.swift`
+   - Reusable Liquid Glass UI components belong in `Legado/DesignSystem/`.
+   - Parser and script engines belong in `Legado/Core/`.
+   - Persistence and repositories belong in `Legado/Data/`.
+4. **Commands**:
+   - Build: `make build`
+   - Check format & lint: `make format-check`
+   - Regenerate Xcode project: `make generate`

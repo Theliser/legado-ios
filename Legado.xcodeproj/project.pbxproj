@@ -7,16 +7,32 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1F95F2E0B418C91491491E48 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F745F58D070587F9128C8B82 /* AppTheme.swift */; };
+		49DC6A201BD1CCFEC076A2E1 /* BookshelfViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3777B09847394FBF2114ABBB /* BookshelfViewModel.swift */; };
+		6BD6C55E9B5E2D781A09DB6B /* BookshelfIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D19B918137E163267DB3305 /* BookshelfIntent.swift */; };
 		85F3664EB88C09D78AE55377 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 745D29A1C38C7CC05B260B2B /* Assets.xcassets */; };
 		920BAD93009B86B44AA1082B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA8683896300F879605C423 /* ContentView.swift */; };
+		AC2662E33EE3C06E9C4939F6 /* BookshelfState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45DB483B476C3B988230547 /* BookshelfState.swift */; };
 		BC4F3DBE6AE72F01D9ACE782 /* LegadoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 605CC8429F35E3D40CB97EC7 /* LegadoApp.swift */; };
+		C89E020B7E12AF89F987E13A /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CCF173694648950ED00AD47 /* GlassCard.swift */; };
+		D0F0FEA61625B516034C73B4 /* BookshelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA58C58347B5CD0D9E3EBF1 /* BookshelfView.swift */; };
+		D6F70266DA8CB742427C71B4 /* MVIViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FD9C38A2DC037B9B813B7B /* MVIViewModel.swift */; };
+		FCCC968B3F3B6C3F0D712D43 /* GlassFloatingBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21DD55CED5927B17EB1DC7 /* GlassFloatingBar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3777B09847394FBF2114ABBB /* BookshelfViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfViewModel.swift; sourceTree = "<group>"; };
+		3AA58C58347B5CD0D9E3EBF1 /* BookshelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfView.swift; sourceTree = "<group>"; };
+		3CCF173694648950ED00AD47 /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
 		3DA8683896300F879605C423 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		50FD9C38A2DC037B9B813B7B /* MVIViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MVIViewModel.swift; sourceTree = "<group>"; };
 		5E494EB6E5276C0FA16C637F /* Legado.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Legado.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		605CC8429F35E3D40CB97EC7 /* LegadoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegadoApp.swift; sourceTree = "<group>"; };
 		745D29A1C38C7CC05B260B2B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7C21DD55CED5927B17EB1DC7 /* GlassFloatingBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassFloatingBar.swift; sourceTree = "<group>"; };
+		7D19B918137E163267DB3305 /* BookshelfIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfIntent.swift; sourceTree = "<group>"; };
+		A45DB483B476C3B988230547 /* BookshelfState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfState.swift; sourceTree = "<group>"; };
+		F745F58D070587F9128C8B82 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -28,12 +44,31 @@
 			);
 			sourceTree = "<group>";
 		};
+		413E16A221C07E0842F23DAF /* Materials */ = {
+			isa = PBXGroup;
+			children = (
+				3CCF173694648950ED00AD47 /* GlassCard.swift */,
+			);
+			path = Materials;
+			sourceTree = "<group>";
+		};
+		4C1AACE4183191C543B1902C /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				3777B09847394FBF2114ABBB /* BookshelfViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		5D63B928D47EE3FF922ED119 /* Legado */ = {
 			isa = PBXGroup;
 			children = (
 				745D29A1C38C7CC05B260B2B /* Assets.xcassets */,
 				3DA8683896300F879605C423 /* ContentView.swift */,
 				605CC8429F35E3D40CB97EC7 /* LegadoApp.swift */,
+				F6652446051FEC479B6F81D6 /* Core */,
+				EABA6EAB0A303A00C8C31500 /* DesignSystem */,
+				C5EDD4BFDEC5481019E52B11 /* Features */,
 			);
 			path = Legado;
 			sourceTree = "<group>";
@@ -46,6 +81,91 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		99404FD77BB34131F7BCF722 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				F745F58D070587F9128C8B82 /* AppTheme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		A0F6D01DC0C6117EC7300A32 /* State */ = {
+			isa = PBXGroup;
+			children = (
+				A45DB483B476C3B988230547 /* BookshelfState.swift */,
+			);
+			path = State;
+			sourceTree = "<group>";
+		};
+		B06A4471D5B4CCA2CA8BF4D3 /* Intent */ = {
+			isa = PBXGroup;
+			children = (
+				7D19B918137E163267DB3305 /* BookshelfIntent.swift */,
+			);
+			path = Intent;
+			sourceTree = "<group>";
+		};
+		C5EDD4BFDEC5481019E52B11 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				FBEA087FE2BDD5275A4513C8 /* Bookshelf */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		CD65A8F0470C91FB372B8F4C /* View */ = {
+			isa = PBXGroup;
+			children = (
+				3AA58C58347B5CD0D9E3EBF1 /* BookshelfView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		D2D407893E979F224C57ABAE /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				7C21DD55CED5927B17EB1DC7 /* GlassFloatingBar.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		EABA6EAB0A303A00C8C31500 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				D2D407893E979F224C57ABAE /* Components */,
+				413E16A221C07E0842F23DAF /* Materials */,
+				99404FD77BB34131F7BCF722 /* Theme */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		F35943A49C8BCD3B895A5CCD /* Architecture */ = {
+			isa = PBXGroup;
+			children = (
+				50FD9C38A2DC037B9B813B7B /* MVIViewModel.swift */,
+			);
+			path = Architecture;
+			sourceTree = "<group>";
+		};
+		F6652446051FEC479B6F81D6 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				F35943A49C8BCD3B895A5CCD /* Architecture */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		FBEA087FE2BDD5275A4513C8 /* Bookshelf */ = {
+			isa = PBXGroup;
+			children = (
+				B06A4471D5B4CCA2CA8BF4D3 /* Intent */,
+				A0F6D01DC0C6117EC7300A32 /* State */,
+				CD65A8F0470C91FB372B8F4C /* View */,
+				4C1AACE4183191C543B1902C /* ViewModel */,
+			);
+			path = Bookshelf;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -53,6 +173,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1799323148C07C0AECB8B810 /* Build configuration list for PBXNativeTarget "Legado" */;
 			buildPhases = (
+				D8A65BB4C1DAB7DDF9EF7925 /* SwiftLint */,
 				CCC49AA83A8F2A053690E358 /* Sources */,
 				FB93DF81CD275AAACC1099D7 /* Resources */,
 			);
@@ -112,13 +233,43 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		D8A65BB4C1DAB7DDF9EF7925 /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin:/usr/local/bin\"\nif which swiftlint >/dev/null 2>&1; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		CCC49AA83A8F2A053690E358 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1F95F2E0B418C91491491E48 /* AppTheme.swift in Sources */,
+				6BD6C55E9B5E2D781A09DB6B /* BookshelfIntent.swift in Sources */,
+				AC2662E33EE3C06E9C4939F6 /* BookshelfState.swift in Sources */,
+				D0F0FEA61625B516034C73B4 /* BookshelfView.swift in Sources */,
+				49DC6A201BD1CCFEC076A2E1 /* BookshelfViewModel.swift in Sources */,
 				920BAD93009B86B44AA1082B /* ContentView.swift in Sources */,
+				C89E020B7E12AF89F987E13A /* GlassCard.swift in Sources */,
+				FCCC968B3F3B6C3F0D712D43 /* GlassFloatingBar.swift in Sources */,
 				BC4F3DBE6AE72F01D9ACE782 /* LegadoApp.swift in Sources */,
+				D6F70266DA8CB742427C71B4 /* MVIViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,6 +316,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -225,6 +377,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -259,6 +412,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -283,6 +437,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

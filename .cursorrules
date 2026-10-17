@@ -1,0 +1,13 @@
+# Cursor Rules — Legado iOS
+
+Always follow the instructions in:
+- `AGENTS.md` (authoritative base spec)
+- `.cursor/rules/architecture-mvi.mdc`
+- `.cursor/rules/ui-liquid-glass.mdc`
+- `.cursor/rules/file-structure.mdc`
+
+Key points:
+- Style: Native-First Principle (Always prioritize Apple official native components; fallback to iOS Liquid Glass specification only when native cannot fulfill). No Android MD3.
+- Architecture: Strict MVI (Model-View-Intent). View has zero business logic and emits Intents. ViewModel exposes single immutable State.
+- Every feature lives in `Legado/Features/<FeatureName>/` with View, Intent, State, ViewModel.
+- Build & Verification: Use `make format-check` and `make build`.

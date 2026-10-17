@@ -1,0 +1,29 @@
+---
+description: Architecture rules for Legado iOS MVI (Model-View-Intent) and Clean Architecture
+globs: Legado/**/*.swift
+---
+
+# Architecture Rules: MVI (Model-View-Intent) & Clean Architecture
+
+## 1. View Layer Rules
+- The SwiftUI `View` MUST be a pure render function of `viewModel.state`: `View = f(State)`.
+- **Zero Business Logic**:
+  - NO sorting, filtering, searching, or mathematical formatting inside View bodies or computed properties.
+  - NO direct calls to database, repositories, network, or file managers.
+- **Intent Dispatch**:
+  - All user actions (button taps, text inputs, onAppear, scroll events) MUST be dispatched as an Intent via `viewModel.send(.someIntent)`.
+- **Local State (`@State`) Constraint**:
+  - `@State` is ONLY permitted for transient UI/animation flags (e.g. `@State private var isMenuExpanded = false`). All actual data MUST reside in `viewModel.state`.
+
+## 2. ViewModel Rules
+- Must be annotated with `@MainActor`.
+- Must conform to `MVIViewModel<State, Intent, Effect>`.
+- Expose a single immutable `@Published private(set) var state: State`.
+- Handle `Intent`s sequentially or via Swift Concurrency tasks.
+- Coordinate with Domain UseCases to fetch and transform data.
+- Emit one-off events (Toasts, navigation triggers, sensory haptics) via `Effect` channel.
+
+## 3. Domain & Data Rules
+- Domain models (`Domain/Model/`) and UseCases (`Domain/UseCases/`) MUST NOT import `SwiftUI` or `UIKit`.
+- ViewModels communicate with Repositories through Protocols (`Domain/Repository/`).
+- Concrete database (SwiftData/SQLite) operations are encapsulated in `Data/`.

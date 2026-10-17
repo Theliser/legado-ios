@@ -1,0 +1,37 @@
+---
+description: UI & UX design rules for iOS Native Liquid Glass (Materials, SF Symbols, Vibrancy)
+globs: Legado/**/*.swift
+---
+
+# UI Rules: Native-First Principle & Liquid Glass Fallback
+
+## 1. Native-First Component Selection (Top Priority)
+- **Always prioritize Apple official native components**:
+  - Root navigation: iOS 18+ `TabView` + `Tab` (native floating liquid bubble tab bar).
+  - Search: native `.searchable`.
+  - Navigation: native `NavigationStack`.
+  - Context menus: native `Menu`.
+  - Placeholders: native `ContentUnavailableView`.
+  - Modal sheets: native `.presentationDetents([.medium, .large])` with `.presentationBackground(.ultraThinMaterial)`.
+- **Do NOT reinvent wheels**: Never use `ZStack` to hand-craft fake bottom bars, fake nav bars, or fake alert dialogs.
+
+## 2. Liquid Glass Fallback (When Native Cannot Fulfill)
+- Only when native components cannot achieve the required interaction (e.g. novel reader immersive pagination, custom typography adjustment HUDs, live source debugging console), design custom components strictly following the iOS Liquid Glass specification:
+  - Frosted glass materials: `.background(.ultraThinMaterial)` or `.background(.thinMaterial)`.
+  - Micro-light borders: `.overlay(RoundedRectangle(...).stroke(.white.opacity(0.15), lineWidth: 0.5))` (dark) or `.stroke(.white.opacity(0.35), lineWidth: 0.5)` (light).
+  - Floating panels and cards (`GlassCard`).
+  - Prohibited: Android Material Design 3 patterns (MD3 FABs, pill navbars, Android ripples).
+
+## 2. Colors & Typography
+- Dynamic System Colors: `.foregroundStyle(.primary)`, `.secondary`, `.tertiary`.
+- Brand accent tint: adaptive reading blue/amber translucency.
+- Dark mode: full OLED black immersion support with frosted overlay controls.
+
+## 3. Navigation & Tab Bar (Strictly First-Party)
+- **Do NOT build custom ZStack fake bottom bars**. Always use Apple's official **iOS 18+ `TabView` and `Tab` APIs**.
+- Use native `.searchable` for liquid glass search fields.
+- Motion & Haptics:
+  - Spring animations: `.animation(.spring(response: 0.35, dampingFraction: 0.82), value: ...)`.
+  - Sensory feedback: `.sensoryFeedback(.impact(weight: .light), trigger: ...)`.
+  - SF Symbols 6: Use variable color or hierarchical rendering (`.symbolRenderingMode(.hierarchical)`).
+  - Modal presentation: Use native sheet detents (`.presentationDetents([.medium, .large])`) with `.presentationBackground(.ultraThinMaterial)`.

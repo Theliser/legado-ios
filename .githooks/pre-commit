@@ -1,0 +1,36 @@
+#!/bin/sh
+
+export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"
+
+echo "🔍 Running pre-commit checks..."
+
+# Check if swiftformat is installed
+if which swiftformat >/dev/null 2>&1; then
+    # Get staged Swift files
+    STAGED_SWIFT_FILES=$(git diff --cached --name-only --diff-filter=d | grep '\.swift$' || true)
+    if [ -n "$STAGED_SWIFT_FILES" ]; then
+        echo "  → Formatting staged Swift files..."
+        echo "$STAGED_SWIFT_FILES" | while read -r file; do
+            if [ -f "$file" ]; then
+                swiftformat "$file"
+                git add "$file"
+            fi
+        done
+    fi
+else
+    echo "  ⚠️ SwiftFormat not installed. Run 'brew install swiftformat' to enable."
+fi
+
+# Check if swiftlint is installed
+if which swiftlint >/dev/null 2>&1; then
+    echo "  → Running SwiftLint..."
+    swiftlint lint --quiet --strict
+    if [ $? -ne 0 ]; then
+        echo "❌ SwiftLint found violations. Please fix before committing."
+        exit 1
+    fi
+else
+    echo "  ⚠️ SwiftLint not installed. Run 'brew install swiftlint' to enable."
+fi
+
+echo "✅ Pre-commit checks passed!"

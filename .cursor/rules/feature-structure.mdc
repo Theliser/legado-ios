@@ -1,0 +1,36 @@
+---
+description: Directory, file organization, and feature addition rules for Legado iOS
+globs: **/*
+---
+
+# File & Directory Organization Rules
+
+## 1. Directory Structure
+```
+Legado/
+├── App/                       # App lifecycle & DI (LegadoApp.swift, AppEnvironment.swift)
+├── Core/                      # Low-level primitives (Architecture, Network, ScriptEngine, RuleParser, Utilities)
+├── DesignSystem/              # Liquid Glass UI kit (Materials, Components, Theme, Typography)
+├── Domain/                    # Pure Swift business entities & UseCases (no UI imports)
+│   ├── Model/
+│   ├── Repository/
+│   └── UseCases/
+├── Data/                      # Database (SwiftData/SQLite), Repositories, WebDAV
+└── Features/                  # Feature modules (strictly grouped)
+    ├── Bookshelf/
+    ├── Reader/
+    ├── Explore/
+    ├── Search/
+    ├── BookDetail/
+    ├── SourceManage/
+    └── Settings/
+```
+
+## 2. Feature Creation Checklist
+When creating any new feature in `Legado/Features/<FeatureName>/`:
+1. `State/<FeatureName>State.swift`: Defines `struct <FeatureName>State: Equatable`.
+2. `Intent/<FeatureName>Intent.swift`: Defines `enum <FeatureName>Intent`.
+3. `ViewModel/<FeatureName>ViewModel.swift`: Implements MVI business handling.
+4. `View/<FeatureName>View.swift`: Pure declarative rendering.
+
+After adding files, run `make generate` and `make format-check`.

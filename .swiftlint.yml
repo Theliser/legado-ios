@@ -1,0 +1,46 @@
+# SwiftLint Configuration
+
+included:
+  - Legado
+
+excluded:
+  - .build
+  - DerivedData
+  - .derivedData
+  - Legado.xcodeproj
+  - Pods
+
+disabled_rules:
+  - trailing_comma
+  - todo
+
+opt_in_rules:
+  - empty_count
+  - fatal_error_message
+  - first_where
+  - redundant_nil_coalescing
+  - sorted_imports
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - vertical_whitespace_between_cases
+  - yoda_condition
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_urls: true
+  ignores_comments: true
+
+type_body_length:
+  warning: 300
+  error: 500
+
+file_length:
+  warning: 500
+  error: 1000
+
+function_body_length:
+  warning: 60
+  error: 100
+
+reporter: "xcode"

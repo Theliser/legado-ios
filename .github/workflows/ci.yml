@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-build:
+    name: Lint & Build
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup tools
+        run: |
+          brew install xcodegen swiftlint swiftformat xcbeautify
+
+      - name: Check code formatting & linting
+        run: |
+          make format-check
+
+      - name: Generate Xcode project
+        run: |
+          make generate
+
+      - name: Build for iOS Simulator
+        run: |
+          set -o pipefail
+          xcodebuild -project Legado.xcodeproj \
+            -scheme Legado \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            clean build | xcbeautify
