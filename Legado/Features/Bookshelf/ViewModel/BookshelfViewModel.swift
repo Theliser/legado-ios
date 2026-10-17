@@ -1,26 +1,44 @@
 import Foundation
 
-public enum BookshelfEffect: ViewEffect, Equatable {
-    case navigateToReader(UUID)
-    case showToast(String)
-}
-
+/// 书架业务视图模型
 @MainActor
 public final class BookshelfViewModel: BaseMVIViewModel<BookshelfState, BookshelfIntent, BookshelfEffect> {
-    public init() {
+    private let getBookshelfUseCase: GetBookshelfUseCase
+    private let removeBookFromShelfUseCase: RemoveBookFromShelfUseCase
+    private let checkBookUpdatesUseCase: CheckBookUpdatesUseCase
+
+    public init(
+        getBookshelfUseCase: GetBookshelfUseCase,
+        removeBookFromShelfUseCase: RemoveBookFromShelfUseCase,
+        checkBookUpdatesUseCase: CheckBookUpdatesUseCase) {
+        self.getBookshelfUseCase = getBookshelfUseCase
+        self.removeBookFromShelfUseCase = removeBookFromShelfUseCase
+        self.checkBookUpdatesUseCase = checkBookUpdatesUseCase
         super.init(initialState: BookshelfState())
+
+        send(.onAppear)
     }
 
     override public func send(_ intent: BookshelfIntent) {
         switch intent {
-        case .onAppear, .refresh:
+        case .onAppear:
             loadBooks()
+
+        case .refresh:
+            refreshUpdates()
 
         case let .selectGroup(group):
             updateState { $0.selectedGroup = group }
+            emitEffect(.hapticFeedback)
 
-        case let .didSelectBook(id):
-            emitEffect(.navigateToReader(id))
+        case let .didSelectBook(book):
+            emitEffect(.navigateToReader(book))
+
+        case let .openBookDetail(book):
+            emitEffect(.navigateToDetail(book))
+
+        case let .removeBook(bookUrl):
+            deleteBook(bookUrl: bookUrl)
         }
     }
 
@@ -28,46 +46,58 @@ public final class BookshelfViewModel: BaseMVIViewModel<BookshelfState, Bookshel
         updateState { $0.isLoading = true }
 
         Task {
-            try? await Task.sleep(nanoseconds: 200_000_000)
-            updateState { state in
-                state.isLoading = false
-                state.books = [
-                    BookshelfBookItem(
-                        title: "大奉打更人",
-                        author: "卖报小郎君",
-                        latestChapter: "第一千一百八十二章 终局",
-                        progressPercent: 0.72),
-                    BookshelfBookItem(
-                        title: "赤心巡天",
-                        author: "情何以甚",
-                        latestChapter: "第十五章 霜雪满头",
-                        progressPercent: 0.45),
-                    BookshelfBookItem(
-                        title: "诡秘之主",
-                        author: "爱潜水的乌贼",
-                        latestChapter: "第二百三十四章 赞美愚者",
-                        progressPercent: 0.98),
-                    BookshelfBookItem(
-                        title: "宿命之环",
-                        author: "爱潜水的乌贼",
-                        latestChapter: "第一百八十章 命运的窥探",
-                        progressPercent: 0.31),
-                    BookshelfBookItem(
-                        title: "剑来",
-                        author: "烽火戏诸侯",
-                        latestChapter: "第一千零九十章 风雪夜归人",
-                        progressPercent: 0.86),
-                    BookshelfBookItem(
-                        title: "道诡异仙",
-                        author: "狐尾的笔",
-                        latestChapter: "第九百六十四章 真的假的",
-                        progressPercent: 0.64),
-                    BookshelfBookItem(
-                        title: "万族之劫",
-                        author: "老鹰吃小鸡",
-                        latestChapter: "第九百七十四章 平定诸天",
-                        progressPercent: 0.53),
-                ]
+            do {
+                let books = try await getBookshelfUseCase.execute()
+                self.updateState { state in
+                    state.isLoading = false
+                    state.books = books
+                }
+            } catch {
+                self.updateState { state in
+                    state.isLoading = false
+                }
+                self.emitEffect(.showToast("获取书架失败: \(error.localizedDescription)"))
+            }
+        }
+    }
+
+    private func refreshUpdates() {
+        updateState { $0.isLoading = true }
+
+        Task {
+            do {
+                let updatedCount = try await checkBookUpdatesUseCase.execute()
+                let books = try await getBookshelfUseCase.execute()
+                self.updateState { state in
+                    state.isLoading = false
+                    state.books = books
+                }
+                if updatedCount > 0 {
+                    self.emitEffect(.showToast("已更新 \(updatedCount) 本书的新章节"))
+                } else {
+                    self.emitEffect(.showToast("全部书籍均为最新"))
+                }
+                self.emitEffect(.hapticFeedback)
+            } catch {
+                self.updateState { state in
+                    state.isLoading = false
+                }
+            }
+        }
+    }
+
+    private func deleteBook(bookUrl: String) {
+        Task {
+            do {
+                try await removeBookFromShelfUseCase.execute(bookUrl: bookUrl)
+                let books = try await getBookshelfUseCase.execute()
+                self.updateState { state in
+                    state.books = books
+                }
+                self.emitEffect(.showToast("已从书架移出"))
+                self.emitEffect(.hapticFeedback)
+            } catch {
+                self.emitEffect(.showToast("移除失败: \(error.localizedDescription)"))
             }
         }
     }

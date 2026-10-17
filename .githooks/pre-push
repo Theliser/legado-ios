@@ -1,0 +1,11 @@
+#!/bin/sh
+
+current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+if [ "$current_branch" = "main" ]; then
+    echo "❌ [Git Hook 拦截] 严禁直接向 'main' 生产主分支推送代码！"
+    echo "👉 请在 'feature/<feature-name>' 分支上开发，并通过 Pull Request 合入 'develop' 分支。"
+    exit 1
+fi
+
+exit 0
