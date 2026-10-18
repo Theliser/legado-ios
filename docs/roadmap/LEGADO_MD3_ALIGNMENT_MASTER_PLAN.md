@@ -112,15 +112,21 @@ flowchart TD
 ### 阶段四：听书朗读高阶特性对齐 (Audio & ReadAloud Advanced)
 > **对标 MD3 模块**：`ui/book/readaloud/`, `service/AudioPlayService.kt`
 
-- [ ] **4.1 定时关闭与睡眠倒计时 (Sleep Timer)**
+- [x] **4.1 定时关闭与睡眠倒计时 (Sleep Timer)** (已完成，Commit: `9e57ee4`)
   - 核心功能：
-    - 支持快捷设置：15 分钟、30 分钟、60 分钟、90 分钟、播完当前章停止；
-    - 倒计时结束平滑淡出音量停止朗读。
-- [ ] **4.2 系统锁屏媒体中心与控制中心联动 (Now Playing & Remote Commands)**
+    - 支持快捷设置：15 分钟、30 分钟、45 分钟、60 分钟、90 分钟、120 分钟及滑块微调；
+    - 章节定时：1、2、3、5、8、10 章自动倒数；
+    - 「读完本章再停」(`finishCurrentChapterAfterTimer`) 选项，到点后不掐断，读完当前章停止；
+    - 「渐弱停止」(`isFadeOutEnabled`) 选项：倒计时最后 10 秒音量平滑线性淡出。
+- [x] **4.2 系统锁屏媒体中心与控制中心联动 (Now Playing & Remote Commands)** (已完成，Commit: `9e57ee4`)
   - 接入 `MPNowPlayingInfoCenter` 与 `MPRemoteCommandCenter`；
-  - 锁屏封面、书名、章节进度实时展示，支持耳机线控与锁屏播放/暂停/上一章/下一章。
-- [ ] **4.3 语速与音色微调**
-  - 支持 0.5x ~ 2.0x 语速调节与语调微调。
+  - 锁屏封面、书名、章节进度实时展示，支持耳机线控与锁屏播放/暂停/上一句/下一句/快进快退 15 秒/进度条拖拽 Scrubber 寻句；
+  - 监听音频会话中断（来电/Siri）与耳机插拔（拔出自动暂停）。
+- [x] **4.3 语速、音色微调与朗读进度高亮追踪** (已完成，Commit: `9e57ee4`)
+  - 支持 0.5x ~ 2.0x 语速调节与 0.5 ~ 1.5 语调微调；
+  - 检索系统全部语音并优先置顶中文角色，设置通过 `TTSConfig` 自动持久化；
+  - 阅读器正文逐句高亮同步追踪 (`highlightedSentence`)，句子超出范围自动翻页，跨章自动无缝连续朗读；
+  - 配合原生液态玻璃面板 `TTSControlSheet` 与胶囊悬浮栏 `TTSFloatingBar`。
 
 ---
 
