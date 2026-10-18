@@ -175,6 +175,7 @@ public extension Container {
         self {
             DebugBookSourceUseCase(
                 searchService: self.sourceSearchService(),
+                exploreService: self.sourceExploreService(),
                 detailAndTocService: self.sourceDetailAndTocService(),
                 contentParser: self.contentParser())
         }.shared

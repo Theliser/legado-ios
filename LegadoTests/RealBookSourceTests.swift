@@ -93,4 +93,42 @@ struct RealBookSourceTests {
         #expect(report.sampleResult != nil)
         #expect(report.sampleResult?.name.contains("斗罗大陆") == true)
     }
+
+    @Test("Test Real Book Source Debugging Direct Targets (TOC & Content & Streaming)")
+    func kuwoDebugDirectTargets() async throws {
+        let parser = ParseBookSourceUseCase()
+        let sources = try parser.parse(json: kuwoSourceJson)
+        #expect(!sources.isEmpty)
+        let source = sources[0]
+
+        let debugUseCase = DebugBookSourceUseCase()
+
+        // 1. 测试示例生成
+        let examples = debugUseCase.generateExamples(for: source)
+        #expect(!examples.isEmpty)
+        #expect(examples.contains { $0.target == .search })
+
+        // 2. 测试直接调试正文页 (Target = .content)
+        final class LogCollector: @unchecked Sendable {
+            private let lock = NSLock()
+            private(set) var logs: [SourceDebugLog] = []
+            func append(_ log: SourceDebugLog) {
+                lock.lock()
+                defer { lock.unlock() }
+                logs.append(log)
+            }
+        }
+        let collector = LogCollector()
+        let contentReport = await debugUseCase.execute(
+            source: source,
+            target: .content,
+            query: "http://appi.kuwo.cn/novels/api/book/22292070000065702/chapters/95743741677860190",
+            onLog: { newLog in
+                collector.append(newLog)
+            })
+
+        #expect(contentReport.isSuccess == true)
+        #expect(!collector.logs.isEmpty)
+        #expect(collector.logs.contains { $0.message.contains("正文抓取成功") })
+    }
 }

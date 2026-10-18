@@ -1,140 +1,278 @@
 import SwiftUI
 
-/// 书源实时规则调试抽屉
+/// 书源全能规则调试控制台（对齐 Legado Android：支持搜索/发现/详情/目录/正文多目标切换、示例直填与实时日志）
 public struct SourceDebugSheet: View {
     @Environment(\.dismiss) private var dismiss
     let source: BookSource
-    let report: SourceDebugReport?
-    let isDebugging: Bool
-    let onRunDebug: (String) -> Void
-
-    @State private var keyword: String
+    let state: SourceManageState
+    let onIntent: (SourceManageIntent) -> Void
 
     public init(
         source: BookSource,
-        report: SourceDebugReport?,
-        isDebugging: Bool,
-        onRunDebug: @escaping (String) -> Void) {
+        state: SourceManageState,
+        onIntent: @escaping (SourceManageIntent) -> Void) {
         self.source = source
-        self.report = report
-        self.isDebugging = isDebugging
-        self.onRunDebug = onRunDebug
-        let defaultKeyword = source.ruleSearch?.checkKeyWord ?? "宿命"
-        _keyword = State(initialValue: defaultKeyword.isEmpty ? "宿命" : defaultKeyword)
+        self.state = state
+        self.onIntent = onIntent
     }
 
     public var body: some View {
         NavigationStack {
-            VStack(spacing: 14) {
-                // 测试输入栏
-                HStack(spacing: 10) {
-                    TextField("测试搜索关键字", text: $keyword)
-                        .textFieldStyle(.plain)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color(uiColor: .secondarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+            VStack(spacing: 12) {
+                // 1. 调试目标切换与控制面板
+                debugControlsCard
 
-                    Button {
-                        onRunDebug(keyword)
-                    } label: {
-                        if isDebugging {
-                            ProgressView()
-                                .padding(.horizontal, 12)
-                        } else {
-                            Text("开始调试")
-                                .font(.subheadline.bold())
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .background(Color.accentColor)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                    }
-                    .disabled(isDebugging || keyword.isEmpty)
-                }
+                // 2. 日志分类过滤器
+                filterSegmentedBar
 
-                // 调试控制台输出窗口
+                // 3. 控制台流式日志输出
                 consoleTerminalView
-
-                Spacer()
             }
-            .padding(16)
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
             .navigationTitle("调试: \(source.bookSourceName)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        onIntent(.clearDebugLogs)
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.subheadline)
+                    }
+                    .disabled(state.debugLogs.isEmpty)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("完成") {
                         dismiss()
                     }
                 }
             }
-            .onAppear {
-                if report == nil, !isDebugging {
-                    onRunDebug(keyword)
+            .sheet(item: Binding<SourceDebugLog?>(
+                get: { state.selectedPayloadLog },
+                set: { onIntent(.selectPayloadLog($0)) })) { log in
+                    SourceDebugPayloadSheet(log: log)
+            }
+        }
+        .presentationDetents([.fraction(0.65), .large])
+        .presentationBackground(.ultraThinMaterial)
+    }
+
+    // MARK: - 控制面板
+
+    private var debugControlsCard: some View {
+        VStack(spacing: 10) {
+            // 目标选择器 (搜索 / 发现 / 详情 / 目录 / 正文)
+            Picker("调试目标", selection: Binding(
+                get: { state.debugTarget },
+                set: { onIntent(.selectDebugTarget($0)) })) {
+                    ForEach(SourceDebugTarget.allCases) { target in
+                        Label(target.rawValue, systemImage: target.iconName)
+                            .tag(target)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+            // 输入栏与操作按钮
+            HStack(spacing: 8) {
+                HStack(spacing: 6) {
+                    Image(systemName: state.debugTarget.iconName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    TextField(
+                        state.debugTarget.placeholder,
+                        text: Binding(
+                            get: { state.debugQuery },
+                            set: { onIntent(.updateDebugQuery($0)) }))
+                        .textFieldStyle(.plain)
+                        .font(.subheadline)
+
+                    if !state.debugQuery.isEmpty {
+                        Button {
+                            onIntent(.updateDebugQuery(""))
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                Button {
+                    if state.isDebugging {
+                        onIntent(.stopDebug)
+                    } else {
+                        onIntent(.startDebug)
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        if state.isDebugging {
+                            ProgressView()
+                                .tint(.white)
+                                .scaleEffect(0.8)
+                            Text("停止")
+                        } else {
+                            Image(systemName: "play.fill")
+                                .font(.caption2)
+                            Text("开始")
+                        }
+                    }
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(state.isDebugging ? Color.red : Color.accentColor)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .disabled(state.debugQuery.isEmpty && !state.isDebugging)
+            }
+
+            // 快捷预设示例标签
+            if !state.debugExamples.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        Text("示例:")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+
+                        ForEach(state.debugExamples) { example in
+                            Button {
+                                onIntent(.useDebugExample(example))
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Text(example.title)
+                                    Text("(\(example.target.rawValue))")
+                                        .font(.caption2)
+                                        .opacity(0.7)
+                                }
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    state.debugTarget == example.target && state.debugQuery == example.value
+                                        ? Color.accentColor.opacity(0.2)
+                                        : Color(uiColor: .tertiarySystemFill))
+                                .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
                 }
             }
         }
-        .presentationDetents([.fraction(0.55), .large])
-        .presentationBackground(.ultraThinMaterial)
+        .padding(12)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.15), lineWidth: 0.5))
+    }
+
+    // MARK: - 过滤器栏
+
+    private var filterSegmentedBar: some View {
+        HStack {
+            Picker("过滤器", selection: Binding(
+                get: { state.debugFilter },
+                set: { onIntent(.selectDebugFilter($0)) })) {
+                    ForEach(SourceDebugFilter.allCases) { filter in
+                        Text(filter.rawValue).tag(filter)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+            Spacer()
+
+            if let report = state.debugReport {
+                HStack(spacing: 4) {
+                    Image(systemName: report.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .foregroundStyle(report.isSuccess ? .green : .red)
+                    Text("\(report.durationMs)ms")
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
     }
 
     // MARK: - 控制台视图
 
     private var consoleTerminalView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 6) {
-                if let report {
-                    HStack {
-                        Label(
-                            report.isSuccess ? "诊断通过" : "诊断未通过",
-                            systemImage: report.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
-                            .font(.caption.bold())
-                            .foregroundStyle(report.isSuccess ? .green : .red)
-
-                        Spacer()
-
-                        Text("耗时: \(report.durationMs)ms")
-                            .font(.caption2.monospacedDigit())
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.bottom, 6)
-
-                    Divider().opacity(0.3)
-                }
-
-                if let logs = report?.logs, !logs.isEmpty {
-                    ForEach(logs) { log in
-                        HStack(alignment: .top, spacing: 6) {
-                            Text("[\(log.level.rawValue)]")
-                                .font(.caption2.monospaced().bold())
-                                .foregroundStyle(colorForLogLevel(log.level))
-
-                            Text(log.message)
-                                .font(.caption2.monospaced())
-                                .foregroundStyle(.primary)
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 6) {
+                    if state.filteredDebugLogs.isEmpty {
+                        emptyConsoleView
+                    } else {
+                        ForEach(state.filteredDebugLogs) { log in
+                            logEntryRow(log: log)
+                                .id(log.id)
                         }
                     }
-                } else if isDebugging {
-                    HStack {
-                        ProgressView()
-                        Text("正在向源站发起请求并执行规则调度...")
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+            }
+            .background(Color.black.opacity(0.85))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.12), lineWidth: 0.5))
+            .onChange(of: state.debugLogs.count) {
+                if let lastId = state.filteredDebugLogs.last?.id {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        proxy.scrollTo(lastId, anchor: .bottom)
                     }
-                    .padding(.vertical, 12)
-                } else {
-                    Text("点击右上角开始调试以运行规则诊断。")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
         }
-        .background(Color.black.opacity(0.8))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.15), lineWidth: 0.5))
+    }
+
+    private var emptyConsoleView: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "terminal")
+                .font(.largeTitle)
+                .foregroundStyle(.tertiary)
+            Text(state.isDebugging ? "正在调度并接收书源调试流..." : "点击开始或示例运行规则测试")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 32)
+    }
+
+    private func logEntryRow(log: SourceDebugLog) -> some View {
+        HStack(alignment: .top, spacing: 6) {
+            Text(log.timeFormatted)
+                .font(.caption2.monospacedDigit())
+                .foregroundStyle(.secondary)
+
+            Text("[\(log.level.rawValue)]")
+                .font(.caption2.monospaced().bold())
+                .foregroundStyle(colorForLogLevel(log.level))
+
+            Text(log.message)
+                .font(.caption2.monospaced())
+                .foregroundStyle(.white)
+
+            Spacer()
+
+            if log.payload != nil {
+                Button {
+                    onIntent(.selectPayloadLog(log))
+                } label: {
+                    Text("查看数据")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.cyan)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.cyan.opacity(0.15))
+                        .clipShape(Capsule())
+                }
+            }
+        }
     }
 
     private func colorForLogLevel(_ level: SourceDebugLog.LogLevel) -> Color {
@@ -143,6 +281,50 @@ public struct SourceDebugSheet: View {
         case .success: return .green
         case .warning: return .orange
         case .error: return .red
+        case .payload: return .cyan
         }
+    }
+}
+
+/// 数据载荷查看抽屉
+public struct SourceDebugPayloadSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let log: SourceDebugLog
+
+    @State private var copied = false
+
+    public var body: some View {
+        NavigationStack {
+            ScrollView {
+                Text(log.payload ?? log.message)
+                    .font(.footnote.monospaced())
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .background(Color(uiColor: .systemGroupedBackground))
+            .navigationTitle(log.message)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        UIPasteboard.general.string = log.payload ?? log.message
+                        copied = true
+                        Task {
+                            try? await Task.sleep(nanoseconds: 1_500_000_000)
+                            copied = false
+                        }
+                    } label: {
+                        Label(copied ? "已复制" : "复制", systemImage: copied ? "checkmark" : "doc.on.doc")
+                            .font(.subheadline)
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("关闭") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 }

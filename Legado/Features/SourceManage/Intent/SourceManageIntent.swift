@@ -11,6 +11,14 @@ public enum SourceManageIntent: ViewIntent, Sendable {
     case importFromText(String)
     case openDebug(BookSource)
     case closeDebug
+    case selectDebugTarget(SourceDebugTarget)
+    case updateDebugQuery(String)
+    case selectDebugFilter(SourceDebugFilter)
+    case useDebugExample(SourceDebugExample)
+    case startDebug
+    case stopDebug
+    case clearDebugLogs
+    case selectPayloadLog(SourceDebugLog?)
     case runDebug(source: BookSource, keyword: String)
 }
 
