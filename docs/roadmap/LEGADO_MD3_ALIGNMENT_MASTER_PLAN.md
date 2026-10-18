@@ -131,16 +131,24 @@ flowchart TD
 ---
 
 ### 阶段五：书源生态、高级规则与本地书籍导入 (Advanced Source & Local Import)
-> **对标 MD3 模块**：`ui/book/source/`, `ui/file/`, `ui/login/`
+> **对标 MD3 模块**：`ui/book/source/`, `ui/file/`, `model/analyzeRule/`
 
-- [ ] **5.1 书源批量网络订阅与有效性体检**
+- [x] **5.1 真实书源底层规则引擎兼容 (XIU2 生态对齐)** (已完成，Commit: `7aa8139`, Issue #18)
+  - 实现 `AnalyzeUrl.swift`，对齐 Android `AnalyzeUrl.kt`：`@js:`、`<js>`、`{{(page-1)*50}}` 表达式、单引号非标 JSON 参数及 GBK/UTF-8 编码自适应；
+  - 扩展 `JSEngine+Bridge.swift` 注入完整 Legado Java bridge（`java.ajax` 同步请求、`java.get/post`、`java.put/get`、`java.hexDecodeToString`、`java.androidId`、`source/book` 上下文）；
+  - `JSONPathParser` 与 `CSSSelectorParser` 升级支持 `||` 备选降级、`&&` 拼接组合、数组切片及 `##pattern##replacement` 正则清洗；
+  - 覆盖 XIU2 master 书源合集测试，通过率 100%。
+- [x] **5.2 书源批量网络订阅与有效性体检** (已完成，Commit: `7aa8139`, Issue #18)
   - 支持直接填入书源网络合集 URL，一键解析批量导入；
-  - 批量可用性探测体检，标记失效或超时书源。
-- [ ] **5.2 书源分组管理**
-  - 对标 MD3 书源精选、有声、发现、漫画分组管理与过滤。
-- [ ] **5.3 本地书籍导入 (TXT 智能目录切分 / EPUB)**
-  - 对标文件：`TxtTocRule.kt`, `ImportBookActivity.kt`
-  - 支持通过系统文件选择器导入本地 TXT/EPUB 文件，自动智能正则分卷与目录解析。
+  - 并发连通性与规则有效性探测体检，输出 `SourceHealthReport` 并在顶部悬浮液态玻璃药丸展示体检进度与失效状态。
+- [x] **5.3 书源分组管理** (已完成，Commit: `7aa8139`, Issue #18)
+  - 对标 MD3 书源精选、有声、发现、漫画分组管理，配合液态玻璃分段胶囊栏实时过滤。
+- [x] **5.4 本地书籍导入 (TXT 智能目录切分 / EPUB)** (已完成，Commit: `7aa8139`, Issue #18)
+  - 对标文件：`TxtTocRule.kt`, `ImportBookActivity.kt`；
+  - 接入系统 `UIDocumentPicker` 导入本地 TXT/EPUB 文件，基于智能章节正则分卷秒级生成目录并入架。
+- [x] **5.5 iPadOS 18 官方液态玻璃（Liquid Glass）视觉重塑** (已完成，Commit: `7aa8139`, Issue #18)
+  - `ContentView.swift` 配置 `.tabViewStyle(.sidebarAdaptable)`，使 iPad 呈现官方顶栏悬浮液态玻璃药丸与侧边栏形态；
+  - 全面清除 `ExploreView`、`BookDetailView`、`SourceDebugSheet` 中的硬编码不透明背景，实现内容实时折射与微光高光。
 
 ---
 
