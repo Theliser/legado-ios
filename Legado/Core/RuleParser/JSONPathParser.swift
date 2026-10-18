@@ -45,9 +45,20 @@ public enum JSONPathParser {
 
         // 处理深度递归扫描 $..field
         if cleanPath.hasPrefix("$..") {
-            let targetKey = String(cleanPath.dropFirst(3)).components(separatedBy: ".").first ?? ""
-            let deepNodes = deepFind(key: targetKey, in: root)
-            return deepNodes.compactMap { "\($0)" }
+            let pathAfterPrefix = String(cleanPath.dropFirst(3))
+            let parts = pathAfterPrefix.split(separator: ".").map(String.init)
+            if let first = parts.first {
+                let deepNodes = deepFind(key: first, in: root)
+                if parts.count > 1 {
+                    let remaining = Array(parts.dropFirst())
+                    let subExtracted = deepNodes.flatMap { extract(current: $0, segments: remaining) }
+                    if !subExtracted.isEmpty {
+                        return subExtracted
+                    }
+                } else if !deepNodes.isEmpty {
+                    return deepNodes.compactMap { "\($0)" }
+                }
+            }
         }
 
         if cleanPath.hasPrefix("$.") {
@@ -157,10 +168,21 @@ public enum JSONPathParser {
 
         // 深度递归检索 $..field
         if cleanPath.hasPrefix("$..") {
-            let targetKey = String(cleanPath.dropFirst(3)).components(separatedBy: ".").first ?? ""
-            let deepNodes = deepFind(key: targetKey, in: root)
-            if !deepNodes.isEmpty {
-                return deepNodes
+            let pathAfterPrefix = String(cleanPath.dropFirst(3))
+            let parts = pathAfterPrefix.split(separator: ".").map(String.init)
+            if let first = parts.first {
+                let deepNodes = deepFind(key: first, in: root)
+                if parts.count > 1 {
+                    let remaining = Array(parts.dropFirst())
+                    let subExtracted = deepNodes
+                        .compactMap { extractObjects(current: $0, segments: remaining) }
+                        .flatMap { $0 }
+                    if !subExtracted.isEmpty {
+                        return subExtracted
+                    }
+                } else if !deepNodes.isEmpty {
+                    return deepNodes
+                }
             }
         }
 
@@ -204,7 +226,7 @@ public enum JSONPathParser {
         return nil
     }
 
-    private static func deepFind(key: String, in node: Any) -> [Any] {
+    public static func deepFind(key: String, in node: Any) -> [Any] {
         var cleanKey = key
         var targetIndex: Int?
         if let parsed = parseSubscript(key) {

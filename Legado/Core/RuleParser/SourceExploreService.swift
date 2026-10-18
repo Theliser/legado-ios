@@ -26,11 +26,16 @@ public final class SourceExploreService: Sendable {
                       let url = (dict["url"] as? String) ?? (dict["href"] as? String) else {
                     return nil
                 }
+                let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                let cleanUrl = url.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !cleanTitle.isEmpty, !cleanUrl.isEmpty else {
+                    return nil
+                }
                 return ExploreCategory(
                     sourceUrl: source.bookSourceUrl,
                     sourceName: source.bookSourceName,
-                    title: title.trimmingCharacters(in: .whitespacesAndNewlines),
-                    categoryUrl: url.trimmingCharacters(in: .whitespacesAndNewlines))
+                    title: cleanTitle,
+                    categoryUrl: cleanUrl)
             }
         }
 
@@ -64,29 +69,29 @@ public final class SourceExploreService: Sendable {
         source: BookSource,
         category: ExploreCategory,
         page: Int = 1) async throws -> [Book] {
-        // 宏替换当前页码
-        let resolvedPath = category.categoryUrl
-            .replacingOccurrences(of: "{{page}}", with: "\(page)")
-            .replacingOccurrences(of: "<page>", with: "\(page)")
+        let ctx = AnalyzeUrlContext(
+            page: page,
+            baseUrl: source.bookSourceUrl,
+            headerJson: source.header,
+            source: source)
+        let requestInfo = try AnalyzeUrl(rawUrl: category.categoryUrl, context: ctx)
 
-        // 解析完整 URL
-        guard let base = URL(string: source.bookSourceUrl),
-              let targetUrl = URL(string: resolvedPath, relativeTo: base)?.absoluteURL else {
-            throw URLError(.badURL)
+        let responseBody: String
+        if requestInfo.method == "POST" {
+            responseBody = try await httpClient.post(
+                url: requestInfo.url,
+                body: requestInfo.body,
+                headers: requestInfo.headers)
+        } else {
+            responseBody = try await httpClient.get(
+                url: requestInfo.url,
+                headers: requestInfo.headers)
         }
 
-        var headers: [String: String]?
-        if let headerJson = source.header,
-           let data = headerJson.data(using: .utf8),
-           let parsed = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
-            headers = parsed
-        }
-
-        let responseBody = try await httpClient.get(url: targetUrl, headers: headers)
         return parseBooks(
             content: responseBody,
             source: source,
-            baseUrl: targetUrl.absoluteString)
+            baseUrl: requestInfo.url.absoluteString)
     }
 
     /// 解析书籍内容公开接口（供分类流和测试复用）
@@ -210,22 +215,28 @@ public final class SourceExploreService: Sendable {
         source: BookSource,
         rule: ExploreBookRule,
         baseUrl: String) -> [Book] {
-        let items = JSONPathParser.parse(json: json, path: rule.bookList)
+        guard let array = JSONPathParser.parseArray(json: json, path: rule.bookList) else {
+            return []
+        }
         var books: [Book] = []
 
-        for itemJson in items {
-            guard let name = JSONPathParser.parse(json: itemJson, path: rule.name).first,
-                  !name.isEmpty else {
+        for item in array {
+            guard let dict = item as? [String: Any] else { continue }
+            let eval: (String?) -> String? = { ruleStr in
+                RuleEvaluator.evaluate(dict: dict, rule: ruleStr, baseUrl: baseUrl)
+            }
+
+            guard let name = eval(rule.name), !name.isEmpty else {
                 continue
             }
 
-            let author = JSONPathParser.parse(json: itemJson, path: rule.author).first ?? "未知作者"
-            let rawUrl = JSONPathParser.parse(json: itemJson, path: rule.bookUrl).first ?? ""
+            let author = eval(rule.author) ?? "未知作者"
+            let rawUrl = eval(rule.bookUrl) ?? baseUrl
             let bookUrl = URL(string: rawUrl, relativeTo: URL(string: baseUrl))?.absoluteString ?? rawUrl
 
-            let kind = rule.kind.flatMap { JSONPathParser.parse(json: itemJson, path: $0).first }
-            let intro = rule.intro.flatMap { JSONPathParser.parse(json: itemJson, path: $0).first }
-            let rawCover = rule.coverUrl.flatMap { JSONPathParser.parse(json: itemJson, path: $0).first }
+            let kind = eval(rule.kind)
+            let intro = eval(rule.intro)
+            let rawCover = eval(rule.coverUrl)
             let coverUrl = rawCover.flatMap { URL(string: $0, relativeTo: URL(string: baseUrl))?.absoluteString }
 
             let book = Book(

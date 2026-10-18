@@ -35,6 +35,9 @@ public struct AnalyzeUrl: Sendable {
     public init(rawUrl: String, context: AnalyzeUrlContext) throws {
         var workingUrl = rawUrl.trimmingCharacters(in: .whitespacesAndNewlines)
 
+        // 0. 处理 @get:{...} 变量替换
+        workingUrl = Self.resolveGetVariables(workingUrl)
+
         // 1. 处理 @js: 或 <js></js> 动态生成 URL
         workingUrl = Self.evaluateUrlJs(rawUrl: workingUrl, context: context)
 
@@ -47,7 +50,8 @@ public struct AnalyzeUrl: Sendable {
             rawKey: rawKey,
             encodedKey: encodedKey,
             page: context.page ?? 1,
-            pageStr: pageStr)
+            pageStr: pageStr,
+            baseUrl: context.baseUrl)
 
         // 3. 解析 URL 与附加配置 (url,{"method": "POST", "body": "...", "headers": {...}, "charset": "gbk"})
         let options = Self.parseUrlAndOptions(
@@ -192,12 +196,30 @@ public struct AnalyzeUrl: Sendable {
         return currentResult
     }
 
+    private static func resolveGetVariables(_ input: String) -> String {
+        guard input.contains("@get:{"),
+              let regex = try? NSRegularExpression(pattern: #"@get:\{([^}]+)\}"#, options: []) else {
+            return input
+        }
+        var result = input
+        let matches = regex.matches(in: input, options: [], range: NSRange(location: 0, length: input.utf16.count))
+        for match in matches.reversed() {
+            guard let range0 = Range(match.range(at: 0), in: result),
+                  let range1 = Range(match.range(at: 1), in: input) else { continue }
+            let key = String(input[range1]).trimmingCharacters(in: .whitespaces)
+            let val = RuleEvaluator.getVariable(key) ?? ""
+            result.replaceSubrange(range0, with: val)
+        }
+        return result
+    }
+
     private static func interpolateTemplate(
         url: String,
         rawKey: String,
         encodedKey: String,
         page: Int,
-        pageStr: String) -> String {
+        pageStr: String,
+        baseUrl: String = "") -> String {
         guard url.contains("{{"), url.contains("}}"),
               let regex = try? NSRegularExpression(pattern: #"\{\{([^}]+)\}\}"#, options: []) else {
             return url
@@ -212,14 +234,20 @@ public struct AnalyzeUrl: Sendable {
                   let range1 = Range(match.range(at: 1), in: url) else {
                 continue
             }
-            let expr = String(url[range1]).trimmingCharacters(in: .whitespaces)
+            var expr = String(url[range1]).trimmingCharacters(in: .whitespaces)
+            expr = expr.replacingOccurrences(of: "\u{a0}", with: " ")
             let val: String
             if expr == "key" || expr == "searchKey" {
                 val = encodedKey
             } else if expr == "page" {
                 val = pageStr
+            } else if expr == "baseUrl" {
+                val = baseUrl
+            } else if expr.hasPrefix("@get:") {
+                let varKey = String(expr.dropFirst(5)).trimmingCharacters(in: CharacterSet(charactersIn: "{} "))
+                val = RuleEvaluator.getVariable(varKey) ?? ""
             } else {
-                let evalScript = "var page = \(page); var key = \"\(rawKey)\"; \(expr)"
+                let evalScript = "var page = \(page); var key = \"\(rawKey)\"; var baseUrl = \"\(baseUrl)\"; \(expr)"
                 val = jsEngine.evaluate(script: evalScript) ?? ""
             }
             result.replaceSubrange(range0, with: val)

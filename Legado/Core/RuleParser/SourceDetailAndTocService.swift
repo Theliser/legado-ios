@@ -101,15 +101,16 @@ public final class SourceDetailAndTocService: Sendable {
         dict: [String: Any],
         rule: RuleBookInfo,
         book: inout Book,
-        source: BookSource) {
+        source _: BookSource) {
+        let currentBookUrl = book.bookUrl
         let eval: (String?) -> String? = { ruleStr in
-            RuleEvaluator.evaluate(dict: dict, rule: ruleStr, baseUrl: source.bookSourceUrl)
+            RuleEvaluator.evaluate(dict: dict, rule: ruleStr, baseUrl: currentBookUrl)
         }
 
         book.name = eval(rule.name) ?? book.name
         book.author = eval(rule.author) ?? book.author
         if let cover = eval(rule.coverUrl) {
-            book.coverUrl = resolveUrl(cover, baseUrl: source.bookSourceUrl)
+            book.coverUrl = resolveUrl(cover, baseUrl: book.bookUrl)
         }
         book.intro = eval(rule.intro) ?? book.intro
         book.kind = eval(rule.kind) ?? book.kind
@@ -119,7 +120,7 @@ public final class SourceDetailAndTocService: Sendable {
         }
         book.wordCount = eval(rule.wordCount) ?? book.wordCount
         if let toc = eval(rule.tocUrl) {
-            book.tocUrl = resolveUrl(toc, baseUrl: source.bookSourceUrl)
+            book.tocUrl = resolveUrl(toc, baseUrl: book.bookUrl)
         } else if book.tocUrl.isEmpty {
             book.tocUrl = book.bookUrl
         }

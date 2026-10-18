@@ -78,7 +78,7 @@ struct RealBookSourceTests {
         let source = sources[0]
 
         let debugUseCase = DebugBookSourceUseCase()
-        let report = await debugUseCase.execute(source: source, keyword: "斗罗大陆")
+        let report = await debugUseCase.execute(source: source, keyword: "剑神重生")
 
         print("--- 酷我书源调试诊断报告 ---")
         print("书源: \(report.sourceName) | 是否通过: \(report.isSuccess) | 耗时: \(report.durationMs)ms")
@@ -92,7 +92,7 @@ struct RealBookSourceTests {
 
         #expect(report.isSuccess == true)
         #expect(report.sampleResult != nil)
-        #expect(report.sampleResult?.name.contains("斗罗大陆") == true)
+        #expect(report.sampleResult?.name.contains("剑神") == true)
     }
 
     @Test("Test Real Book Source Debugging Direct Targets (TOC & Content & Streaming)")
@@ -537,5 +537,143 @@ struct RealBookSourceTests {
         // 3. RuleAnalyzer with @json:
         let analyzerResults = RuleAnalyzer().extractList(content: jsonStr, rule: "@json:$.data.name")
         #expect(analyzerResults == ["星之剑士"])
+    }
+
+    @Test("Test Real-World Source 1 (话本小说): 发现, 搜索, 书籍, 章节正文 全链路实测")
+    func huabenFullLifecycle() async throws {
+        let huabenJson = """
+        {
+          "bookSourceName": "话本小说（优++）",
+          "bookSourceUrl": "https://www.ihuaben.com/",
+          "bookSourceType": 0,
+          "enabled": true,
+          "enabledExplore": true,
+          "header": "{\\"plantype\\":\\"ANDROID\\",\\"packageid\\":\\"ihuaben\\",\\"content-type\\":\\"application/x-www-form-urlencoded\\"}",
+          "searchUrl": "/app/search?indexName=book&keyword={{key}}&page={{page}}&tokenId=NTAyNDUwNTA6MTYyNjcyMzYyMzpjMGU3ODlhNzQ3OTZmYmIy",
+          "exploreUrl": "[{\\"title\\":\\"都市言情\\",\\"url\\":\\"/app/lib/listv2?packageId=ihuaben&page={{page}}&pageSize=20&sortType=clickcount_days_7&tagId=0&tokenId=NTAyNDUwNTA6MTYyNjcyMzYyMzpjMGU3ODlhNzQ3OTZmYmIy&keyword=都市言情\\"}]",
+          "ruleSearch": {
+            "bookList": "$..pageList[*]",
+            "name": "$.bookname@put:{bookid:$.bookid}",
+            "author": "$.authorname",
+            "kind": "$.bookmarks",
+            "intro": "$.bookinfo",
+            "coverUrl": "http://picapp.ihuaben.com/{{$.bookpic}}",
+            "bookUrl": "https://cdncn.ihuaben.com/cdn/chapters/@get:{bookid}/{{Date.parse(new Date())}}"
+          },
+          "ruleExplore": {
+            "bookList": "$..pageList[*]",
+            "name": "$.bookname@put:{bookid:$.bookid}",
+            "author": "$.authorname",
+            "kind": "$.bookmarks",
+            "intro": "$.bookinfo",
+            "coverUrl": "http://picapp.ihuaben.com/{{$.bookpic}}",
+            "bookUrl": "https://cdncn.ihuaben.com/cdn/chapters/@get:{bookid}/{{Date.parse(new Date())}}"
+          },
+          "ruleToc": {
+            "chapterList": "$..chapters[*]",
+            "chapterName": "$.title",
+            "chapterUrl": "https://cdncn.ihuaben.com/cdn/chapter/{{$.bookId}}/{{$.chapterId}}/{{Date.parse(new Date())}}"
+          },
+          "ruleContent": {
+            "content": "$..content##\\\\[img:(.*?)\\\\]##<img src=\\"http://picapp.ihuaben.com/$1\\" />"
+          }
+        }
+        """
+
+        let parser = ParseBookSourceUseCase()
+        let sources = try parser.parse(json: huabenJson)
+        #expect(sources.count == 1)
+        let source = sources[0]
+
+        // 1. 发现 (Explore) 测试
+        let exploreService = SourceExploreService.shared
+        let categories = exploreService.parseCategories(source: source)
+        #expect(!categories.isEmpty)
+        let firstCat = categories[0]
+        #expect(firstCat.title == "都市言情")
+
+        let exploreBooks = try await exploreService.fetchExploreBooks(source: source, category: firstCat, page: 1)
+        #expect(!exploreBooks.isEmpty)
+        #expect(!exploreBooks[0].name.isEmpty)
+        #expect(!exploreBooks[0].author.isEmpty)
+
+        // 2. 搜索 (Search) 测试
+        let searchService = SourceSearchService.shared
+        let searchResults = try await searchService.search(source: source, keyword: "剑")
+        #expect(!searchResults.isEmpty)
+        let matchedBook = searchResults[0]
+        #expect(!matchedBook.name.isEmpty)
+        #expect(matchedBook.bookUrl.contains("cdncn.ihuaben.com"))
+
+        // 3. 书籍详情与目录 (Detail & TOC) 测试
+        let sampleBook = Book(
+            bookUrl: matchedBook.bookUrl,
+            origin: source.bookSourceUrl,
+            name: matchedBook.name,
+            author: matchedBook.author)
+        let detailAndTocService = SourceDetailAndTocService.shared
+        let chapters = try await detailAndTocService.fetchBookToc(book: sampleBook, source: source)
+        #expect(!chapters.isEmpty)
+        let firstChapter = chapters[0]
+        #expect(!firstChapter.title.isEmpty)
+        #expect(firstChapter.url.contains("cdncn.ihuaben.com/cdn/chapter/"))
+
+        // 4. 正文抓取与排版清洗 (Content) 测试
+        print("HUABEN DEBUG firstChapter.url = \(firstChapter.url)")
+        let contentParser = ContentParser.shared
+        let content = try await contentParser.fetchAndParseContent(
+            chapterUrl: firstChapter.url,
+            source: source,
+            baseUrl: source.bookSourceUrl)
+        print("HUABEN DEBUG content count = \(content.count), preview = \(content.prefix(100))")
+        #expect(!content.isEmpty)
+        #expect(content.contains("\u{3000}\u{3000}"))
+    }
+
+    @Test("Test Real-World Source 2 (酷我小说): 搜索, 书籍详情, 目录正文 全链路实测")
+    func kuwoFullLifecycle() async throws {
+        let parser = ParseBookSourceUseCase()
+        let sources = try parser.parse(json: kuwoSourceJson)
+        #expect(sources.count == 1)
+        let source = sources[0]
+
+        // 1. 搜索 (Search)
+        let searchService = SourceSearchService.shared
+        let searchResults = try await searchService.search(source: source, keyword: "剑神重生")
+        #expect(!searchResults.isEmpty)
+        let firstResult = searchResults[0]
+        #expect(firstResult.name.contains("剑神"))
+        #expect(!firstResult.author.isEmpty)
+
+        // 2. 书籍详情 (Book Detail)
+        let detailAndTocService = SourceDetailAndTocService.shared
+        let sampleBook = Book(
+            bookUrl: firstResult.bookUrl,
+            origin: source.bookSourceUrl,
+            name: firstResult.name,
+            author: firstResult.author)
+        let updatedBook = try await detailAndTocService.fetchBookDetail(book: sampleBook, source: source)
+        print("KUWO DEBUG updatedBook.tocUrl = \(updatedBook.tocUrl)")
+        #expect(updatedBook.name.contains("剑神"))
+        #expect(!updatedBook.tocUrl.isEmpty)
+
+        // 3. 目录 (TOC)
+        let chapters = try await detailAndTocService.fetchBookToc(book: updatedBook, source: source)
+        print("KUWO DEBUG chapters count = \(chapters.count)")
+        #expect(chapters.count > 100)
+        guard let firstChapter = chapters.first else {
+            Issue.record("No chapters found for Kuwo book")
+            return
+        }
+        #expect(firstChapter.title.contains("第一章"))
+
+        // 4. 章节正文 (Content)
+        let contentParser = ContentParser.shared
+        let content = try await contentParser.fetchAndParseContent(
+            chapterUrl: firstChapter.url,
+            source: source,
+            baseUrl: source.bookSourceUrl)
+        #expect(content.count > 100)
+        #expect(content.contains("\u{3000}\u{3000}"))
     }
 }
