@@ -74,16 +74,22 @@ public struct SourceManageView: View {
                 })) { source in
                     SourceDebugSheet(
                         source: source,
-                        report: viewModel.state.debugReport,
-                        isDebugging: viewModel.state.isDebugging,
-                        onRunDebug: { keyword in
-                            viewModel.send(.runDebug(source: source, keyword: keyword))
+                        state: viewModel.state,
+                        onIntent: { intent in
+                            viewModel.send(intent)
                         })
             }
             .onAppear {
                 viewModel.send(.loadSources)
                 if ProcessInfo.processInfo.arguments.contains("--open-import-sheet") {
                     viewModel.send(.openImportSheet)
+                } else if ProcessInfo.processInfo.arguments.contains("--open-debug-sheet") {
+                    Task {
+                        try? await Task.sleep(nanoseconds: 300_000_000)
+                        if let first = viewModel.state.sources.first {
+                            viewModel.send(.openDebug(first))
+                        }
+                    }
                 }
             }
             .onReceive(viewModel.effectPublisher) { effect in
