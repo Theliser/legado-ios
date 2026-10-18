@@ -156,8 +156,8 @@ public final class BookDetailViewModel: BaseMVIViewModel<BookDetailState, BookDe
                     chapters: state.chapters,
                     option: option,
                     concurrency: 3) { progress in
-                        Task { @MainActor [weak self] in
-                            self?.updateState { $0.downloadProgress = progress }
+                        Task { @MainActor in
+                            self.updateState { $0.downloadProgress = progress }
                         }
                     }
                 self.refreshCacheStatus()
