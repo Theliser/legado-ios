@@ -21,25 +21,25 @@ public struct SourceImportSheet: View {
 
                 // 输入区域
                 ZStack(alignment: .topLeading) {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(.ultraThinMaterial)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.white.opacity(0.15), lineWidth: 0.5))
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(Color.white.opacity(0.18), lineWidth: 0.5))
 
                     if inputText.isEmpty {
                         Text("粘贴书源 URL 或 JSON 内容...")
                             .font(.subheadline)
                             .foregroundStyle(.tertiary)
-                            .padding(12)
+                            .padding(14)
                     }
 
                     TextEditor(text: $inputText)
                         .font(.subheadline)
                         .scrollContentBackground(.hidden)
-                        .padding(8)
+                        .padding(10)
                 }
-                .frame(minHeight: 120, maxHeight: 180)
+                .frame(minHeight: 130, maxHeight: 180)
 
                 // 快捷操作按钮
                 HStack(spacing: 12) {
@@ -49,15 +49,9 @@ public struct SourceImportSheet: View {
                         }
                     } label: {
                         Label("从剪贴板粘贴", systemImage: "doc.on.clipboard")
-                            .font(.subheadline.weight(.medium))
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.white.opacity(0.15), lineWidth: 0.5))
                     }
+                    .buttonStyle(.glass(cornerRadius: 12))
 
                     Button {
                         let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -66,13 +60,9 @@ public struct SourceImportSheet: View {
                         }
                     } label: {
                         Label("确认导入", systemImage: "square.and.arrow.down.fill")
-                            .font(.subheadline.bold())
-                            .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(Color.accentColor)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
+                    .buttonStyle(.glassProminent(tint: .accentColor, cornerRadius: 12))
                     .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
 
