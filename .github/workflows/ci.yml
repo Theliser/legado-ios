@@ -32,5 +32,5 @@ jobs:
           set -o pipefail
           xcodebuild -project Legado.xcodeproj \
             -scheme Legado \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'generic/platform=iOS Simulator' \
             clean build | xcbeautify

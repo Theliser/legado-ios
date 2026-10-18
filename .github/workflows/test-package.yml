@@ -37,9 +37,15 @@ jobs:
       - name: Run Unit Tests
         run: |
           set -o pipefail
+          DEVICE_ID=$(xcrun simctl list devices available | grep -E "iPhone (16|15)" | head -n 1 | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/')
+          if [ -z "$DEVICE_ID" ]; then
+            DEVICE_ID=$(xcrun simctl list devices available | grep "iPhone" | head -n 1 | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/')
+          fi
+          echo "Using simulator device ID: $DEVICE_ID"
           xcodebuild -project Legado.xcodeproj \
             -scheme Legado \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "platform=iOS Simulator,id=$DEVICE_ID" \
+            -only-testing:LegadoTests \
             test | xcbeautify
 
       - name: Build Release Archive (Unsigned iOS Device)

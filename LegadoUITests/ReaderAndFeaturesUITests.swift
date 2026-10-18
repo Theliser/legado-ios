@@ -39,8 +39,9 @@ final class ReaderAndFeaturesUITests: XCTestCase {
             captureScreenshot(name: "reader_03_bookmarks_tab")
 
             let closeTocButton = app.buttons.matching(identifier: "完成").firstMatch
-            if closeTocButton.exists {
+            if closeTocButton.waitForExistence(timeout: 3) {
                 closeTocButton.tap()
+                _ = bookmarkTab.waitForNonExistence(timeout: 3)
             }
         }
 
@@ -48,7 +49,7 @@ final class ReaderAndFeaturesUITests: XCTestCase {
 
         let searchButton = app.buttons["搜索"]
         if searchButton.waitForExistence(timeout: 4) {
-            searchButton.tap()
+            tapElementSafely(searchButton)
 
             let searchField = app.textFields["搜索本书正文内容..."]
             if searchField.waitForExistence(timeout: 4) {
@@ -59,8 +60,9 @@ final class ReaderAndFeaturesUITests: XCTestCase {
             }
 
             let doneSearchButton = app.buttons.matching(identifier: "完成").firstMatch
-            if doneSearchButton.exists {
+            if doneSearchButton.waitForExistence(timeout: 3) {
                 doneSearchButton.tap()
+                _ = searchField.waitForNonExistence(timeout: 3)
             }
         }
 
@@ -68,12 +70,13 @@ final class ReaderAndFeaturesUITests: XCTestCase {
 
         let changeSourceButton = app.buttons["换源"]
         if changeSourceButton.waitForExistence(timeout: 4) {
-            changeSourceButton.tap()
+            tapElementSafely(changeSourceButton)
 
             let closeChangeSource = app.buttons.matching(identifier: "完成").firstMatch
             if closeChangeSource.waitForExistence(timeout: 4) {
                 captureScreenshot(name: "reader_06_change_source_sheet")
                 closeChangeSource.tap()
+                _ = closeChangeSource.waitForNonExistence(timeout: 3)
             }
         }
 
@@ -81,12 +84,13 @@ final class ReaderAndFeaturesUITests: XCTestCase {
 
         let cacheTopButton = app.buttons["arrow.down.circle"]
         if cacheTopButton.waitForExistence(timeout: 4) {
-            cacheTopButton.tap()
+            tapElementSafely(cacheTopButton)
 
             let closeCache = app.buttons.matching(identifier: "完成").firstMatch
             if closeCache.waitForExistence(timeout: 4) {
                 captureScreenshot(name: "reader_07_book_cache_sheet")
                 closeCache.tap()
+                _ = closeCache.waitForNonExistence(timeout: 3)
             }
         }
 
@@ -94,8 +98,16 @@ final class ReaderAndFeaturesUITests: XCTestCase {
 
         let ttsButton = app.buttons["听书"]
         if ttsButton.waitForExistence(timeout: 4) {
-            ttsButton.tap()
+            tapElementSafely(ttsButton)
             captureScreenshot(name: "reader_08_tts_floating_active")
+        }
+    }
+
+    private func tapElementSafely(_ element: XCUIElement) {
+        if element.isHittable {
+            element.tap()
+        } else {
+            element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         }
     }
 

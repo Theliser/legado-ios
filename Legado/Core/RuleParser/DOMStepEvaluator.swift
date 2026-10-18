@@ -280,9 +280,7 @@ enum DOMStepEvaluator {
 
         // 如果包含 @js:，@js: 后面的内容全部视为脚本，不参与前置 || 或 && 分割
         var workRule = input
-        var trailingScript = ""
         if let jsRange = input.range(of: "@js:") {
-            trailingScript = String(input[jsRange.lowerBound...])
             workRule = String(input[..<jsRange.lowerBound])
         }
 
