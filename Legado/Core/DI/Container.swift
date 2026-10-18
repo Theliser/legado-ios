@@ -173,7 +173,10 @@ public extension Container {
     /// 实时调试书源用例
     var debugBookSourceUseCase: Factory<DebugBookSourceUseCase> {
         self {
-            DebugBookSourceUseCase(searchService: self.sourceSearchService())
+            DebugBookSourceUseCase(
+                searchService: self.sourceSearchService(),
+                detailAndTocService: self.sourceDetailAndTocService(),
+                contentParser: self.contentParser())
         }.shared
     }
 
