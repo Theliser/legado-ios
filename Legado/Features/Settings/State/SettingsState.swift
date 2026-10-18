@@ -9,6 +9,7 @@ public struct SettingsState: ViewState, Equatable, Sendable {
     public var lastBackupSummary: WebDAVBackupSummary?
     public var speechRate: Float
     public var speechPitch: Float
+    public var cacheSizeBytes: Int64
     public var errorMessage: String?
     public var successMessage: String?
 
@@ -20,6 +21,7 @@ public struct SettingsState: ViewState, Equatable, Sendable {
         lastBackupSummary: WebDAVBackupSummary? = nil,
         speechRate: Float = 0.5,
         speechPitch: Float = 1.0,
+        cacheSizeBytes: Int64 = 0,
         errorMessage: String? = nil,
         successMessage: String? = nil) {
         self.webDAVConfig = webDAVConfig
@@ -29,7 +31,12 @@ public struct SettingsState: ViewState, Equatable, Sendable {
         self.lastBackupSummary = lastBackupSummary
         self.speechRate = speechRate
         self.speechPitch = speechPitch
+        self.cacheSizeBytes = cacheSizeBytes
         self.errorMessage = errorMessage
         self.successMessage = successMessage
+    }
+
+    public var formattedCacheSize: String {
+        ByteCountFormatter.string(fromByteCount: cacheSizeBytes, countStyle: .file)
     }
 }

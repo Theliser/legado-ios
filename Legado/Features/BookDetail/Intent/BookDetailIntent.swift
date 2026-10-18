@@ -20,6 +20,16 @@ public enum BookDetailIntent: ViewIntent, Equatable, Sendable {
     case openSourceSwitch
     /// 选择新书源切换
     case switchSource(SearchResult)
+    /// 打开或关闭离线缓存抽屉
+    case toggleCacheSheet(Bool)
+    /// 刷新离线缓存占用状态
+    case refreshCacheInfo
+    /// 启动批量离线章节下载
+    case startBatchDownload(BatchDownloadOption)
+    /// 取消批量下载
+    case cancelBatchDownload
+    /// 清空本书离线缓存
+    case clearBookCache
     /// 更新书籍实体与新目录
     case updateBook(Book, [Chapter])
 }

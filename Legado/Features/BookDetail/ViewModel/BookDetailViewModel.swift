@@ -8,6 +8,9 @@ public final class BookDetailViewModel: BaseMVIViewModel<BookDetailState, BookDe
     private let saveBookToShelfUseCase: SaveBookToShelfUseCase
     private let removeBookFromShelfUseCase: RemoveBookFromShelfUseCase
     private let bookRepository: BookRepository
+    private let batchDownloadChaptersUseCase: BatchDownloadChaptersUseCase?
+    private let manageBookCacheUseCase: ManageBookCacheUseCase?
+    private var downloadTask: Task<Void, Never>?
 
     public init(
         book: Book,
@@ -15,12 +18,16 @@ public final class BookDetailViewModel: BaseMVIViewModel<BookDetailState, BookDe
         getBookTocUseCase: GetBookTocUseCase,
         saveBookToShelfUseCase: SaveBookToShelfUseCase,
         removeBookFromShelfUseCase: RemoveBookFromShelfUseCase,
-        bookRepository: BookRepository) {
+        bookRepository: BookRepository,
+        batchDownloadChaptersUseCase: BatchDownloadChaptersUseCase? = nil,
+        manageBookCacheUseCase: ManageBookCacheUseCase? = nil) {
         self.getBookDetailUseCase = getBookDetailUseCase
         self.getBookTocUseCase = getBookTocUseCase
         self.saveBookToShelfUseCase = saveBookToShelfUseCase
         self.removeBookFromShelfUseCase = removeBookFromShelfUseCase
         self.bookRepository = bookRepository
+        self.batchDownloadChaptersUseCase = batchDownloadChaptersUseCase
+        self.manageBookCacheUseCase = manageBookCacheUseCase
 
         super.init(initialState: BookDetailState(book: book))
 
@@ -46,6 +53,31 @@ public final class BookDetailViewModel: BaseMVIViewModel<BookDetailState, BookDe
         case .toggleBookshelf:
             toggleShelf()
 
+        case .openToc, .closeToc, .toggleTocReverse, .updateTocSearch, .selectChapter:
+            handleTocIntent(intent)
+
+        case .openSourceSwitch:
+            updateState { $0.isSourceSwitchPresented = true }
+            emitEffect(.hapticFeedback)
+
+        case let .switchSource(newSource):
+            handleSwitchSource(newSource)
+
+        case let .updateBook(updatedBook, newToc):
+            updateState {
+                $0.book = updatedBook
+                $0.chapters = newToc
+            }
+            checkShelfStatus()
+
+        case .toggleCacheSheet, .refreshCacheInfo, .startBatchDownload,
+             .cancelBatchDownload, .clearBookCache:
+            handleCacheIntent(intent)
+        }
+    }
+
+    private func handleTocIntent(_ intent: BookDetailIntent) {
+        switch intent {
         case .openToc:
             updateState { $0.isTocPresented = true }
             emitEffect(.hapticFeedback)
@@ -64,19 +96,100 @@ public final class BookDetailViewModel: BaseMVIViewModel<BookDetailState, BookDe
             updateState { $0.isTocPresented = false }
             emitEffect(.navigateToReader(chapterIndex: chapter.index))
 
-        case .openSourceSwitch:
-            updateState { $0.isSourceSwitchPresented = true }
+        default:
+            break
+        }
+    }
+
+    private func handleCacheIntent(_ intent: BookDetailIntent) {
+        switch intent {
+        case let .toggleCacheSheet(isOpen):
+            updateState { $0.isCacheSheetPresented = isOpen }
+            if isOpen {
+                send(.refreshCacheInfo)
+            }
             emitEffect(.hapticFeedback)
 
-        case let .switchSource(newSource):
-            handleSwitchSource(newSource)
+        case .refreshCacheInfo:
+            refreshCacheStatus()
 
-        case let .updateBook(updatedBook, newToc):
-            updateState {
-                $0.book = updatedBook
-                $0.chapters = newToc
+        case let .startBatchDownload(option):
+            startDownload(option: option)
+
+        case .cancelBatchDownload:
+            cancelDownload()
+
+        case .clearBookCache:
+            clearCache()
+
+        default:
+            break
+        }
+    }
+
+    private func refreshCacheStatus() {
+        guard let manageBookCacheUseCase else { return }
+        let info = manageBookCacheUseCase.getBookCacheInfo(
+            bookUrl: state.book.bookUrl,
+            totalChapters: state.chapters.count)
+        updateState { $0.cacheInfo = info }
+    }
+
+    private func startDownload(option: BatchDownloadOption) {
+        guard let batchDownloadChaptersUseCase else { return }
+        downloadTask?.cancel()
+
+        updateState {
+            $0.downloadProgress = BatchDownloadProgress(
+                bookUrl: state.book.bookUrl,
+                bookName: state.book.name,
+                totalChaptersToDownload: 0,
+                completedChaptersCount: 0,
+                status: .downloading)
+        }
+
+        downloadTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await batchDownloadChaptersUseCase.execute(
+                    book: state.book,
+                    chapters: state.chapters,
+                    option: option,
+                    concurrency: 3) { progress in
+                        Task { @MainActor [weak self] in
+                            self?.updateState { $0.downloadProgress = progress }
+                        }
+                    }
+                self.refreshCacheStatus()
+                self.emitEffect(.showToast("离线缓存完成！"))
+                self.emitEffect(.hapticFeedback)
+            } catch is CancellationError {
+                self.updateState { $0.downloadProgress?.status = .paused }
+                self.emitEffect(.showToast("已暂停/取消下载"))
+            } catch {
+                self.updateState { $0.downloadProgress?.status = .failed(error.localizedDescription) }
+                self.emitEffect(.showToast("下载出现异常: \(error.localizedDescription)"))
             }
-            checkShelfStatus()
+        }
+    }
+
+    private func cancelDownload() {
+        downloadTask?.cancel()
+        downloadTask = nil
+        updateState { $0.downloadProgress?.status = .idle }
+        emitEffect(.showToast("已取消下载任务"))
+        emitEffect(.hapticFeedback)
+    }
+
+    private func clearCache() {
+        guard let manageBookCacheUseCase else { return }
+        do {
+            try manageBookCacheUseCase.clearBookCache(bookUrl: state.book.bookUrl)
+            refreshCacheStatus()
+            emitEffect(.showToast("已清空《\(state.book.name)》离线缓存"))
+            emitEffect(.hapticFeedback)
+        } catch {
+            emitEffect(.showToast("清理缓存失败: \(error.localizedDescription)"))
         }
     }
 

@@ -3,18 +3,20 @@ import Foundation
 /// 章节正文多级缓存与抓取用例 (L1内存 -> L2磁盘 -> L3网络)
 public final class GetChapterContentUseCase: @unchecked Sendable {
     private let sourceRepository: BookSourceRepository
+    private let cacheRepository: BookCacheRepository
     private let contentParser: ContentParser
     private let memoryCache = NSCache<NSString, NSString>()
-    private let fileManager = FileManager.default
 
     public init(
         sourceRepository: BookSourceRepository,
+        cacheRepository: BookCacheRepository = BookCacheRepositoryImpl(),
         contentParser: ContentParser = .shared) {
         self.sourceRepository = sourceRepository
+        self.cacheRepository = cacheRepository
         self.contentParser = contentParser
     }
 
-    /// 获取章节正文内容，自动走三级缓存体系
+    /// 获取章节正文内容，自动走三级缓存体系 (L1内存 -> L2磁盘 -> L3网络)
     public func execute(
         chapter: Chapter,
         origin: String,
@@ -27,12 +29,11 @@ public final class GetChapterContentUseCase: @unchecked Sendable {
         }
 
         // 2. L2 磁盘持久化命中
-        let diskUrl = getDiskCacheUrl(bookUrl: chapter.bookUrl, index: chapter.index)
-        if !forceRefresh, fileManager.fileExists(atPath: diskUrl.path) {
-            if let text = try? String(contentsOf: diskUrl, encoding: .utf8), !text.isEmpty {
-                memoryCache.setObject(text as NSString, forKey: cacheKey)
-                return text
-            }
+        if !forceRefresh, let diskContent = cacheRepository.getCachedChapterContent(
+            bookUrl: chapter.bookUrl,
+            index: chapter.index), !diskContent.isEmpty {
+            memoryCache.setObject(diskContent as NSString, forKey: cacheKey)
+            return diskContent
         }
 
         // 3. L3 网络抓取
@@ -48,7 +49,7 @@ public final class GetChapterContentUseCase: @unchecked Sendable {
 
         // 写入 L1 内存与 L2 磁盘缓存
         memoryCache.setObject(content as NSString, forKey: cacheKey)
-        saveToDisk(content: content, targetUrl: diskUrl)
+        try? cacheRepository.saveChapterContent(bookUrl: chapter.bookUrl, index: chapter.index, content: content)
 
         return content
     }
@@ -62,29 +63,13 @@ public final class GetChapterContentUseCase: @unchecked Sendable {
 
     /// 写入离线章节缓存
     public func saveChapterCache(content: String, bookUrl: String, index: Int) {
-        let url = getDiskCacheUrl(bookUrl: bookUrl, index: index)
-        try? content.write(to: url, atomically: true, encoding: .utf8)
+        try? cacheRepository.saveChapterContent(bookUrl: bookUrl, index: index, content: content)
         let cacheKey = "\(bookUrl)_\(index)" as NSString
         memoryCache.setObject(content as NSString, forKey: cacheKey)
     }
 
-    public static func deterministicKey(for bookUrl: String) -> String {
-        Data(bookUrl.utf8).map { String(format: "%02x", $0) }.joined()
-    }
-
-    private func getDiskCacheUrl(bookUrl: String, index: Int) -> URL {
-        let safeBookName = Self.deterministicKey(for: bookUrl)
-        let dir = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("LegadoChapters", isDirectory: true)
-            .appendingPathComponent(safeBookName, isDirectory: true)
-
-        try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("\(index).txt")
-    }
-
-    private func saveToDisk(content: String, targetUrl: URL) {
-        Task.detached(priority: .background) {
-            try? content.write(to: targetUrl, atomically: true, encoding: .utf8)
-        }
+    /// 判断指定章节是否已缓存在磁盘
+    public func isChapterCached(bookUrl: String, index: Int) -> Bool {
+        cacheRepository.isChapterCached(bookUrl: bookUrl, index: index)
     }
 }

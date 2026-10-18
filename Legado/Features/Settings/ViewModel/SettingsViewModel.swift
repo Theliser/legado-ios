@@ -6,25 +6,30 @@ public final class SettingsViewModel: BaseMVIViewModel<SettingsState, SettingsIn
     private let webDAVClient: WebDAVClient
     private let backupUseCase: BackupToWebDAVUseCase
     private let restoreUseCase: RestoreFromWebDAVUseCase
+    private let manageBookCacheUseCase: ManageBookCacheUseCase?
 
     private static let webDAVConfigKey = "legado_webdav_config"
 
     public init(
         webDAVClient: WebDAVClient = .shared,
         backupUseCase: BackupToWebDAVUseCase,
-        restoreUseCase: RestoreFromWebDAVUseCase) {
+        restoreUseCase: RestoreFromWebDAVUseCase,
+        manageBookCacheUseCase: ManageBookCacheUseCase? = nil) {
         self.webDAVClient = webDAVClient
         self.backupUseCase = backupUseCase
         self.restoreUseCase = restoreUseCase
+        self.manageBookCacheUseCase = manageBookCacheUseCase
 
         let savedConfig = SettingsViewModel.loadSavedWebDAVConfig()
         let initialSpeechRate = TTSPlayer.shared.speechRate
         let initialSpeechPitch = TTSPlayer.shared.speechPitch
+        let initialCacheSize = manageBookCacheUseCase?.calculateTotalCacheSize() ?? 0
 
         super.init(initialState: SettingsState(
             webDAVConfig: savedConfig,
             speechRate: initialSpeechRate,
-            speechPitch: initialSpeechPitch))
+            speechPitch: initialSpeechPitch,
+            cacheSizeBytes: initialCacheSize))
     }
 
     override public func send(_ intent: SettingsIntent) {
@@ -35,7 +40,7 @@ public final class SettingsViewModel: BaseMVIViewModel<SettingsState, SettingsIn
         case .testWebDAVConnection, .backupToWebDAV, .restoreFromWebDAV:
             handleSyncIntent(intent)
 
-        case .updateSpeechRate, .updateSpeechPitch, .clearNotice:
+        case .updateSpeechRate, .updateSpeechPitch, .refreshCacheSize, .clearAllCache, .clearNotice:
             handleGeneralIntent(intent)
         }
     }
@@ -88,6 +93,17 @@ public final class SettingsViewModel: BaseMVIViewModel<SettingsState, SettingsIn
         case let .updateSpeechPitch(pitch):
             updateState { $0.speechPitch = pitch }
             TTSPlayer.shared.speechPitch = pitch
+
+        case .refreshCacheSize:
+            let size = manageBookCacheUseCase?.calculateTotalCacheSize() ?? 0
+            updateState { $0.cacheSizeBytes = size }
+
+        case .clearAllCache:
+            try? manageBookCacheUseCase?.clearAllCache()
+            let size = manageBookCacheUseCase?.calculateTotalCacheSize() ?? 0
+            updateState { $0.cacheSizeBytes = size }
+            emitEffect(.showToast("已清理所有离线正文缓存"))
+            emitEffect(.hapticFeedback)
 
         case .clearNotice:
             updateState {
