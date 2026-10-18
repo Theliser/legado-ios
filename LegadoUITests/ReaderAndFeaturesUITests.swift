@@ -1,0 +1,120 @@
+import UIKit
+import XCTest
+
+/// 阅读器核心与高级特性 UI 自动化测试（对齐 Issue #14、#16、#17：目录/书签、全文搜索、一键换源、离线缓存与听书面板）
+final class ReaderAndFeaturesUITests: XCTestCase {
+    private var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launchArguments = ["--open-reader-hud"]
+        app.launch()
+    }
+
+    override func tearDownWithError() throws {
+        app = nil
+    }
+
+    func testReaderHUDTocBookmarksSearchAndTTS() {
+
+        // MARK: - 步骤 1: 验证阅读器 HUD 成功展现
+
+        let bookTitle = app.staticTexts["宿命之环"]
+        XCTAssertTrue(bookTitle.waitForExistence(timeout: 8), "阅读器 HUD 顶部应展示书名【宿命之环】")
+        captureScreenshot(name: "reader_01_hud_active")
+
+        // MARK: - 步骤 2: 打开目录抽屉并切换至书签栏目 (Issue #14)
+
+        let tocButton = app.buttons["目录"]
+        if tocButton.waitForExistence(timeout: 4) {
+            tocButton.tap()
+
+            let tocSheetTitle = app.staticTexts["目录与书签"]
+            XCTAssertTrue(tocSheetTitle.waitForExistence(timeout: 5), "目录与书签液态面板应成功弹出")
+            captureScreenshot(name: "reader_02_toc_sheet")
+
+            // 切换至书签 Tab
+            let bookmarkTab = app.buttons["书签"]
+            if bookmarkTab.exists {
+                bookmarkTab.tap()
+                captureScreenshot(name: "reader_03_bookmarks_tab")
+            }
+
+            let closeTocButton = app.buttons["关闭"]
+            if closeTocButton.exists {
+                closeTocButton.tap()
+            }
+        }
+
+        // MARK: - 步骤 3: 打开正文全文搜索面板 (Issue #14)
+
+        let searchButton = app.buttons["搜索"]
+        if searchButton.waitForExistence(timeout: 4) {
+            searchButton.tap()
+
+            let searchField = app.textFields["搜索本书正文内容..."]
+            if searchField.waitForExistence(timeout: 4) {
+                captureScreenshot(name: "reader_04_search_content_sheet")
+                searchField.tap()
+                searchField.typeText("命运")
+                captureScreenshot(name: "reader_05_search_content_typed")
+            }
+
+            let doneSearchButton = app.buttons["完成"]
+            if doneSearchButton.exists {
+                doneSearchButton.tap()
+            }
+        }
+
+        // MARK: - 步骤 4: 打开一键换源面板 (Issue #14)
+
+        let changeSourceButton = app.buttons["换源"]
+        if changeSourceButton.waitForExistence(timeout: 4) {
+            changeSourceButton.tap()
+
+            let changeSourceTitle = app.staticTexts["聚合换源"]
+            if changeSourceTitle.waitForExistence(timeout: 4) {
+                captureScreenshot(name: "reader_06_change_source_sheet")
+            }
+
+            let closeChangeSource = app.buttons["关闭"]
+            if closeChangeSource.exists {
+                closeChangeSource.tap()
+            }
+        }
+
+        // MARK: - 步骤 5: 打开离线章节缓存面板 (Issue #16)
+
+        let cacheTopButton = app.buttons["arrow.down.circle"]
+        if cacheTopButton.waitForExistence(timeout: 4) {
+            cacheTopButton.tap()
+
+            let cacheTitle = app.staticTexts["离线章节缓存"]
+            if cacheTitle.waitForExistence(timeout: 4) {
+                captureScreenshot(name: "reader_07_book_cache_sheet")
+            }
+
+            let closeCache = app.buttons["关闭"]
+            if closeCache.exists {
+                closeCache.tap()
+            }
+        }
+
+        // MARK: - 步骤 6: 唤起听书控制 (Issue #17)
+
+        let ttsButton = app.buttons["听书"]
+        if ttsButton.waitForExistence(timeout: 4) {
+            ttsButton.tap()
+            captureScreenshot(name: "reader_08_tts_floating_active")
+        }
+    }
+
+    private func captureScreenshot(name: String) {
+        let screenshot = app.screenshot()
+        let attachment = XCTAttachment(screenshot: screenshot)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+}
