@@ -81,16 +81,6 @@ public struct SourceManageView: View {
             }
             .onAppear {
                 viewModel.send(.loadSources)
-                if ProcessInfo.processInfo.arguments.contains("--open-import-sheet") {
-                    viewModel.send(.openImportSheet)
-                } else if ProcessInfo.processInfo.arguments.contains("--open-debug-sheet") {
-                    Task {
-                        try? await Task.sleep(nanoseconds: 300_000_000)
-                        if let first = viewModel.state.sources.first {
-                            viewModel.send(.openDebug(first))
-                        }
-                    }
-                }
             }
             .onReceive(viewModel.effectPublisher) { effect in
                 switch effect {
@@ -175,6 +165,10 @@ public struct SourceManageView: View {
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.15), lineWidth: 0.5))
+        .contentShape(Rectangle())
+        .onTapGesture {
+            viewModel.send(.openDebug(source))
+        }
         .contextMenu {
             Button {
                 viewModel.send(.openDebug(source))
