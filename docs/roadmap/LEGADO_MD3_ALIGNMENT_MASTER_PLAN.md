@@ -97,14 +97,15 @@ flowchart TD
 ### 阶段三：离线缓存与批量下载队列 (Offline Caching & Batch Downloader)
 > **对标 MD3 模块**：`ui/book/cache/`, `service/CacheService.kt`
 
-- [ ] **3.1 离线章节并发下载管理器 (Batch Chapter Downloader)**
+- [x] **3.1 离线章节并发下载管理器 (Batch Chapter Downloader)** (已完成，Commit: `e228bb0`)
   - 对标文件：`CacheActivity.kt`, `CacheService.kt`
   - 核心功能：
     - 支持快捷选项：下载后 50 章、后 100 章、全部未读章节、全本整本缓存；
     - 基于 `AsyncSemaphore` 的多通道并发安全下载，支持暂停、恢复与失败重试；
-    - 提供液态玻璃下载浮动进度指示器。
-- [ ] **3.2 离线存储空间管理与清理**
-  - 统计各书籍离线缓存占用体积（MB/KB），支持单本或一键清理全部离线正文。
+    - 提供液态玻璃下载浮动进度指示器与 `BookCacheSheet` 原生模态交互。
+- [x] **3.2 离线存储空间管理与清理** (已完成，Commit: `e228bb0`)
+  - 统计各书籍离线缓存占用体积（MB/KB），沙盒统一规整为 `Caches/LegadoChapters/<safeBookName>/<index>.txt`，支持单本或一键清理全部离线正文；
+  - 设置中心集成离线存储占用展示与一键清空能力。
 
 ---
 
