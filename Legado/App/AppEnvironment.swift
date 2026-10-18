@@ -94,25 +94,7 @@ public final class AppEnvironment: ObservableObject {
 
     private func seedSampleSourcesIfNeeded() async {
         let sources = (try? await bookSourceRepository.fetchSources()) ?? []
-        var toSave: [BookSource] = []
-
-        let sampleSource = buildDefaultSampleSource()
-        if !sources.contains(where: { $0.bookSourceUrl == sampleSource.bookSourceUrl }) {
-            toSave.append(sampleSource)
-        }
-
-        let kuwoSource = buildKuwoSource()
-        if !sources.contains(where: { $0.bookSourceUrl == kuwoSource.bookSourceUrl }) {
-            toSave.append(kuwoSource)
-        }
-
-        if !toSave.isEmpty {
-            try? await bookSourceRepository.saveSources(toSave)
-        }
-    }
-
-    private func buildDefaultSampleSource() -> BookSource {
-        BookSource(
+        let sampleSource = BookSource(
             bookSourceUrl: "https://biquge.example.com",
             bookSourceName: "笔趣阁官方",
             bookSourceType: 0,
@@ -122,7 +104,6 @@ public final class AppEnvironment: ObservableObject {
             都市言情::/sort/3_{{page}}.html
             历史军事::/sort/4_{{page}}.html
             """,
-            searchUrl: "/search.php?keyword={{key}}",
             bookSourceComment: "内置演示书源",
             ruleSearch: RuleSearch(
                 checkKeyWord: "宿命",
@@ -151,45 +132,14 @@ public final class AppEnvironment: ObservableObject {
                 chapterUrl: "href"),
             ruleContent: RuleContent(
                 content: "#content@text"))
-    }
 
-    private func buildKuwoSource() -> BookSource {
-        BookSource(
-            bookSourceUrl: "http://appi.kuwo.cn",
-            bookSourceName: "酷我小说",
-            bookSourceGroup: "API",
-            bookSourceType: 0,
-            header: "{\"User-Agent\": \"Dalvik/2.1.0 (Linux; U; Android 8.0.0; LND-AL40)\"}",
-            searchUrl: "/novels/api/book/search?keyword={{key}}&pi={{page}}&ps=20",
-            weight: 80,
-            enabled: true,
-            enabledExplore: false,
-            customOrder: 1,
-            ruleSearch: RuleSearch(
-                checkKeyWord: "修仙",
-                bookList: "$.data",
-                name: "$.title",
-                author: "$.author_name",
-                kind: "{{$.category_name}},{{$.status}}",
-                wordCount: "$.all_words",
-                intro: "$.intro",
-                coverUrl: "$.cover_url",
-                bookUrl: "/novels/api/book/{{$.book_id}}"),
-            ruleBookInfo: RuleBookInfo(
-                bookInfoInit: "$.data",
-                name: "$.title",
-                author: "$.author_name",
-                kind: "{{$.category_name}},{{$.status}}",
-                wordCount: "$.all_words",
-                intro: "$.intro",
-                coverUrl: "$.cover_url",
-                tocUrl: "/novels/api/book/{{$.book_id}}/chapters?paging=0"),
-            ruleToc: RuleToc(
-                chapterList: "$.data",
-                chapterName: "$.chapter_title",
-                chapterUrl: "/novels/api/book/{{$.book_id}}/chapters/{{$.chapter_id}}"),
-            ruleContent: RuleContent(
-                content: "$.data.content"))
+        if let existing = sources.first(where: { $0.bookSourceUrl == sampleSource.bookSourceUrl }) {
+            if existing.exploreUrl == nil || existing.ruleExplore == nil {
+                try? await bookSourceRepository.saveSources([sampleSource])
+            }
+        } else {
+            try? await bookSourceRepository.saveSources([sampleSource])
+        }
     }
 
     private func seedSampleBookshelfIfNeeded() async {
