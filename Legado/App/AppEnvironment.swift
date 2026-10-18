@@ -38,6 +38,9 @@ public final class AppEnvironment: ObservableObject {
     public let getBookGroupsUseCase: GetBookGroupsUseCase
     public let saveBookGroupUseCase: SaveBookGroupUseCase
     public let deleteBookGroupUseCase: DeleteBookGroupUseCase
+    public let bookCacheRepository: BookCacheRepository
+    public let batchDownloadChaptersUseCase: BatchDownloadChaptersUseCase
+    public let manageBookCacheUseCase: ManageBookCacheUseCase
 
     public init(inMemory: Bool = false) {
         let provider = ModelContainerProvider(inMemory: inMemory)
@@ -47,11 +50,13 @@ public final class AppEnvironment: ObservableObject {
         let bookRepo = BookRepositoryImpl(modelContainer: provider.container)
         let bookmarkRepo = BookmarkRepositoryImpl(modelContainer: provider.container)
         let groupRepo = BookGroupRepositoryImpl(modelContainer: provider.container)
+        let cacheRepo = BookCacheRepositoryImpl()
 
         self.bookSourceRepository = sourceRepo
         self.bookRepository = bookRepo
         self.bookmarkRepository = bookmarkRepo
         self.bookGroupRepository = groupRepo
+        self.bookCacheRepository = cacheRepo
 
         self.searchBooksUseCase = SearchBooksUseCase(sourceRepository: sourceRepo)
         self.saveBookToShelfUseCase = SaveBookToShelfUseCase(bookRepository: bookRepo)
@@ -60,7 +65,13 @@ public final class AppEnvironment: ObservableObject {
         self.getBookDetailUseCase = GetBookDetailUseCase(sourceRepository: sourceRepo, bookRepository: bookRepo)
         self.getBookTocUseCase = GetBookTocUseCase(sourceRepository: sourceRepo, bookRepository: bookRepo)
         self.checkBookUpdatesUseCase = CheckBookUpdatesUseCase(bookRepository: bookRepo, sourceRepository: sourceRepo)
-        self.getChapterContentUseCase = GetChapterContentUseCase(sourceRepository: sourceRepo)
+        self.getChapterContentUseCase = GetChapterContentUseCase(
+            sourceRepository: sourceRepo,
+            cacheRepository: cacheRepo)
+        self.batchDownloadChaptersUseCase = BatchDownloadChaptersUseCase(
+            getChapterContentUseCase: self.getChapterContentUseCase,
+            bookCacheRepository: cacheRepo)
+        self.manageBookCacheUseCase = ManageBookCacheUseCase(bookCacheRepository: cacheRepo)
 
         self.getExploreCategoriesUseCase = GetExploreCategoriesUseCase(sourceRepository: sourceRepo)
         self.exploreBooksUseCase = ExploreBooksUseCase(sourceRepository: sourceRepo)
@@ -224,7 +235,9 @@ public final class AppEnvironment: ObservableObject {
             getBookTocUseCase: getBookTocUseCase,
             saveBookToShelfUseCase: saveBookToShelfUseCase,
             removeBookFromShelfUseCase: removeBookFromShelfUseCase,
-            bookRepository: bookRepository)
+            bookRepository: bookRepository,
+            batchDownloadChaptersUseCase: batchDownloadChaptersUseCase,
+            manageBookCacheUseCase: manageBookCacheUseCase)
     }
 
     /// 创建书架 ViewModel
@@ -277,7 +290,8 @@ public final class AppEnvironment: ObservableObject {
     public func makeSettingsViewModel() -> SettingsViewModel {
         SettingsViewModel(
             backupUseCase: backupToWebDAVUseCase,
-            restoreUseCase: restoreFromWebDAVUseCase)
+            restoreUseCase: restoreFromWebDAVUseCase,
+            manageBookCacheUseCase: manageBookCacheUseCase)
     }
 
     /// 创建换源 ViewModel

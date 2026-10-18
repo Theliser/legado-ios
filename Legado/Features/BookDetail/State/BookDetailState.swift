@@ -18,6 +18,12 @@ public struct BookDetailState: ViewState, Equatable, Sendable {
     public var isReverseToc: Bool
     /// 目录搜索过滤关键字
     public var tocSearchText: String
+    /// 离线缓存抽屉是否弹出
+    public var isCacheSheetPresented: Bool
+    /// 当前离线缓存信息
+    public var cacheInfo: BookCacheInfo?
+    /// 当前批量下载进度快照
+    public var downloadProgress: BatchDownloadProgress?
     /// 错误提示
     public var errorMessage: String?
 
@@ -30,6 +36,9 @@ public struct BookDetailState: ViewState, Equatable, Sendable {
         isSourceSwitchPresented: Bool = false,
         isReverseToc: Bool = false,
         tocSearchText: String = "",
+        isCacheSheetPresented: Bool = false,
+        cacheInfo: BookCacheInfo? = nil,
+        downloadProgress: BatchDownloadProgress? = nil,
         errorMessage: String? = nil) {
         self.book = book
         self.isLoading = isLoading
@@ -39,6 +48,9 @@ public struct BookDetailState: ViewState, Equatable, Sendable {
         self.isSourceSwitchPresented = isSourceSwitchPresented
         self.isReverseToc = isReverseToc
         self.tocSearchText = tocSearchText
+        self.isCacheSheetPresented = isCacheSheetPresented
+        self.cacheInfo = cacheInfo
+        self.downloadProgress = downloadProgress
         self.errorMessage = errorMessage
     }
 }
