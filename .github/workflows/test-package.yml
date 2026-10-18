@@ -15,6 +15,8 @@ jobs:
   build-and-package:
     name: Build & Package Test Release
     runs-on: macos-15
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -88,3 +90,51 @@ jobs:
           name: Legado-Simulator-App-${{ github.sha }}
           path: build/Legado-Simulator.zip
           retention-days: 14
+
+      - name: Publish GitHub Pre-Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          TAG_NAME="test-$(date +'%Y%m%d-%H%M')-${SHORT_SHA}"
+
+          FILES=()
+          if [ -f "build/Legado-Test.ipa" ]; then
+            FILES+=("build/Legado-Test.ipa#Legado-Test-${SHORT_SHA}.ipa")
+          fi
+          if [ -f "build/Legado-Simulator.zip" ]; then
+            FILES+=("build/Legado-Simulator.zip#Legado-Simulator-${SHORT_SHA}.zip")
+          fi
+
+          python3 -c "
+          import os, datetime
+          sha = '${{ github.sha }}'
+          short_sha = sha[:7]
+          tag = '${TAG_NAME}'
+          repo = '${{ github.repository }}'
+          ref = '${{ github.ref_name }}'
+          date_str = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+
+          notes = f'''### 🚀 Legado iOS Test Build ({tag})
+          - **Commit**: [\`{short_sha}\`](https://github.com/{repo}/commit/{sha})
+          - **Branch**: \`{ref}\`
+          - **Date**: {date_str}
+
+          #### 📦 Release Assets
+          - **\`Legado-Test-{short_sha}.ipa\`**: Unsigned IPA (适用于 TrollStore / 巨魔、AltStore、SideStore 或个人证书自签名安装)
+          '''
+
+          if os.path.exists('build/Legado-Simulator.zip'):
+              notes += f'- **\`Legado-Simulator-{short_sha}.zip\`**: iOS 模拟器专用的 App 压缩包\n'
+
+          # Strip 10-space YAML indentation from each line
+          clean_lines = [line.strip() for line in notes.strip().split('\n')]
+          with open('release_notes.md', 'w', encoding='utf-8') as f:
+              f.write('\n'.join(clean_lines) + '\n')
+          "
+
+          gh release create "$TAG_NAME" "${FILES[@]}" \
+            --target "${{ github.sha }}" \
+            --title "Test Build ${TAG_NAME}" \
+            --notes-file release_notes.md \
+            --prerelease
