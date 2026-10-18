@@ -5,6 +5,7 @@ public struct ReaderView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var environment: AppEnvironment
     @StateObject var viewModel: ReaderViewModel
+    @ObservedObject var ttsPlayer: TTSPlayer = .shared
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
     @State private var isTTSSpeaking = false
@@ -61,8 +62,9 @@ public struct ReaderView: View {
                                 viewModel.send(.toggleHUD)
                                 isTTSSpeaking = true
                             }
+                            setupTTSCallbacks()
                             let text = viewModel.state.currentChapterText
-                            TTSPlayer.shared.startReading(
+                            ttsPlayer.startReading(
                                 content: text,
                                 bookTitle: viewModel.state.book.name,
                                 chapterTitle: viewModel.state.currentChapter?.title ?? "",
@@ -232,6 +234,26 @@ public struct ReaderView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .animation(.spring(response: 0.35, dampingFraction: 0.8), value: toastMessage)
             }
+        }
+        .onChange(of: ttsPlayer.state) { _, newState in
+            if newState == .idle && isTTSSpeaking {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                    isTTSSpeaking = false
+                }
+            }
+        }
+    }
+
+    private func setupTTSCallbacks() {
+        ttsPlayer.onSentenceChanged = { _, sentence in
+            if let targetPageIndex = viewModel.state.pages.firstIndex(where: { $0.contentText.contains(sentence) }),
+               targetPageIndex != viewModel.state.currentPageIndex {
+                viewModel.send(.jumpToPage(targetPageIndex))
+            }
+        }
+        ttsPlayer.onRequestNextChapterAsync = { [weak viewModel] in
+            guard let viewModel else { return nil }
+            return await viewModel.fetchNextChapterForTTS()
         }
     }
 }

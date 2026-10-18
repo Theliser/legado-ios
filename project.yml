@@ -52,6 +52,8 @@ targets:
       properties:
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+        UIBackgroundModes:
+          - audio
     preBuildScripts:
       - name: SwiftLint
         script: |

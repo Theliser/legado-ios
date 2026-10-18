@@ -5,14 +5,27 @@ public struct ReaderPageView: View {
     let page: ReaderPage
     let totalPages: Int
     let config: ReaderConfig
+    let highlightedSentence: String?
 
     public init(
         page: ReaderPage,
         totalPages: Int,
-        config: ReaderConfig) {
+        config: ReaderConfig,
+        highlightedSentence: String? = nil) {
         self.page = page
         self.totalPages = totalPages
         self.config = config
+        self.highlightedSentence = highlightedSentence
+    }
+
+    private var renderedContent: AttributedString {
+        var attr = AttributedString(page.contentText)
+        if let target = highlightedSentence, !target.isEmpty,
+           let range = attr.range(of: target) {
+            attr[range].backgroundColor = Color.accentColor.opacity(0.18)
+            attr[range].foregroundColor = .accentColor
+        }
+        return attr
     }
 
     public var body: some View {
@@ -36,7 +49,7 @@ public struct ReaderPageView: View {
             .frame(height: config.topMargin, alignment: .bottom)
 
             // 正文区域
-            Text(page.contentText)
+            Text(renderedContent)
                 .font(.system(size: config.fontSize))
                 .lineSpacing(config.lineSpacing)
                 .foregroundStyle(config.theme.textColor)
