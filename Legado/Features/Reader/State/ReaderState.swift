@@ -15,6 +15,7 @@ public struct ReaderState: ViewState, Equatable, Sendable {
     public var isLoading: Bool
     public var screenBounds: CGRect
     public var toastMessage: String?
+    public var bookmarks: [Bookmark]
 
     public init(
         book: Book,
@@ -28,7 +29,8 @@ public struct ReaderState: ViewState, Equatable, Sendable {
         isConfigSheetVisible: Bool = false,
         isLoading: Bool = false,
         screenBounds: CGRect = .zero,
-        toastMessage: String? = nil) {
+        toastMessage: String? = nil,
+        bookmarks: [Bookmark] = []) {
         self.book = book
         self.chapters = chapters
         self.currentChapterIndex = currentChapterIndex
@@ -41,6 +43,7 @@ public struct ReaderState: ViewState, Equatable, Sendable {
         self.isLoading = isLoading
         self.screenBounds = screenBounds
         self.toastMessage = toastMessage
+        self.bookmarks = bookmarks
     }
 
     public var currentChapter: Chapter? {
@@ -55,5 +58,15 @@ public struct ReaderState: ViewState, Equatable, Sendable {
 
     public var currentChapterText: String {
         pages.map(\.contentText).joined()
+    }
+
+    /// 当前章节当前页是否已被加为书签
+    public var isCurrentPageBookmarked: Bool {
+        guard let page = currentPage else { return false }
+        return bookmarks.contains { bookmark in
+            bookmark.chapterIndex == currentChapterIndex &&
+                bookmark.chapterPos >= page.textRange.location &&
+                bookmark.chapterPos < (page.textRange.location + max(page.textRange.length, 1))
+        }
     }
 }

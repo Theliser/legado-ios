@@ -8,6 +8,9 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
     private let getBookTocUseCase: GetBookTocUseCase
     private let bookRepository: BookRepository
     private let textLayoutEngine: TextLayoutEngine
+    let getBookmarksUseCase: GetBookmarksUseCase?
+    let saveBookmarkUseCase: SaveBookmarkUseCase?
+    let deleteBookmarkUseCase: DeleteBookmarkUseCase?
 
     public init(
         book: Book,
@@ -16,11 +19,17 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
         getChapterContentUseCase: GetChapterContentUseCase,
         getBookTocUseCase: GetBookTocUseCase,
         bookRepository: BookRepository,
-        textLayoutEngine: TextLayoutEngine = .shared) {
+        textLayoutEngine: TextLayoutEngine = .shared,
+        getBookmarksUseCase: GetBookmarksUseCase? = nil,
+        saveBookmarkUseCase: SaveBookmarkUseCase? = nil,
+        deleteBookmarkUseCase: DeleteBookmarkUseCase? = nil) {
         self.getChapterContentUseCase = getChapterContentUseCase
         self.getBookTocUseCase = getBookTocUseCase
         self.bookRepository = bookRepository
         self.textLayoutEngine = textLayoutEngine
+        self.getBookmarksUseCase = getBookmarksUseCase
+        self.saveBookmarkUseCase = saveBookmarkUseCase
+        self.deleteBookmarkUseCase = deleteBookmarkUseCase
 
         let startChapter = initialChapterIndex ?? book.durChapterIndex
         super.init(initialState: ReaderState(
@@ -29,6 +38,7 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
             isHUDVisible: showHUDInitially))
 
         loadTocAndStartReading()
+        loadBookmarks()
     }
 
     private func loadTocAndStartReading() {
@@ -61,13 +71,13 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
 
     override public func send(_ intent: ReaderIntent) {
         switch intent {
-        case .loadChapter, .nextPage, .prevPage, .jumpToPage:
+        case .loadChapter, .nextPage, .prevPage, .jumpToPage, .jumpToChapterAndOffset:
             handleNavigationIntent(intent)
 
         case .toggleHUD, .hideHUD, .openToc, .closeToc:
             handleHUDIntent(intent)
 
-        case .openConfig, .closeConfig, .changeFontSize, .selectTheme:
+        case .openConfig, .closeConfig, .changeFontSize, .selectTheme, .selectPageTurnMode:
             handleConfigIntent(intent)
 
         case let .updateScreenBounds(rect):
@@ -75,6 +85,21 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
                 updateState { $0.screenBounds = rect }
                 repaginateCurrentChapter()
             }
+
+        case let .switchSource(updatedBook, newToc, matchedChapterIndex):
+            updateState {
+                $0.book = updatedBook
+                $0.chapters = newToc
+                $0.currentChapterIndex = matchedChapterIndex
+                $0.pages = []
+                $0.currentPageIndex = 0
+            }
+            loadChapterContent(chapterIndex: matchedChapterIndex, targetPageIndex: 0)
+            emitEffect(.showToast("已成功换源至 [\(updatedBook.originName)]"))
+            emitEffect(.hapticFeedback)
+
+        case .toggleBookmark, .addBookmark, .deleteBookmark, .loadBookmarks:
+            handleBookmarkIntent(intent)
         }
     }
 
@@ -82,6 +107,9 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
         switch intent {
         case let .loadChapter(index):
             loadChapterContent(chapterIndex: index, targetPageIndex: 0)
+
+        case let .jumpToChapterAndOffset(chapterIndex, matchOffset):
+            loadChapterContent(chapterIndex: chapterIndex, targetPageIndex: 0, targetOffset: matchOffset)
 
         case .nextPage:
             handleNextPage()
@@ -148,12 +176,20 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
             newConfig.theme = theme
             applyNewConfig(newConfig)
 
+        case let .selectPageTurnMode(mode):
+            var newConfig = state.config
+            newConfig.pageTurnMode = mode
+            applyNewConfig(newConfig)
+
         default:
             break
         }
     }
 
-    private func loadChapterContent(chapterIndex: Int, targetPageIndex: Int) {
+    private func loadChapterContent(
+        chapterIndex: Int,
+        targetPageIndex: Int,
+        targetOffset: Int? = nil) {
         guard chapterIndex >= 0, chapterIndex < state.chapters.count else { return }
 
         let chapter = state.chapters[chapterIndex]
@@ -177,7 +213,14 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
                     bounds: layoutBounds,
                     config: state.config)
 
-                let safePageIndex = min(max(targetPageIndex, 0), max(pages.count - 1, 0))
+                let safePageIndex: Int
+                if let offset = targetOffset {
+                    safePageIndex = pages.firstIndex { page in
+                        offset >= page.textRange.location && offset < (page.textRange.location + page.textRange.length)
+                    } ?? 0
+                } else {
+                    safePageIndex = min(max(targetPageIndex, 0), max(pages.count - 1, 0))
+                }
 
                 self.updateState { state in
                     state.isLoading = false

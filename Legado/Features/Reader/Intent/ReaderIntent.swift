@@ -27,8 +27,22 @@ public enum ReaderIntent: ViewIntent, Equatable, Sendable {
     case changeFontSize(delta: CGFloat)
     /// 切换配色主题
     case selectTheme(ReaderTheme)
+    /// 切换翻页动效模式
+    case selectPageTurnMode(PageTurnMode)
     /// 屏幕尺寸尺寸更新重新排版
     case updateScreenBounds(CGRect)
+    /// 切换书源并重载新目录与章节
+    case switchSource(updatedBook: Book, newToc: [Chapter], matchedChapterIndex: Int)
+    /// 跳转到指定章节及字符偏移位置 (用于全文搜索定位)
+    case jumpToChapterAndOffset(chapterIndex: Int, matchOffset: Int)
+    /// 切换当前页面书签状态 (添加或删除书签)
+    case toggleBookmark
+    /// 添加带笔记的书签
+    case addBookmark(chapterIndex: Int, chapterPos: Int, chapterTitle: String, bookText: String, note: String)
+    /// 删除指定书签
+    case deleteBookmark(id: String)
+    /// 刷新书签列表
+    case loadBookmarks
 }
 
 /// 阅读器副作用

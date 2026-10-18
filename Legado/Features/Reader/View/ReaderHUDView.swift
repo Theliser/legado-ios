@@ -16,7 +16,12 @@ public struct ReaderHUDView: View {
     let onToggleConfig: () -> Void
     let onFontSizeChange: (CGFloat) -> Void
     let onSelectTheme: (ReaderTheme) -> Void
+    let onSelectPageTurnMode: (PageTurnMode) -> Void
     let onStartTTS: () -> Void
+    let onOpenChangeSource: () -> Void
+    let onOpenSearch: () -> Void
+    let isBookmarked: Bool
+    let onToggleBookmark: () -> Void
 
     public init(
         bookTitle: String,
@@ -33,7 +38,12 @@ public struct ReaderHUDView: View {
         onToggleConfig: @escaping () -> Void,
         onFontSizeChange: @escaping (CGFloat) -> Void,
         onSelectTheme: @escaping (ReaderTheme) -> Void,
-        onStartTTS: @escaping () -> Void = {}) {
+        onSelectPageTurnMode: @escaping (PageTurnMode) -> Void = { _ in },
+        onStartTTS: @escaping () -> Void = {},
+        onOpenChangeSource: @escaping () -> Void = {},
+        onOpenSearch: @escaping () -> Void = {},
+        isBookmarked: Bool = false,
+        onToggleBookmark: @escaping () -> Void = {}) {
         self.bookTitle = bookTitle
         self.currentChapterTitle = currentChapterTitle
         self.currentChapterIndex = currentChapterIndex
@@ -48,7 +58,12 @@ public struct ReaderHUDView: View {
         self.onToggleConfig = onToggleConfig
         self.onFontSizeChange = onFontSizeChange
         self.onSelectTheme = onSelectTheme
+        self.onSelectPageTurnMode = onSelectPageTurnMode
         self.onStartTTS = onStartTTS
+        self.onOpenChangeSource = onOpenChangeSource
+        self.onOpenSearch = onOpenSearch
+        self.isBookmarked = isBookmarked
+        self.onToggleBookmark = onToggleBookmark
     }
 
     public var body: some View {
@@ -99,6 +114,26 @@ public struct ReaderHUDView: View {
             }
 
             Spacer()
+
+            Button(action: onOpenSearch) {
+                Image(systemName: "magnifyingglass")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: 36, height: 36)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 0.5))
+            }
+
+            Button(action: onToggleBookmark) {
+                Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(isBookmarked ? Color.accentColor : .primary)
+                    .frame(width: 36, height: 36)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 0.5))
+            }
         }
         .padding(.horizontal, 16)
         .padding(.top, 54)
@@ -141,40 +176,7 @@ public struct ReaderHUDView: View {
 
             Divider()
 
-            // 功能快捷按钮
-            HStack {
-                Button(action: onOpenToc) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "list.bullet")
-                            .font(.body)
-                        Text("目录")
-                            .font(.caption2)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-
-                Button(action: onToggleConfig) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "textformat.size")
-                            .font(.body)
-                        Text("排版")
-                            .font(.caption2)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-
-                Button(action: onStartTTS) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "headphones")
-                            .font(.body)
-                        Text("听书")
-                            .font(.caption2)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            .tint(.primary)
-            .padding(.vertical, 4)
+            quickActionsBar
         }
         .padding(16)
         .background(.ultraThinMaterial)
@@ -183,6 +185,30 @@ public struct ReaderHUDView: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.white.opacity(0.18), lineWidth: 0.5))
         .shadow(color: .black.opacity(0.12), radius: 10, y: 5)
+    }
+
+    private var quickActionsBar: some View {
+        HStack {
+            quickActionButton(title: "目录", systemImage: "list.bullet", action: onOpenToc)
+            quickActionButton(title: "排版", systemImage: "textformat.size", action: onToggleConfig)
+            quickActionButton(title: "搜索", systemImage: "magnifyingglass", action: onOpenSearch)
+            quickActionButton(title: "听书", systemImage: "headphones", action: onStartTTS)
+            quickActionButton(title: "换源", systemImage: "arrow.triangle.2.circlepath", action: onOpenChangeSource)
+        }
+        .tint(.primary)
+        .padding(.vertical, 4)
+    }
+
+    private func quickActionButton(title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: systemImage)
+                    .font(.body)
+                Text(title)
+                    .font(.caption2)
+            }
+            .frame(maxWidth: .infinity)
+        }
     }
 
     // MARK: - 排版调节浮动面板
@@ -243,6 +269,35 @@ public struct ReaderHUDView: View {
                                 .font(.caption.bold())
                                 .foregroundStyle(theme.textColor)
                         }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // 翻页动效模式切换
+            HStack(spacing: 12) {
+                Text("翻页")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                ForEach(PageTurnMode.allCases) { mode in
+                    let isSelected = config.pageTurnMode == mode
+                    Button {
+                        onSelectPageTurnMode(mode)
+                    } label: {
+                        Text(mode.rawValue)
+                            .font(.footnote.weight(isSelected ? .semibold : .regular))
+                            .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 7)
+                            .background(
+                                Capsule(style: .continuous)
+                                    .fill(isSelected ? Color.accentColor.opacity(0.14) : Color.secondary.opacity(0.10)))
+                            .overlay(
+                                Capsule(style: .continuous)
+                                    .stroke(
+                                        isSelected ? Color.accentColor.opacity(0.35) : Color.white.opacity(0.12),
+                                        lineWidth: 0.5))
                     }
                     .buttonStyle(.plain)
                 }

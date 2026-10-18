@@ -3,10 +3,13 @@ import SwiftUI
 /// 沉浸式阅读器主视图 (纯声明式渲染 View = f(State))
 public struct ReaderView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel: ReaderViewModel
+    @EnvironmentObject private var environment: AppEnvironment
+    @StateObject var viewModel: ReaderViewModel
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
     @State private var isTTSSpeaking = false
+    @State private var isChangeSourcePresented = false
+    @State private var isSearchContentPresented = false
 
     public init(viewModel: ReaderViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -19,24 +22,8 @@ public struct ReaderView: View {
                 viewModel.state.config.theme.backgroundColor
                     .ignoresSafeArea()
 
-                // 单页正文排版
-                if let page = viewModel.state.currentPage {
-                    ReaderPageView(
-                        page: page,
-                        totalPages: viewModel.state.pages.count,
-                        config: viewModel.state.config)
-                } else if viewModel.state.isLoading {
-                    ProgressView("正在排版正文...")
-                        .tint(viewModel.state.config.theme.textColor)
-                } else {
-                    ContentUnavailableView(
-                        "章节内容加载失败",
-                        systemImage: "book.pages",
-                        description: Text("轻触屏幕中央呼出控制栏"))
-                }
-
-                // 全屏交互手势热区 (左30% 上一页，中40% 呼出HUD，右30% 下一页)
-                tapGestureOverlay(width: geometry.size.width)
+                // 多模式正文排版呈现 (覆盖 / 滑动 / 连续上下滚动)
+                contentLayer(width: geometry.size.width)
 
                 // 液态玻璃 HUD 控制面板
                 if viewModel.state.isHUDVisible {
@@ -65,6 +52,9 @@ public struct ReaderView: View {
                         onSelectTheme: { theme in
                             viewModel.send(.selectTheme(theme))
                         },
+                        onSelectPageTurnMode: { mode in
+                            viewModel.send(.selectPageTurnMode(mode))
+                        },
                         onStartTTS: {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
                                 viewModel.send(.toggleHUD)
@@ -76,6 +66,22 @@ public struct ReaderView: View {
                                 bookTitle: viewModel.state.book.name,
                                 chapterTitle: viewModel.state.currentChapter?.title ?? "",
                                 author: viewModel.state.book.author)
+                        },
+                        onOpenChangeSource: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                                viewModel.send(.hideHUD)
+                                isChangeSourcePresented = true
+                            }
+                        },
+                        onOpenSearch: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                                viewModel.send(.hideHUD)
+                                isSearchContentPresented = true
+                            }
+                        },
+                        isBookmarked: viewModel.state.isCurrentPageBookmarked,
+                        onToggleBookmark: {
+                            viewModel.send(.toggleBookmark)
                         })
                         .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 }
@@ -107,6 +113,31 @@ public struct ReaderView: View {
         .navigationBarBackButtonHidden(true)
         .statusBarHidden(!viewModel.state.isHUDVisible)
         .sensoryFeedback(.impact(weight: .light), trigger: hapticTrigger)
+        .sheet(isPresented: $isChangeSourcePresented) {
+            ChangeSourceSheet(
+                viewModel: environment.makeChangeSourceViewModel(
+                    book: viewModel.state.book,
+                    currentChapterTitle: viewModel.state.currentChapter?.title,
+                    currentChapterIndex: viewModel.state.currentChapterIndex),
+                onSwitched: { updatedBook, newToc, matchedIndex in
+                    viewModel.send(.switchSource(
+                        updatedBook: updatedBook,
+                        newToc: newToc,
+                        matchedChapterIndex: matchedIndex))
+                })
+        }
+        .sheet(isPresented: $isSearchContentPresented) {
+            BookSearchContentSheet(
+                viewModel: environment.makeBookSearchContentViewModel(
+                    book: viewModel.state.book,
+                    chapters: viewModel.state.chapters),
+                onSelectMatch: { chapterIndex, matchOffset in
+                    isSearchContentPresented = false
+                    viewModel.send(.jumpToChapterAndOffset(
+                        chapterIndex: chapterIndex,
+                        matchOffset: matchOffset))
+                })
+        }
         .sheet(isPresented: Binding(
             get: { viewModel.state.isTocSheetVisible },
             set: {
@@ -119,11 +150,21 @@ public struct ReaderView: View {
                     durChapterIndex: viewModel.state.currentChapterIndex,
                     isReverse: false,
                     searchText: "",
+                    bookmarks: viewModel.state.bookmarks,
                     onToggleReverse: {},
                     onSearchChange: { _ in },
                     onSelectChapter: { chapter in
                         viewModel.send(.closeToc)
                         viewModel.send(.loadChapter(chapter.index))
+                    },
+                    onSelectBookmark: { bookmark in
+                        viewModel.send(.closeToc)
+                        viewModel.send(.jumpToChapterAndOffset(
+                            chapterIndex: bookmark.chapterIndex,
+                            matchOffset: bookmark.chapterPos))
+                    },
+                    onDeleteBookmark: { bookmark in
+                        viewModel.send(.deleteBookmark(id: bookmark.id))
                     })
         }
         .onReceive(viewModel.effectPublisher) { effect in
@@ -161,42 +202,6 @@ public struct ReaderView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .animation(.spring(response: 0.35, dampingFraction: 0.8), value: toastMessage)
             }
-        }
-    }
-
-    private func tapGestureOverlay(width: CGFloat) -> some View {
-        HStack(spacing: 0) {
-            // 左侧 30% 热区 (上一页)
-            Color.clear
-                .contentShape(Rectangle())
-                .frame(width: width * 0.3)
-                .onTapGesture {
-                    if viewModel.state.isHUDVisible {
-                        viewModel.send(.hideHUD)
-                    } else {
-                        viewModel.send(.prevPage)
-                    }
-                }
-
-            // 中间 40% 热区 (呼出/隐藏 HUD)
-            Color.clear
-                .contentShape(Rectangle())
-                .frame(width: width * 0.4)
-                .onTapGesture {
-                    viewModel.send(.toggleHUD)
-                }
-
-            // 右侧 30% 热区 (下一页)
-            Color.clear
-                .contentShape(Rectangle())
-                .frame(width: width * 0.3)
-                .onTapGesture {
-                    if viewModel.state.isHUDVisible {
-                        viewModel.send(.hideHUD)
-                    } else {
-                        viewModel.send(.nextPage)
-                    }
-                }
         }
     }
 }

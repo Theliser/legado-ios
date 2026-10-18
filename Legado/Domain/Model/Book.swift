@@ -42,6 +42,8 @@ public struct Book: Identifiable, Hashable, Codable, Sendable {
     public var order: Int
     /// 总章节数
     public var totalChapterNum: Int
+    /// 所属自定义分组名称
+    public var groupName: String?
 
     public init(
         bookUrl: String,
@@ -61,7 +63,8 @@ public struct Book: Identifiable, Hashable, Codable, Sendable {
         durChapterTime: Int64 = 0,
         wordCount: String? = nil,
         order: Int = 0,
-        totalChapterNum: Int = 0) {
+        totalChapterNum: Int = 0,
+        groupName: String? = nil) {
         self.bookUrl = bookUrl
         self.tocUrl = tocUrl
         self.origin = origin
@@ -80,5 +83,6 @@ public struct Book: Identifiable, Hashable, Codable, Sendable {
         self.wordCount = wordCount
         self.order = order
         self.totalChapterNum = totalChapterNum
+        self.groupName = groupName
     }
 }

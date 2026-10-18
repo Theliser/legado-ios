@@ -22,6 +22,7 @@ public final class BookEntity {
     public var wordCount: String?
     public var customOrder: Int
     public var totalChapterNum: Int
+    public var groupName: String?
 
     public init(
         bookUrl: String,
@@ -41,7 +42,8 @@ public final class BookEntity {
         durChapterTime: Int64 = 0,
         wordCount: String? = nil,
         customOrder: Int = 0,
-        totalChapterNum: Int = 0) {
+        totalChapterNum: Int = 0,
+        groupName: String? = nil) {
         self.bookUrl = bookUrl
         self.tocUrl = tocUrl
         self.origin = origin
@@ -60,6 +62,7 @@ public final class BookEntity {
         self.wordCount = wordCount
         self.customOrder = customOrder
         self.totalChapterNum = totalChapterNum
+        self.groupName = groupName
     }
 
     public convenience init(from domain: Book) {
@@ -81,7 +84,8 @@ public final class BookEntity {
             durChapterTime: domain.durChapterTime,
             wordCount: domain.wordCount,
             customOrder: domain.order,
-            totalChapterNum: domain.totalChapterNum)
+            totalChapterNum: domain.totalChapterNum,
+            groupName: domain.groupName)
     }
 
     public func toDomain() -> Book {
@@ -103,6 +107,7 @@ public final class BookEntity {
             durChapterTime: durChapterTime,
             wordCount: wordCount,
             order: customOrder,
-            totalChapterNum: totalChapterNum)
+            totalChapterNum: totalChapterNum,
+            groupName: groupName)
     }
 }

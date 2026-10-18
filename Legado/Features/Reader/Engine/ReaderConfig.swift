@@ -71,6 +71,17 @@ public enum ReaderFontFamily: String, CaseIterable, Identifiable, Codable, Senda
     }
 }
 
+/// 翻页动效模式
+public enum PageTurnMode: String, CaseIterable, Identifiable, Codable, Sendable {
+    case cover = "覆盖"
+    case slide = "滑动"
+    case scroll = "连续滚动"
+
+    public var id: String {
+        rawValue
+    }
+}
+
 /// 阅读器排版偏好全局配置
 public struct ReaderConfig: Equatable, Codable, Sendable {
     public var fontSize: CGFloat
@@ -78,6 +89,7 @@ public struct ReaderConfig: Equatable, Codable, Sendable {
     public var paragraphSpacing: CGFloat
     public var fontFamily: ReaderFontFamily
     public var theme: ReaderTheme
+    public var pageTurnMode: PageTurnMode
     public var horizontalMargin: CGFloat
     public var topMargin: CGFloat
     public var bottomMargin: CGFloat
@@ -88,6 +100,7 @@ public struct ReaderConfig: Equatable, Codable, Sendable {
         paragraphSpacing: CGFloat = 12.0,
         fontFamily: ReaderFontFamily = .system,
         theme: ReaderTheme = .paper,
+        pageTurnMode: PageTurnMode = .cover,
         horizontalMargin: CGFloat = 18.0,
         topMargin: CGFloat = 50.0,
         bottomMargin: CGFloat = 42.0) {
@@ -96,6 +109,7 @@ public struct ReaderConfig: Equatable, Codable, Sendable {
         self.paragraphSpacing = paragraphSpacing
         self.fontFamily = fontFamily
         self.theme = theme
+        self.pageTurnMode = pageTurnMode
         self.horizontalMargin = horizontalMargin
         self.topMargin = topMargin
         self.bottomMargin = bottomMargin

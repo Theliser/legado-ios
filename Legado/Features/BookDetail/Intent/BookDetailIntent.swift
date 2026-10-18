@@ -20,6 +20,8 @@ public enum BookDetailIntent: ViewIntent, Equatable, Sendable {
     case openSourceSwitch
     /// 选择新书源切换
     case switchSource(SearchResult)
+    /// 更新书籍实体与新目录
+    case updateBook(Book, [Chapter])
 }
 
 /// 书籍详情一次性副作用

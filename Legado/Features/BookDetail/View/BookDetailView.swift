@@ -7,6 +7,7 @@ public struct BookDetailView: View {
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
     @State private var readerDestination: ReaderDestination?
+    @State private var isChangeSourcePresented = false
 
     public init(viewModel: BookDetailViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -51,16 +52,34 @@ public struct BookDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    viewModel.send(.loadDetail)
-                } label: {
-                    if viewModel.state.isLoading {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "arrow.clockwise")
+                HStack(spacing: 8) {
+                    Button {
+                        isChangeSourcePresented = true
+                    } label: {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                    }
+
+                    Button {
+                        viewModel.send(.loadDetail)
+                    } label: {
+                        if viewModel.state.isLoading {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
                     }
                 }
             }
+        }
+        .sheet(isPresented: $isChangeSourcePresented) {
+            ChangeSourceSheet(
+                viewModel: environment.makeChangeSourceViewModel(
+                    book: viewModel.state.book,
+                    currentChapterTitle: viewModel.state.book.durChapterTitle,
+                    currentChapterIndex: viewModel.state.book.durChapterIndex),
+                onSwitched: { updatedBook, newToc, _ in
+                    viewModel.send(.updateBook(updatedBook, newToc))
+                })
         }
         .sheet(isPresented: Binding(
             get: { viewModel.state.isTocPresented },
@@ -179,13 +198,22 @@ public struct BookDetailView: View {
 
                 Spacer()
 
-                HStack(spacing: 4) {
-                    Image(systemName: "network")
-                        .font(.caption2)
-                    Text("当前书源: \(viewModel.state.book.originName)")
-                        .font(.caption2)
+                HStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "network")
+                            .font(.caption2)
+                        Text("书源: \(viewModel.state.book.originName)")
+                            .font(.caption2)
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(.tertiary)
+
+                    Button("换源") {
+                        isChangeSourcePresented = true
+                    }
+                    .font(.caption2.weight(.semibold))
+                    .buttonStyle(.glassCapsule)
                 }
-                .foregroundStyle(.tertiary)
             }
         }
         .padding(16)
