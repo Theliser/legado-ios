@@ -94,31 +94,44 @@ public final class SourceDetailAndTocService: Sendable {
     }
 
     private func parseJsonDetail(json: String, rule: RuleBookInfo, book: inout Book, source: BookSource) {
-        if let ruleName = rule.name, let val = JSONPathParser.parse(json: json, path: ruleName).first {
-            book.name = val
+        guard let data = json.data(using: .utf8),
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return
         }
-        if let ruleAuthor = rule.author, let val = JSONPathParser.parse(json: json, path: ruleAuthor).first {
-            book.author = val
+
+        let targetDict = extractInitDict(from: root, initRule: rule.bookInfoInit)
+        applyJsonDetailFields(dict: targetDict, rule: rule, book: &book, source: source)
+    }
+
+    private func extractInitDict(from root: [String: Any], initRule: String?) -> [String: Any] {
+        guard let initRule, !initRule.isEmpty else { return root }
+        let initKey = initRule.replacingOccurrences(of: "$.", with: "").trimmingCharacters(in: .whitespaces)
+        return (root[initKey] as? [String: Any]) ?? root
+    }
+
+    private func applyJsonDetailFields(
+        dict: [String: Any],
+        rule: RuleBookInfo,
+        book: inout Book,
+        source: BookSource) {
+        let eval: (String?) -> String? = { ruleStr in
+            RuleEvaluator.evaluate(dict: dict, rule: ruleStr, baseUrl: source.bookSourceUrl)
         }
-        if let ruleCover = rule.coverUrl, let val = JSONPathParser.parse(json: json, path: ruleCover).first {
-            book.coverUrl = resolveUrl(val, baseUrl: source.bookSourceUrl)
+
+        book.name = eval(rule.name) ?? book.name
+        book.author = eval(rule.author) ?? book.author
+        if let cover = eval(rule.coverUrl) {
+            book.coverUrl = resolveUrl(cover, baseUrl: source.bookSourceUrl)
         }
-        if let ruleIntro = rule.intro, let val = JSONPathParser.parse(json: json, path: ruleIntro).first {
-            book.intro = val
-        }
-        if let ruleKind = rule.kind, let val = JSONPathParser.parse(json: json, path: ruleKind).first {
-            book.kind = val
-        }
-        if let ruleLastChapter = rule.lastChapter,
-           let val = JSONPathParser.parse(json: json, path: ruleLastChapter).first {
-            book.latestChapterTitle = val
+        book.intro = eval(rule.intro) ?? book.intro
+        book.kind = eval(rule.kind) ?? book.kind
+        if let lastChapter = eval(rule.lastChapter) {
+            book.latestChapterTitle = lastChapter
             book.latestChapterTime = Int64(Date().timeIntervalSince1970 * 1000)
         }
-        if let ruleWord = rule.wordCount, let val = JSONPathParser.parse(json: json, path: ruleWord).first {
-            book.wordCount = val
-        }
-        if let ruleToc = rule.tocUrl, let val = JSONPathParser.parse(json: json, path: ruleToc).first {
-            book.tocUrl = resolveUrl(val, baseUrl: source.bookSourceUrl)
+        book.wordCount = eval(rule.wordCount) ?? book.wordCount
+        if let toc = eval(rule.tocUrl) {
+            book.tocUrl = resolveUrl(toc, baseUrl: source.bookSourceUrl)
         } else if book.tocUrl.isEmpty {
             book.tocUrl = book.bookUrl
         }
@@ -262,22 +275,20 @@ public final class SourceDetailAndTocService: Sendable {
         }
 
         var list: [Chapter] = []
-        for item in array {
+        for (index, item) in array.enumerated() {
             guard let dict = item as? [String: Any] else { continue }
 
-            let nameKey = (rule.chapterName ?? "title").replacingOccurrences(of: "$.", with: "")
-            let urlKey = (rule.chapterUrl ?? "url").replacingOccurrences(of: "$.", with: "")
+            let title = RuleEvaluator.evaluate(dict: dict, rule: rule.chapterName, baseUrl: baseUrl) ?? ""
+            let url = RuleEvaluator.evaluate(dict: dict, rule: rule.chapterUrl, baseUrl: baseUrl) ?? ""
 
-            guard let title = dict[nameKey] as? String,
-                  let url = dict[urlKey] as? String,
-                  !title.isEmpty, !url.isEmpty else { continue }
+            guard !title.isEmpty, !url.isEmpty else { continue }
 
             let fullUrl = resolveUrl(url, baseUrl: baseUrl)
             list.append(Chapter(
                 url: fullUrl,
                 title: title.trimmingCharacters(in: .whitespacesAndNewlines),
                 bookUrl: bookUrl,
-                index: 0))
+                index: index))
         }
 
         return list
