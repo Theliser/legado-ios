@@ -100,6 +100,7 @@
 		D6F70266DA8CB742427C71B4 /* MVIViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FD9C38A2DC037B9B813B7B /* MVIViewModel.swift */; };
 		D8EEF2102493E3ABFD4EE2FF /* BookSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D204B151D78639C6699FC860 /* BookSource.swift */; };
 		D9578FB035C991E484223440 /* SearchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78A067A9C81B53066A9F1860 /* SearchResult.swift */; };
+		DBB939F8A28CD713B8147D04 /* GlassButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7197E5FB48B590F34515B61D /* GlassButton.swift */; };
 		DBBA264A61D99CD16BB7A169 /* ReaderPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE5D52D9F9BE03114FFC3B26 /* ReaderPage.swift */; };
 		DD5E280F8F08B53AC62600AE /* ReaderPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB3564CD09D8D3B33BBDB23 /* ReaderPageView.swift */; };
 		DE1DDA0583472E15E2D7FF49 /* RemoveBookFromShelfUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = B472DA351BB5FE96A9D153AE /* RemoveBookFromShelfUseCase.swift */; };
@@ -194,6 +195,7 @@
 		6117A583361857887B16C40F /* ExploreCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreCategory.swift; sourceTree = "<group>"; };
 		671DD375F643BF6702EFE965 /* SourceManageIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceManageIntent.swift; sourceTree = "<group>"; };
 		6E7379D758A6FF6FF100EE0A /* Chapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter.swift; sourceTree = "<group>"; };
+		7197E5FB48B590F34515B61D /* GlassButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassButton.swift; sourceTree = "<group>"; };
 		745D29A1C38C7CC05B260B2B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		756839915BB9D12E7DA8F9EB /* BookSourceRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookSourceRepositoryImpl.swift; sourceTree = "<group>"; };
 		7583F6DEB948F606F443366B /* ReaderHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderHUDView.swift; sourceTree = "<group>"; };
@@ -826,6 +828,7 @@
 		D2D407893E979F224C57ABAE /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				7197E5FB48B590F34515B61D /* GlassButton.swift */,
 				7C21DD55CED5927B17EB1DC7 /* GlassFloatingBar.swift */,
 			);
 			path = Components;
@@ -1185,6 +1188,7 @@
 				A77BFFECC1FB1B914E86C912 /* GetBookshelfUseCase.swift in Sources */,
 				785A013FE4CF9219AD55046A /* GetChapterContentUseCase.swift in Sources */,
 				78086B0B4AFA8EBEA2F420F3 /* GetExploreCategoriesUseCase.swift in Sources */,
+				DBB939F8A28CD713B8147D04 /* GlassButton.swift in Sources */,
 				C89E020B7E12AF89F987E13A /* GlassCard.swift in Sources */,
 				FCCC968B3F3B6C3F0D712D43 /* GlassFloatingBar.swift in Sources */,
 				C4D1A92471A9AFA848B3EC84 /* HTTPClient.swift in Sources */,

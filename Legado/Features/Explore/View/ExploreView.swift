@@ -48,7 +48,7 @@ public struct ExploreView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 24)
             }
-            .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("发现")
             .navigationBarTitleDisplayMode(.large)
             .refreshable {
@@ -86,10 +86,14 @@ public struct ExploreView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
-                        .background(.ultraThinMaterial)
-                        .background(Color.black.opacity(0.65))
-                        .clipShape(Capsule())
-                        .overlay(Capsule().stroke(Color.white.opacity(0.2), lineWidth: 0.5))
+                        .background {
+                            ZStack {
+                                Rectangle().fill(.ultraThinMaterial)
+                                Color.black.opacity(0.55)
+                            }
+                        }
+                        .clipShape(Capsule(style: .continuous))
+                        .overlay(Capsule(style: .continuous).stroke(Color.white.opacity(0.25), lineWidth: 0.5))
                         .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
                         .padding(.bottom, 24)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -115,9 +119,12 @@ public struct ExploreView: View {
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
                             .background(isSelected ? .regularMaterial : .ultraThinMaterial)
-                            .clipShape(Capsule())
-                            .overlay(Capsule().stroke(.white.opacity(0.15), lineWidth: 0.5))
+                            .clipShape(Capsule(style: .continuous))
+                            .overlay(
+                                Capsule(style: .continuous)
+                                    .stroke(.white.opacity(isSelected ? 0.3 : 0.16), lineWidth: 0.5))
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -200,8 +207,8 @@ public struct ExploreView: View {
         }
         .padding(12)
         .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.15), lineWidth: 0.5))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(.white.opacity(0.18), lineWidth: 0.5))
     }
 
     private var placeholderCover: some View {

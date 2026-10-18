@@ -101,8 +101,11 @@ public struct SourceDebugSheet: View {
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .background(.thinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.white.opacity(0.12), lineWidth: 0.5))
 
                 Button {
                     if state.isDebugging {
@@ -123,13 +126,8 @@ public struct SourceDebugSheet: View {
                             Text("开始")
                         }
                     }
-                    .font(.subheadline.bold())
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(state.isDebugging ? Color.red : Color.accentColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
+                .buttonStyle(.glassProminent(tint: state.isDebugging ? .red : .accentColor, cornerRadius: 10))
                 .disabled(state.debugQuery.isEmpty && !state.isDebugging)
             }
 
@@ -217,9 +215,16 @@ public struct SourceDebugSheet: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
             }
-            .background(Color.black.opacity(0.85))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.12), lineWidth: 0.5))
+            .background {
+                ZStack {
+                    Rectangle().fill(.ultraThinMaterial)
+                    Color.black.opacity(0.65)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Color.white.opacity(0.16), lineWidth: 0.5))
             .onChange(of: state.debugLogs.count) {
                 if let lastId = state.filteredDebugLogs.last?.id {
                     withAnimation(.easeOut(duration: 0.2)) {

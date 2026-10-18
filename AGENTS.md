@@ -48,21 +48,41 @@
 
 ## 3. UI 视觉与组件规范：原生优先原则（Native-First Principle）
 
-### 3.1 组件选型核心总则（铁律）
-1. **优先使用 Apple 官方原生组件（First-Party First）**：
-   - 凡是 iOS 系统提供原生支持的控件、导航与容器，**必须直接使用官方组件**，严禁无理由自造轮子；
-   - 根导航与标签栏必须使用 iOS 18+ 原生 `TabView` + `Tab`，享受系统级流体气泡（Liquid Bubble）高光与背景实时折射模糊；
-   - 搜索栏必须使用官方 `.searchable`；
-   - 页面导航必须使用官方 `NavigationStack`；
-   - 选项菜单必须使用官方 `Menu`，状态缺省必须使用官方 `ContentUnavailableView`；
-   - 模态弹出必须优先采用 iOS 原生 Sheet Detents：`.presentationDetents([.fraction(0.35), .medium, .large])` 配合 `.presentationBackground(.ultraThinMaterial)`。
+## 3. UI 视觉与组件规范：Apple 官方原生液态玻璃（Liquid Glass）强制规范
 
-2. **原生无法实现时，遵循 iOS 原生液态玻璃规范设计**：
-   - 仅在阅读器沉浸式手势翻页控制、专属排版调节浮动面板、书源实时调试控制台等**原生控件确实无法覆盖的业务场景**下，方可基于系统液态玻璃规范自研组件；
-   - **材质系统**：自定义悬浮面板必须基于 `.ultraThinMaterial` 或 `.thinMaterial`，绝不能使用不透明硬边容器；
-   - **高光微描边**：玻璃容器必须配备亚像素微光描边：`.stroke(.white.opacity(0.15), lineWidth: 0.5)`（暗黑）或 `.stroke(.white.opacity(0.3), lineWidth: 0.5)`（明亮）；
-   - **图标与色彩**：必须使用 **SF Symbols 6**（支持分层 `.hierarchical` 或调色板 `.palette` 渲染），前景严控使用系统语义色（`.primary`, `.secondary`, `.tertiary`）；
-   - **触感与动效**：交互必须搭配系统级轻触感反馈 `.sensoryFeedback(.impact(weight: .light), trigger: ...)`，动效统一采用弹簧阻尼 `.animation(.spring(response: 0.35, dampingFraction: 0.82), value: ...)`。
+参考 Apple 官方设计与研发指南：[Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) 与 [Applying Liquid Glass to custom views](https://developer.apple.com/documentation/SwiftUI/Applying-Liquid-Glass-to-custom-views)。
+
+### 3.1 官方原生优先与自动采纳原则（First-Party First）
+1. **系统框架原生组件自动采纳 Liquid Glass**：
+   - 凡是系统原生支持的控件、导航与容器，**必须直接使用官方组件**，享受系统级自动 Liquid Glass 材质、高光、流体响应与无障碍适配；
+   - **根导航与标签栏（Tab Bar）**：必须使用 iOS 18+ 原生 `TabView` + `Tab`，享受系统级流体气泡（Liquid Bubble）高光与背景实时折射模糊；
+   - **搜索栏**：必须使用官方 `.searchable`；
+   - **页面导航**：必须使用官方 `NavigationStack`；
+   - **选项菜单**：必须使用官方 `Menu`，状态缺省必须使用官方 `ContentUnavailableView`；
+   - **模态弹出**：必须优先采用 iOS 原生 Sheet Detents：`.presentationDetents([.fraction(0.35), .medium, .large])` 配合 `.presentationBackground(.ultraThinMaterial)`。
+
+2. **铁律：杜绝破坏液态玻璃折射的自定义背景（Reduce Custom Backgrounds）**：
+   - **严禁**在页面根容器、NavigationView/NavigationStack 或 TabView 承载的视图中直接使用大面积不透明硬背景（如 `.background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())`）；
+   - 这类不透明硬背景会彻底遮蔽并破坏 TabBar 与 NavigationBar 官方提供的 Liquid Glass 背景实时折射和滚动边缘光效（Scroll Edge Effect）；
+   - 背景层必须允许内容滑动穿透与自然模糊折射。
+
+### 3.2 按钮（Buttons）Liquid Glass 强制规范
+1. **标准按钮样式规范**：
+   - 强调类主要操作（Primary Action）：使用 `.buttonStyle(.borderedProminent)` 配备 `.tint(...)`，或使用设计系统提供的 `GlassProminentButtonStyle(tint:)`；
+   - 次要操作与辅助操作（Secondary Action）：使用设计系统提供的 `GlassButtonStyle()` 或 `.buttonStyle(.bordered)`；
+   - 所有按钮统一采用 **连续平滑圆角（Continuous Corner Radius）**（如 `Capsule(style: .continuous)` 或 `RoundedRectangle(cornerRadius: ..., style: .continuous)`）。
+2. **严禁按钮反模式（Strict Anti-Patterns）**：
+   - 🚫 **严禁**使用硬编码纯色硬背景制作按钮（如 `.background(Color.accentColor)`、`.background(Color.blue)`、`.background(Color.red)`）；
+   - 🚫 **严禁**使用未经平滑过渡的粗暴直角或非连续圆角；
+   - 🚫 **严禁**按钮点击无触感反馈或无弹簧阻尼按压缩放（必须搭配 `scaleEffect(isPressed ? 0.96 : 1.0)` 与 `.sensoryFeedback`）。
+
+### 3.3 自定义容器与悬浮栏（Custom Containers & Floating Bars）规范
+1. **材质系统**：自定义悬浮面板、操作卡片与 HUD 必须基于 `DesignSystem/Materials/GlassCard.swift` 与 `DesignSystem/Components/GlassFloatingBar.swift`，基于 `.ultraThinMaterial` 或 `.thinMaterial` 渲染；
+2. **高光微描边（Subpixel Light Highlight）**：玻璃容器外周必须配备亚像素微光反光描边：
+   - 暗黑模式：`.stroke(Color.white.opacity(0.15), lineWidth: 0.5)`；
+   - 明亮模式：`.stroke(Color.white.opacity(0.35), lineWidth: 0.5)`；
+3. **图标与文字分层**：必须使用 **SF Symbols 6**（支持分层 `.symbolRenderingMode(.hierarchical)` 或 `.palette` 渲染），文字严禁使用硬编码色，严格使用系统语义层级（`.primary`, `.secondary`, `.tertiary`）；
+4. **流体触感与弹簧阻尼**：交互必须搭配系统级轻触感反馈 `.sensoryFeedback(.impact(weight: .light), trigger: ...)`，动效统一采用弹簧阻尼 `.animation(.spring(response: 0.35, dampingFraction: 0.82), value: ...)`。
 
 ---
 
