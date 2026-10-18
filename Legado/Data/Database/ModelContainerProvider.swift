@@ -14,6 +14,7 @@ public final class ModelContainerProvider: @unchecked Sendable {
             ChapterEntity.self,
             ReadRecordEntity.self,
             BookmarkEntity.self,
+            BookGroupEntity.self,
         ])
 
         let config = ModelConfiguration(

@@ -43,6 +43,7 @@ public actor BookRepositoryImpl: BookRepository {
             existing.wordCount = book.wordCount
             existing.customOrder = book.order
             existing.totalChapterNum = book.totalChapterNum
+            existing.groupName = book.groupName
         } else {
             let entity = BookEntity(from: book)
             modelContext.insert(entity)
