@@ -34,6 +34,10 @@ public final class AppEnvironment: ObservableObject {
     public let getBookmarksUseCase: GetBookmarksUseCase
     public let saveBookmarkUseCase: SaveBookmarkUseCase
     public let deleteBookmarkUseCase: DeleteBookmarkUseCase
+    public let bookGroupRepository: BookGroupRepository
+    public let getBookGroupsUseCase: GetBookGroupsUseCase
+    public let saveBookGroupUseCase: SaveBookGroupUseCase
+    public let deleteBookGroupUseCase: DeleteBookGroupUseCase
 
     public init(inMemory: Bool = false) {
         let provider = ModelContainerProvider(inMemory: inMemory)
@@ -42,10 +46,12 @@ public final class AppEnvironment: ObservableObject {
         let sourceRepo = BookSourceRepositoryImpl(modelContainer: provider.container)
         let bookRepo = BookRepositoryImpl(modelContainer: provider.container)
         let bookmarkRepo = BookmarkRepositoryImpl(modelContainer: provider.container)
+        let groupRepo = BookGroupRepositoryImpl(modelContainer: provider.container)
 
         self.bookSourceRepository = sourceRepo
         self.bookRepository = bookRepo
         self.bookmarkRepository = bookmarkRepo
+        self.bookGroupRepository = groupRepo
 
         self.searchBooksUseCase = SearchBooksUseCase(sourceRepository: sourceRepo)
         self.saveBookToShelfUseCase = SaveBookToShelfUseCase(bookRepository: bookRepo)
@@ -76,6 +82,9 @@ public final class AppEnvironment: ObservableObject {
         self.getBookmarksUseCase = GetBookmarksUseCase(bookmarkRepository: bookmarkRepo)
         self.saveBookmarkUseCase = SaveBookmarkUseCase(bookmarkRepository: bookmarkRepo)
         self.deleteBookmarkUseCase = DeleteBookmarkUseCase(bookmarkRepository: bookmarkRepo)
+        self.getBookGroupsUseCase = GetBookGroupsUseCase(groupRepository: groupRepo)
+        self.saveBookGroupUseCase = SaveBookGroupUseCase(groupRepository: groupRepo)
+        self.deleteBookGroupUseCase = DeleteBookGroupUseCase(groupRepository: groupRepo)
 
         if !inMemory {
             primeSampleChapterCache()
@@ -223,7 +232,11 @@ public final class AppEnvironment: ObservableObject {
         BookshelfViewModel(
             getBookshelfUseCase: getBookshelfUseCase,
             removeBookFromShelfUseCase: removeBookFromShelfUseCase,
-            checkBookUpdatesUseCase: checkBookUpdatesUseCase)
+            checkBookUpdatesUseCase: checkBookUpdatesUseCase,
+            saveBookToShelfUseCase: saveBookToShelfUseCase,
+            getBookGroupsUseCase: getBookGroupsUseCase,
+            saveBookGroupUseCase: saveBookGroupUseCase,
+            deleteBookGroupUseCase: deleteBookGroupUseCase)
     }
 
     /// 创建阅读器 ViewModel
