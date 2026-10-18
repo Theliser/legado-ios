@@ -44,23 +44,23 @@ flowchart TD
 ### 阶段一：核心阅读体验深度对齐 (Core Reader Experience)
 > **对标 MD3 模块**：`ui/book/changesource/`, `ui/book/read/`, `ui/book/searchContent/`, `ui/book/bookmark/`
 
-- [ ] **1.1 多源聚合一键换源 (Change Source MVI)**
+- [x] **1.1 多源聚合一键换源 (Change Source MVI)** (已完成，Commit: `0192a34`)
   - 对标文件：`ChangeSourceActivity.kt`, `ChangeSourceViewModel.kt`
   - 核心功能：
     - 在书籍详情页与阅读器 HUD 中提供「换源」快捷入口；
     - 基于书名与作者，异步并发检索所有已启用的可用书源；
     - 展示各书源最新章节、更新时间、响应延迟并支持排序与权重对比；
     - 选定目标书源后，自动重映射阅读章节与进度，平滑切换正文源。
-- [ ] **1.2 多翻页动效引擎 (Reading Page Turn Animation Modes)**
+- [x] **1.2 多翻页动效引擎 (Reading Page Turn Animation Modes)** (已完成，Commit: `22a98fd`)
   - 对标文件：`CoverPageAnim.kt`, `SlidePageAnim.kt`, `ScrollPageAnim.kt`
   - 核心功能：
     - 支持「覆盖翻页 (Cover)」、「水平平滑滑动 (Slide)」、「上下连续滚动 (Vertical Scroll)」切换；
     - 结合 CoreText 排版引擎适配连续滚动模式。
-- [ ] **1.3 正文内容全文搜索与定位 (Search in Book Content)**
+- [x] **1.3 正文内容全文搜索与定位 (Search in Book Content)** (已完成，Commit: `948159b`)
   - 对标文件：`SearchContentActivity.kt`
   - 核心功能：
     - 在阅读器内部搜索关键词，列出包含关键字的章节、上下文摘录与段落；
-    - 点击匹配项瞬时跳转至正文对应位置并高亮显示。
+    - 点击匹配项瞬时跳转至正文对应位置并精确定位。
 - [ ] **1.4 书签与划线笔记标注系统 (Bookmarks & Highlights)**
   - 对标文件：`data/entities/Bookmark.kt`, `ui/book/bookmark/`
   - 核心功能：
