@@ -15,23 +15,32 @@ public final class BackupToWebDAVUseCase: Sendable {
         self.webDAVClient = webDAVClient
     }
 
-    /// 执行云端备份
-    public func execute(config: WebDAVConfig) async throws -> WebDAVBackupSummary {
+    /// 生成备份数据包 Bundle
+    public func generateBackupBundle() async throws -> WebDAVBackupBundle {
         let books = try await bookRepository.getBookshelf()
         let sources = try await sourceRepository.fetchSources()
 
-        let bundle = WebDAVBackupBundle(
+        return WebDAVBackupBundle(
             version: 1,
             backupTime: Date(),
             appVersion: "1.0",
             books: books,
             sources: sources,
             replaceRules: PurifyContentUseCase.defaultRules)
+    }
 
+    /// 导出为 JSON 数据
+    public func exportBackupJsonData(bundle: WebDAVBackupBundle) throws -> Data {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
-        let data = try encoder.encode(bundle)
+        return try encoder.encode(bundle)
+    }
+
+    /// 执行云端备份
+    public func execute(config: WebDAVConfig) async throws -> WebDAVBackupSummary {
+        let bundle = try await generateBackupBundle()
+        let data = try exportBackupJsonData(bundle: bundle)
 
         try await webDAVClient.upload(
             data: data,
@@ -39,8 +48,8 @@ public final class BackupToWebDAVUseCase: Sendable {
             config: config)
 
         return WebDAVBackupSummary(
-            bookCount: books.count,
-            sourceCount: sources.count,
+            bookCount: bundle.books.count,
+            sourceCount: bundle.sources.count,
             dataSizeBytes: data.count,
             backupDate: bundle.backupTime)
     }

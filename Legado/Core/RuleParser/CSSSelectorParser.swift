@@ -16,10 +16,24 @@ public enum CSSSelectorParser {
         let trimmedRule = rule.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedRule.isEmpty else { return [] }
 
-        // 处理 @ 属性提取分隔符，例如 "a.title@href", "img@src", "p@text"
-        let parts = trimmedRule.components(separatedBy: "@")
-        let selector = parts.first?.trimmingCharacters(in: .whitespaces) ?? ""
-        let targetAttr = parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespaces).lowercased() : "text"
+        // 兼容 Legado 各种语法: "@text", "@href", "text", "href", "a@href", "img@src", "h1.title@text"
+        let selector: String
+        let targetAttr: String
+
+        if trimmedRule.hasPrefix("@") {
+            selector = ""
+            targetAttr = String(trimmedRule.dropFirst()).trimmingCharacters(in: .whitespaces).lowercased()
+        } else if trimmedRule == "text" || trimmedRule == "href" || trimmedRule == "src" || trimmedRule == "html" {
+            selector = ""
+            targetAttr = trimmedRule.lowercased()
+        } else if trimmedRule.contains("@") {
+            let parts = trimmedRule.components(separatedBy: "@")
+            selector = parts.first?.trimmingCharacters(in: .whitespaces) ?? ""
+            targetAttr = parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespaces).lowercased() : "text"
+        } else {
+            selector = trimmedRule
+            targetAttr = "text"
+        }
 
         do {
             let matchedElements: Elements

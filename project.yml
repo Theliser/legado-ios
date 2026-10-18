@@ -10,6 +10,9 @@ packages:
   SwiftSoup:
     url: https://github.com/scinfu/SwiftSoup.git
     from: 2.7.5
+  Factory:
+    url: https://github.com/hmlongco/Factory.git
+    from: 2.4.0
 
 settings:
   base:
@@ -28,6 +31,7 @@ targets:
       - path: Legado
     dependencies:
       - package: SwiftSoup
+      - package: Factory
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.theliser.legado
@@ -62,6 +66,7 @@ targets:
     dependencies:
       - target: Legado
       - package: SwiftSoup
+      - package: Factory
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.theliser.legadotests

@@ -5,9 +5,9 @@ import SwiftSoup
 public final class SourceDetailAndTocService: Sendable {
     public static let shared = SourceDetailAndTocService()
 
-    private let httpClient: HTTPClient
+    private let httpClient: HTTPClientProtocol
 
-    public init(httpClient: HTTPClient = .shared) {
+    public init(httpClient: HTTPClientProtocol = HTTPClient.shared) {
         self.httpClient = httpClient
     }
 

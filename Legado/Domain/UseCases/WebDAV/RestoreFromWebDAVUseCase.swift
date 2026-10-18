@@ -21,9 +21,14 @@ public final class RestoreFromWebDAVUseCase: Sendable {
             filename: "legado_backup.json",
             config: config)
 
+        return try await restore(from: data)
+    }
+
+    /// 从备份 JSON 二进制数据恢复至本地存储
+    public func restore(from bundleData: Data) async throws -> WebDAVBackupSummary {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        let bundle = try decoder.decode(WebDAVBackupBundle.self, from: data)
+        let bundle = try decoder.decode(WebDAVBackupBundle.self, from: bundleData)
 
         // 还原书源
         if !bundle.sources.isEmpty {
@@ -38,7 +43,7 @@ public final class RestoreFromWebDAVUseCase: Sendable {
         return WebDAVBackupSummary(
             bookCount: bundle.books.count,
             sourceCount: bundle.sources.count,
-            dataSizeBytes: data.count,
+            dataSizeBytes: bundleData.count,
             backupDate: bundle.backupTime)
     }
 }
