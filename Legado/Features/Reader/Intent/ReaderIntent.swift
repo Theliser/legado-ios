@@ -35,6 +35,14 @@ public enum ReaderIntent: ViewIntent, Equatable, Sendable {
     case switchSource(updatedBook: Book, newToc: [Chapter], matchedChapterIndex: Int)
     /// 跳转到指定章节及字符偏移位置 (用于全文搜索定位)
     case jumpToChapterAndOffset(chapterIndex: Int, matchOffset: Int)
+    /// 切换当前页面书签状态 (添加或删除书签)
+    case toggleBookmark
+    /// 添加带笔记的书签
+    case addBookmark(chapterIndex: Int, chapterPos: Int, chapterTitle: String, bookText: String, note: String)
+    /// 删除指定书签
+    case deleteBookmark(id: String)
+    /// 刷新书签列表
+    case loadBookmarks
 }
 
 /// 阅读器副作用

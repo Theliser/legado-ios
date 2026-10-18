@@ -20,6 +20,8 @@ public struct ReaderHUDView: View {
     let onStartTTS: () -> Void
     let onOpenChangeSource: () -> Void
     let onOpenSearch: () -> Void
+    let isBookmarked: Bool
+    let onToggleBookmark: () -> Void
 
     public init(
         bookTitle: String,
@@ -39,7 +41,9 @@ public struct ReaderHUDView: View {
         onSelectPageTurnMode: @escaping (PageTurnMode) -> Void = { _ in },
         onStartTTS: @escaping () -> Void = {},
         onOpenChangeSource: @escaping () -> Void = {},
-        onOpenSearch: @escaping () -> Void = {}) {
+        onOpenSearch: @escaping () -> Void = {},
+        isBookmarked: Bool = false,
+        onToggleBookmark: @escaping () -> Void = {}) {
         self.bookTitle = bookTitle
         self.currentChapterTitle = currentChapterTitle
         self.currentChapterIndex = currentChapterIndex
@@ -58,6 +62,8 @@ public struct ReaderHUDView: View {
         self.onStartTTS = onStartTTS
         self.onOpenChangeSource = onOpenChangeSource
         self.onOpenSearch = onOpenSearch
+        self.isBookmarked = isBookmarked
+        self.onToggleBookmark = onToggleBookmark
     }
 
     public var body: some View {
@@ -113,6 +119,16 @@ public struct ReaderHUDView: View {
                 Image(systemName: "magnifyingglass")
                     .font(.body.weight(.semibold))
                     .foregroundStyle(.primary)
+                    .frame(width: 36, height: 36)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 0.5))
+            }
+
+            Button(action: onToggleBookmark) {
+                Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(isBookmarked ? Color.accentColor : .primary)
                     .frame(width: 36, height: 36)
                     .background(.ultraThinMaterial)
                     .clipShape(Circle())
