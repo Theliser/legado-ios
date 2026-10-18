@@ -306,7 +306,6 @@ public struct SourceDebugPayloadSheet: View {
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle(log.message)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -331,5 +330,6 @@ public struct SourceDebugPayloadSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
+        .presentationBackground(.ultraThinMaterial)
     }
 }

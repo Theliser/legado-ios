@@ -1,7 +1,7 @@
 import Foundation
 import SwiftSoup
 
-/// 章节正文抓取与规则清洗引擎
+/// 章节正文抓取与规则清洗引擎 (兼容 Legado 3.0 AnalyzeUrl, JS 脚本与复合清洗)
 public final class ContentParser: Sendable {
     public static let shared = ContentParser()
 
@@ -15,31 +15,36 @@ public final class ContentParser: Sendable {
     public func fetchAndParseContent(
         chapterUrl: String,
         source: BookSource,
-        baseUrl _: String) async throws -> String {
-        guard let url = URL(string: chapterUrl) else {
-            throw URLError(.badURL)
-        }
-
-        var headers: [String: String]?
-        if let headerJson = source.header,
-           let data = headerJson.data(using: .utf8),
-           let parsed = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
-            headers = parsed
-        }
-
+        baseUrl: String) async throws -> String {
         var fullContent = ""
-        var currentUrl = url
+        var currentUrlStr = chapterUrl
         var visited = Set<String>()
         var page = 0
         let maxPages = 10
 
-        while page < maxPages && !visited.contains(currentUrl.absoluteString) {
-            visited.insert(currentUrl.absoluteString)
+        while page < maxPages && !visited.contains(currentUrlStr) {
+            visited.insert(currentUrlStr)
             page += 1
 
-            let responseBody = try await httpClient.get(url: currentUrl, headers: headers)
-            let trimmed = responseBody.trimmingCharacters(in: .whitespacesAndNewlines)
+            let requestInfo = try AnalyzeUrl(
+                rawUrl: currentUrlStr,
+                baseUrl: baseUrl.isEmpty ? source.bookSourceUrl : baseUrl,
+                headerJson: source.header,
+                source: source)
 
+            let responseBody: String
+            if requestInfo.method == "POST" {
+                responseBody = try await httpClient.post(
+                    url: requestInfo.url,
+                    body: requestInfo.body,
+                    headers: requestInfo.headers)
+            } else {
+                responseBody = try await httpClient.get(
+                    url: requestInfo.url,
+                    headers: requestInfo.headers)
+            }
+
+            let trimmed = responseBody.trimmingCharacters(in: .whitespacesAndNewlines)
             guard let ruleContent = source.ruleContent else {
                 fullContent += cleanRawHtml(responseBody)
                 break
@@ -49,15 +54,15 @@ public final class ContentParser: Sendable {
                 body: responseBody,
                 trimmed: trimmed,
                 rule: ruleContent,
-                baseUrl: currentUrl.absoluteString)
+                baseUrl: requestInfo.url.absoluteString,
+                source: source)
 
             fullContent += pageText
 
             if let nextUrlStr,
                !nextUrlStr.isEmpty,
-               let next = URL(string: nextUrlStr, relativeTo: currentUrl)?.absoluteURL,
-               !visited.contains(next.absoluteString) {
-                currentUrl = next
+               !visited.contains(nextUrlStr) {
+                currentUrlStr = nextUrlStr
             } else {
                 break
             }
@@ -73,43 +78,88 @@ public final class ContentParser: Sendable {
 
     private func parsePageContent(
         body: String,
-        trimmed: String,
+        trimmed _: String,
         rule: RuleContent,
-        baseUrl: String) -> (String, String?) {
-        let isJson = trimmed.starts(with: "{") || trimmed.starts(with: "[")
-        if isJson {
-            var text = ""
-            if let contentRule = rule.content {
-                if let evaluated = RuleEvaluator.evaluate(json: trimmed, rule: contentRule, baseUrl: baseUrl) {
-                    text = evaluated
-                } else {
-                    text = JSONPathParser.parse(json: trimmed, path: contentRule).joined(separator: "\n")
+        baseUrl: String,
+        source: BookSource) -> (String, String?) {
+        var intermediateBody = body
+        var contentRule = rule.content ?? ""
+
+        // 如果 content 规则包含前置/内置 <js> 脚本，先执行 JS
+        if contentRule.contains("<js>") || contentRule.contains("@js:") {
+            let (pureRule, jsScript) = extractScript(from: contentRule)
+            if let script = jsScript {
+                let jsEngine = JSEngine()
+                let bindings: [String: Any] = [
+                    "result": intermediateBody,
+                    "baseUrl": baseUrl,
+                    "bookSourceUrl": source.bookSourceUrl,
+                    "bookSourceName": source.bookSourceName,
+                    "loginUrl": source.loginUrl ?? "",
+                ]
+                if let jsOutput = jsEngine.evaluate(script: script, bindings: bindings) {
+                    intermediateBody = jsOutput
                 }
             }
+            contentRule = pureRule
+        }
+
+        let isJson = intermediateBody.trimmingCharacters(in: .whitespacesAndNewlines).starts(with: "{") ||
+            intermediateBody.trimmingCharacters(in: .whitespacesAndNewlines).starts(with: "[")
+
+        if isJson {
+            var text = ""
+            if !contentRule.isEmpty {
+                if let evaluated = RuleEvaluator.evaluate(json: intermediateBody, rule: contentRule, baseUrl: baseUrl) {
+                    text = evaluated
+                } else {
+                    text = JSONPathParser.parse(json: intermediateBody, path: contentRule).joined(separator: "\n")
+                }
+            } else {
+                text = intermediateBody
+            }
+
             var nextUrl: String?
             if let nextRule = rule.nextContentUrl {
-                nextUrl = RuleEvaluator.evaluate(json: trimmed, rule: nextRule, baseUrl: baseUrl)
-                    ?? JSONPathParser.parse(json: trimmed, path: nextRule).first
+                nextUrl = RuleEvaluator.evaluate(json: intermediateBody, rule: nextRule, baseUrl: baseUrl)
+                    ?? JSONPathParser.parse(json: intermediateBody, path: nextRule).first
             }
             return (text, nextUrl)
         } else {
-            return parseHtmlContent(html: body, rule: rule, baseUrl: baseUrl)
+            return parseHtmlContent(html: intermediateBody, rule: rule, contentRule: contentRule, baseUrl: baseUrl)
         }
     }
 
-    private func parseHtmlContent(html: String, rule: RuleContent, baseUrl: String) -> (String, String?) {
+    private func extractScript(from input: String) -> (String, String?) {
+        if let jsRange = input.range(of: "@js:") {
+            let script = String(input[jsRange.upperBound...])
+            let pure = String(input[..<jsRange.lowerBound]).trimmingCharacters(in: .whitespaces)
+            return (pure, script)
+        } else if let openTag = input.range(of: "<js>"),
+                  let closeTag = input.range(of: "</js>") {
+            let script = String(input[openTag.upperBound ..< closeTag.lowerBound])
+            let before = String(input[..<openTag.lowerBound]).trimmingCharacters(in: .whitespaces)
+            let after = String(input[closeTag.upperBound...]).trimmingCharacters(in: .whitespaces)
+            let pure = before.isEmpty ? after : before
+            return (pure, script)
+        }
+        return (input, nil)
+    }
+
+    private func parseHtmlContent(
+        html: String,
+        rule: RuleContent,
+        contentRule: String,
+        baseUrl: String) -> (String, String?) {
         guard let doc = try? SwiftSoup.parse(html, baseUrl) else {
             return (cleanRawHtml(html), nil)
         }
 
-        // 移除无关的 script 和 style 元素
         _ = try? doc.select("script, style, noscript, header, footer").remove()
 
         var rawContent = ""
-        if let contentRule = rule.content, !contentRule.isEmpty {
-            // 如果规则指定了 CSS 选择器
+        if !contentRule.isEmpty {
             if let element = try? doc.select(contentRule).first() {
-                // 将 <p> 和 <br> 转换为换行符
                 let htmlStr = (try? element.html()) ?? (try? element.text()) ?? ""
                 rawContent = cleanRawHtml(htmlStr)
             } else {
@@ -140,7 +190,6 @@ public final class ContentParser: Sendable {
             .replacingOccurrences(of: "</div>", with: "\n")
             .replacingOccurrences(of: "<.*?>", with: "", options: .regularExpression)
 
-        // HTML 实体替换
         text = text
             .replacingOccurrences(of: "&nbsp;", with: " ")
             .replacingOccurrences(of: "&quot;", with: "\"")
@@ -171,7 +220,6 @@ public final class ContentParser: Sendable {
         return formattedLines.joined(separator: "\n\n")
     }
 
-    /// 一键清洗并完成段落排版
     public func cleanContent(_ html: String) -> String {
         formatParagraphs(cleanRawHtml(html))
     }

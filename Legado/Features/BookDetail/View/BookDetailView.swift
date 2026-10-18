@@ -33,14 +33,12 @@ public struct BookDetailView: View {
         .background {
             // 背景渐变与毛玻璃环境光
             ZStack {
-                Color(uiColor: .systemGroupedBackground)
-
                 if let coverUrl = viewModel.state.book.coverUrl, let url = URL(string: coverUrl) {
                     AsyncImage(url: url) { phase in
                         if case let .success(img) = phase {
                             img.resizable()
                                 .scaledToFill()
-                                .blur(radius: 50)
+                                .blur(radius: 60)
                                 .opacity(0.18)
                         }
                     }

@@ -3,25 +3,29 @@ import Foundation
 /// 书源管理视图模型 (MVI 架构状态中枢)
 @MainActor
 public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, SourceManageIntent, SourceManageEffect> {
-    private let sourceRepository: BookSourceRepository
-    private let toggleEnabledUseCase: ToggleBookSourceEnabledUseCase
-    private let deleteSourceUseCase: DeleteBookSourceUseCase
-    private let importSourcesUseCase: ImportBookSourcesUseCase
-    private let debugSourceUseCase: DebugBookSourceUseCase
+    let sourceRepository: BookSourceRepository
+    let toggleEnabledUseCase: ToggleBookSourceEnabledUseCase
+    let deleteSourceUseCase: DeleteBookSourceUseCase
+    let importSourcesUseCase: ImportBookSourcesUseCase
+    let debugSourceUseCase: DebugBookSourceUseCase
+    let checkHealthUseCase: CheckBookSourceHealthUseCase
 
     private var debugTask: Task<Void, Never>?
+    var healthCheckTask: Task<Void, Never>?
 
     public init(
         sourceRepository: BookSourceRepository,
         toggleEnabledUseCase: ToggleBookSourceEnabledUseCase,
         deleteSourceUseCase: DeleteBookSourceUseCase,
         importSourcesUseCase: ImportBookSourcesUseCase,
-        debugSourceUseCase: DebugBookSourceUseCase) {
+        debugSourceUseCase: DebugBookSourceUseCase,
+        checkHealthUseCase: CheckBookSourceHealthUseCase = CheckBookSourceHealthUseCase()) {
         self.sourceRepository = sourceRepository
         self.toggleEnabledUseCase = toggleEnabledUseCase
         self.deleteSourceUseCase = deleteSourceUseCase
         self.importSourcesUseCase = importSourcesUseCase
         self.debugSourceUseCase = debugSourceUseCase
+        self.checkHealthUseCase = checkHealthUseCase
         super.init(initialState: SourceManageState())
 
         send(.loadSources)
@@ -41,6 +45,21 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
 
         case .startDebug, .stopDebug, .clearDebugLogs, .selectPayloadLog, .runDebug:
             handleDebugActionIntent(intent)
+
+        case let .selectGroup(group):
+            updateState { $0.selectedGroup = group }
+
+        case .startHealthCheck:
+            startBatchHealthCheck()
+
+        case .stopHealthCheck:
+            stopBatchHealthCheck()
+
+        case .disableInvalidSources:
+            disableInvalidSources()
+
+        case .deleteInvalidSources:
+            deleteInvalidSources()
         }
     }
 
@@ -140,7 +159,7 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
 
     // MARK: - 书源列表数据操作
 
-    private func loadAllSources() {
+    func loadAllSources() {
         updateState { $0.isLoading = true }
 
         Task {
@@ -265,13 +284,14 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
         }
         emitEffect(.hapticFeedback)
 
-        debugTask = Task {
-            let report = await debugSourceUseCase.execute(
+        debugTask = Task { [weak self] in
+            guard let self else { return }
+            let report = await self.debugSourceUseCase.execute(
                 source: source,
                 target: target,
                 query: query,
                 onLog: { [weak self] newLog in
-                    Task { @MainActor [weak self] in
+                    Task { @MainActor in
                         self?.updateState { $0.debugLogs.append(newLog) }
                     }
                 })

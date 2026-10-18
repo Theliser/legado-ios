@@ -60,6 +60,7 @@ struct ContentView: View {
                 SettingsView(viewModel: environment.makeSettingsViewModel())
             }
         }
+        .tabViewStyle(.sidebarAdaptable)
         .fullScreenCover(isPresented: $demoReaderPresented) {
             let sampleBook = Book(
                 bookUrl: "https://biquge.example.com/book/circle_of_inevitability",

@@ -20,6 +20,11 @@ public enum SourceManageIntent: ViewIntent, Sendable {
     case clearDebugLogs
     case selectPayloadLog(SourceDebugLog?)
     case runDebug(source: BookSource, keyword: String)
+    case selectGroup(String)
+    case startHealthCheck
+    case stopHealthCheck
+    case disableInvalidSources
+    case deleteInvalidSources
 }
 
 /// 书源管理单次副作用

@@ -41,4 +41,13 @@ public actor AsyncSemaphore {
         }
         return try await operation()
     }
+
+    /// 在持有信号量许可的生命周期内安全执行非抛出闭包
+    public func withPermit<T: Sendable>(_ operation: @Sendable () async -> T) async -> T {
+        await wait()
+        defer {
+            signal()
+        }
+        return await operation()
+    }
 }

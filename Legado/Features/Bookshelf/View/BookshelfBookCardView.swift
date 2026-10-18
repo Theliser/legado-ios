@@ -95,14 +95,18 @@ public struct BookshelfBookCardView: View {
                 }
                 .padding(6)
             } else if isUpdated {
-                // 更新提示角标
                 Text("更新")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.red)
-                    .clipShape(Capsule())
+                    .background {
+                        Capsule(style: .continuous)
+                            .fill(Color.red.gradient)
+                    }
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .stroke(Color.white.opacity(0.35), lineWidth: 0.5))
                     .padding(6)
             }
 
