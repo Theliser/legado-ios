@@ -73,20 +73,23 @@ flowchart TD
 ### 阶段二：书架高阶形态与书籍管理对齐 (Advanced Bookshelf & Library)
 > **对标 MD3 模块**：`ui/book/group/`, `ui/book/manage/`, `data/entities/BookGroup.kt`
 
-- [ ] **2.1 书架分组体系 (Bookshelf Grouping MVI)**
+- [x] **2.1 书架分组体系 (Bookshelf Grouping MVI)** (已完成，Commit: `1f9fd9a`)
   - 对标文件：`BookGroup.kt`, `GroupManageActivity.kt`
   - 核心功能：
-    - 支持系统内置分组（全部、未读、有更新、已读完）与用户自定义分组；
+    - 支持系统内置分组（全部、未读、在读、完结）与用户自定义分组增删改查；
     - 书架顶部提供液态玻璃分组胶囊标签切换；
-    - 支持书籍修改分组归属。
-- [ ] **2.2 宫格封面与列表双视图切换 (Grid & List View Switcher)**
+    - 数据库模型 `BookGroupEntity` SwiftData 存储与 Repository 驱动；
+    - 支持书籍单选/批量修改分组归属。
+- [x] **2.2 宫格封面与列表双视图切换 (Grid & List View Switcher)** (已完成，Commit: `1f9fd9a`)
   - 核心功能：
-    - 顶部工具栏切换 2/3 列自适应瀑布流宫格封面卡片与详尽列表；
-    - 异步高保真书籍封面加载与无封面时的优雅 Liquid Glass 默认排版。
-- [ ] **2.3 批量管理与全书架目录检查更新 (Batch Management & Update Check)**
+    - 顶部工具栏切换 3 列自适应瀑布流宫格封面卡片与详尽列表；
+    - 异步高保真书籍封面加载与无封面时的优雅 Liquid Glass 默认排版；
+    - 卡片配备平滑连续圆角、微光亚像素描边与未读/进度/更新红点徽标。
+- [x] **2.3 批量管理与全书架目录检查更新 (Batch Management & Update Check)** (已完成，Commit: `1f9fd9a`)
   - 对标文件：`BookshelfManageActivity.kt`
   - 核心功能：
-    - 批量模式：支持多选批量移出书架、批量更换分组；
+    - 批量模式：顶栏一键进入「管理」模式，多选批量移出书架、批量更换分组；
+    - 底部采用 Liquid Glass 悬浮药丸操作栏 (`BookshelfBatchBar`)；
     - 智能更新：书架下拉刷新一键并发检查所有书籍最新章节，更新徽标红点提醒。
 
 ---
