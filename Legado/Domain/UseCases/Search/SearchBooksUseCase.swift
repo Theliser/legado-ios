@@ -27,12 +27,15 @@ private enum SourceSearchTaskResult: Sendable {
 public final class SearchBooksUseCase: Sendable {
     private let sourceRepository: BookSourceRepository
     private let searchService: SourceSearchService
+    private let semaphore: AsyncSemaphore
 
     public init(
         sourceRepository: BookSourceRepository,
-        searchService: SourceSearchService = .shared) {
+        searchService: SourceSearchService = .shared,
+        maxConcurrency: Int = 6) {
         self.sourceRepository = sourceRepository
         self.searchService = searchService
+        self.semaphore = AsyncSemaphore(value: maxConcurrency)
     }
 
     /// 以 AsyncStream 流式产出搜索进度与增量结果
@@ -49,6 +52,7 @@ public final class SearchBooksUseCase: Sendable {
                     return
                 }
 
+                LegadoLog.ruleEngine.info("开始多书源并发搜索，关键词: [\(trimmedKeyword)], 参与书源: \(sources.count) 个")
                 continuation.yield(.started(totalSources: sources.count))
 
                 let allResults = await performSearchGroup(
@@ -58,6 +62,7 @@ public final class SearchBooksUseCase: Sendable {
                     continuation: continuation)
 
                 let aggregated = aggregateAndSort(results: allResults, keyword: trimmedKeyword)
+                LegadoLog.ruleEngine.info("多书源搜索结束，原始条目: \(allResults.count), 聚合去重后: \(aggregated.count) 本")
                 continuation.yield(.allCompleted(groups: aggregated))
                 continuation.finish()
             }
@@ -80,18 +85,24 @@ public final class SearchBooksUseCase: Sendable {
                 group.addTask {
                     let start = CFAbsoluteTimeGetCurrent()
                     do {
-                        let results = try await self.searchService.search(
-                            source: source,
-                            keyword: keyword,
-                            page: page)
+                        let results = try await self.semaphore.withPermit {
+                            try await self.searchService.search(
+                                source: source,
+                                keyword: keyword,
+                                page: page)
+                        }
                         let elapsedMs = Int((CFAbsoluteTimeGetCurrent() - start) * 1000)
+                        let sourceName = source.bookSourceName
+                        LegadoLog.ruleEngine.debug("书源 [\(sourceName)] 搜索耗时 \(elapsedMs)ms，命中 \(results.count) 条")
                         let searchResult = SourceSearchResult(
-                            sourceName: source.bookSourceName,
+                            sourceName: sourceName,
                             results: results,
                             elapsedMs: elapsedMs)
                         return .success(searchResult)
                     } catch {
-                        return .failure(sourceName: source.bookSourceName, error: error.localizedDescription)
+                        let sourceName = source.bookSourceName
+                        LegadoLog.ruleEngine.warning("书源 [\(sourceName)] 搜索失败: \(error.localizedDescription)")
+                        return .failure(sourceName: sourceName, error: error.localizedDescription)
                     }
                 }
             }

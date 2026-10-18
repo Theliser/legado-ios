@@ -118,7 +118,7 @@ public final class TTSPlayer: NSObject, ObservableObject {
         self.currentAuthor = author
 
         // 智能断句：按换行、句号、叹号、问号切分
-        self.sentences = splitIntoSentences(content)
+        self.sentences = Self.splitIntoSentences(content)
         self.totalSentences = sentences.count
         guard !sentences.isEmpty else { return }
 
@@ -232,7 +232,8 @@ public final class TTSPlayer: NSObject, ObservableObject {
         synthesizer.speak(utterance)
     }
 
-    private func splitIntoSentences(_ text: String) -> [String] {
+    /// 智能断句：按换行与常用标点符号切分为独立朗读单元
+    public static func splitIntoSentences(_ text: String) -> [String] {
         var result: [String] = []
         let rawParagraphs = text.components(separatedBy: .newlines)
 

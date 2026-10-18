@@ -5,9 +5,9 @@ import SwiftSoup
 public final class SourceExploreService: Sendable {
     public static let shared = SourceExploreService()
 
-    private let httpClient: HTTPClient
+    private let httpClient: HTTPClientProtocol
 
-    public init(httpClient: HTTPClient = .shared) {
+    public init(httpClient: HTTPClientProtocol = HTTPClient.shared) {
         self.httpClient = httpClient
     }
 
