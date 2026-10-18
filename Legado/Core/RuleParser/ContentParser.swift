@@ -159,12 +159,13 @@ public final class ContentParser: Sendable {
 
         var rawContent = ""
         if !contentRule.isEmpty {
-            if let element = try? doc.select(contentRule).first() {
+            let texts = CSSSelectorParser.parse(element: doc, rule: contentRule, baseUrl: baseUrl)
+            if !texts.isEmpty {
+                let combined = texts.joined(separator: "\n")
+                rawContent = combined.contains("<") ? cleanRawHtml(combined) : combined
+            } else if let element = try? doc.select(contentRule).first() {
                 let htmlStr = (try? element.html()) ?? (try? element.text()) ?? ""
                 rawContent = cleanRawHtml(htmlStr)
-            } else {
-                let texts = CSSSelectorParser.parse(element: doc, rule: contentRule, baseUrl: baseUrl)
-                rawContent = texts.joined(separator: "\n")
             }
         } else {
             rawContent = cleanRawHtml(html)

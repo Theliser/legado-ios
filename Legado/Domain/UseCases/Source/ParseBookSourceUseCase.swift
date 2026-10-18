@@ -19,7 +19,24 @@ public struct ParseBookSourceUseCase: Sendable {
 
         // 尝试数组反序列化
         if trimmed.hasPrefix("[") {
-            return try decoder.decode([BookSource].self, from: data)
+            do {
+                return try decoder.decode([BookSource].self, from: data)
+            } catch {
+                // 如果严格解码失败，采用容错逐项解码（类似 Android Legado）
+                if let rawArray = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
+                    var sources: [BookSource] = []
+                    for dict in rawArray {
+                        if let itemData = try? JSONSerialization.data(withJSONObject: dict),
+                           let source = try? decoder.decode(BookSource.self, from: itemData) {
+                            sources.append(source)
+                        }
+                    }
+                    if !sources.isEmpty {
+                        return sources
+                    }
+                }
+                throw error
+            }
         } else if trimmed.hasPrefix("{") {
             let single = try decoder.decode(BookSource.self, from: data)
             return [single]

@@ -88,6 +88,65 @@ final class RuleEngineTests: XCTestCase {
         XCTAssertEqual(hrefs, ["https://www.example.com/book/1001", "https://www.example.com/book/1002"])
     }
 
+    func testLegadoDOMStepTraversalAndIndexing() {
+        let complexHtml = """
+        <div id="catalog">
+            <ul class="newbox">
+                <li><a href="/ch1">第一章</a></li>
+                <li><a href="/ch2">第二章</a></li>
+                <li><a href="/ch3">第三章</a></li>
+            </ul>
+        </div>
+        <div class="book-info">
+            <h3><a href="/author">作者页</a><a href="/book/99">《斗罗大陆》</a></h3>
+            <div class="txtnav">
+                正文第一段
+                <p>内部段落不计入textNodes</p>
+                正文第二段
+            </div>
+            <table>
+                <tbody>
+                    <tr><th>表头</th></tr>
+                    <tr><td>第一行</td></tr>
+                    <tr><td>第二行</td></tr>
+                </tbody>
+            </table>
+        </div>
+        """
+
+        // 1. 测试 multi-step DOM 步进选择 Elements (class.newbox.0@tag.ul.0@tag.li)
+        let liElements = CSSSelectorParser.selectElements(html: complexHtml, rule: "class.newbox.0@tag.ul.0@tag.li")
+        XCTAssertEqual(liElements.size(), 3)
+
+        // 2. 测试 步进链 + 索引提取属性 (tag.h3.0@tag.a.1@text)
+        let bookName = CSSSelectorParser.parseElements(html: complexHtml, rule: "tag.h3.0@tag.a.1@text")
+        XCTAssertEqual(bookName, ["《斗罗大陆》"])
+
+        // 3. 测试 正则清洗 (##《|》)
+        let cleanedName = CSSSelectorParser.parseElements(html: complexHtml, rule: "tag.h3.0@tag.a.1@text##《|》")
+        XCTAssertEqual(cleanedName, ["斗罗大陆"])
+
+        // 4. 测试 反向切片 (id.catalog.0@tag.ul.0@tag.a[-1:0])
+        let reversedTitles = CSSSelectorParser.parseElements(html: complexHtml, rule: "id.catalog.0@tag.ul.0@tag.a[-1:0]@text")
+        XCTAssertEqual(reversedTitles, ["第三章", "第二章", "第一章"])
+
+        // 5. 测试 排除索引 (tag.tbody.0@tag.tr!0)
+        let trElements = CSSSelectorParser.selectElements(html: complexHtml, rule: "tag.tbody.0@tag.tr!0")
+        XCTAssertEqual(trElements.size(), 2)
+
+        // 6. 测试 textNodes 抽取
+        let textNodes = CSSSelectorParser.parseElements(html: complexHtml, rule: "class.txtnav.0@textNodes")
+        XCTAssertFalse(textNodes.isEmpty)
+        XCTAssertTrue(textNodes[0].contains("正文第一段"))
+        XCTAssertTrue(textNodes[0].contains("正文第二段"))
+
+        // 7. 测试 @js: 动态处理
+        let jsProcessed = CSSSelectorParser.parseElements(
+            html: complexHtml,
+            rule: "tag.h3.0@tag.a.1@text##《|》@js:'《书名：'+result+'》'")
+        XCTAssertEqual(jsProcessed, ["《书名：斗罗大陆》"])
+    }
+
     // MARK: - 5. 书源解析用例测试
 
     func testParseBookSourceJson() throws {

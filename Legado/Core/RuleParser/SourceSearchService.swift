@@ -85,12 +85,7 @@ public final class SourceSearchService: Sendable {
             return []
         }
 
-        let elements: Elements
-        do {
-            elements = try doc.select(listRule)
-        } catch {
-            return []
-        }
+        let elements = CSSSelectorParser.selectElements(element: doc, rule: listRule)
 
         var results: [SearchResult] = []
 

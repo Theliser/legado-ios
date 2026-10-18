@@ -10,15 +10,22 @@ extension JSEngine {
 
     private func setupJavaBridge() {
         guard let javaObj = JSValue(newObjectIn: context) else { return }
+        setupJavaNetworkMethods(on: javaObj)
+        setupJavaStorageMethods(on: javaObj)
+        setupJavaDOMMethods(on: javaObj)
+        setupChineseAndEncodingMethods(on: javaObj)
+        setupEncodingMethods(on: javaObj)
+        context.setObject(javaObj, forKeyedSubscript: "java" as NSString)
+    }
 
-        // 1. 网络请求: java.ajax(url)
+    private func setupJavaNetworkMethods(on javaObj: JSValue) {
         let ajax: @convention(block) (String) -> String = { urlString in
             guard let url = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)) else { return "" }
             return Self.syncRequest(url: url)
         }
         javaObj.setObject(ajax, forKeyedSubscript: "ajax" as NSString)
+        context.setObject(ajax, forKeyedSubscript: "ajax" as NSString)
 
-        // 2. 网络请求: java.get(url, headers)
         let get: @convention(block) (String, JSValue?) -> JSValue = { [weak self] urlString, headersVal in
             guard let self, let url = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)) else {
                 return JSValue(newObjectIn: self?.context)
@@ -29,7 +36,6 @@ extension JSEngine {
         }
         javaObj.setObject(get, forKeyedSubscript: "get" as NSString)
 
-        // 3. 网络请求: java.post(url, body, headers)
         let post: @convention(block) (String, String, JSValue?) -> JSValue = { [weak self] urlStr, body, headersVal in
             guard let self, let url = URL(string: urlStr.trimmingCharacters(in: .whitespacesAndNewlines)) else {
                 return JSValue(newObjectIn: self?.context)
@@ -39,8 +45,9 @@ extension JSEngine {
             return self.wrapResponse(res)
         }
         javaObj.setObject(post, forKeyedSubscript: "post" as NSString)
+    }
 
-        // 4. 键值存取: java.put(key, val) / java.get(key)
+    private func setupJavaStorageMethods(on javaObj: JSValue) {
         let putVal: @convention(block) (String, String) -> Void = { [weak self] key, val in
             self?.memoryStorage[key] = val
         }
@@ -48,12 +55,83 @@ extension JSEngine {
             self?.memoryStorage[key] ?? ""
         }
         javaObj.setObject(putVal, forKeyedSubscript: "put" as NSString)
-        javaObj.setObject(getVal, forKeyedSubscript: "getString" as NSString)
+        javaObj.setObject(getVal, forKeyedSubscript: "get" as NSString)
+    }
 
-        // 5. 编解码方法
-        setupEncodingMethods(on: javaObj)
+    private func setupJavaDOMMethods(on javaObj: JSValue) {
+        let setContent: @convention(block) (JSValue) -> Void = { [weak self] val in
+            if val.isString {
+                self?.currentContent = val.toString()
+            } else if val.isObject {
+                let json = self?.context.objectForKeyedSubscript("JSON" as NSString)
+                let stringify = json?.objectForKeyedSubscript("stringify" as NSString)
+                if let str = stringify?.call(withArguments: [val])?.toString() {
+                    self?.currentContent = str
+                } else {
+                    self?.currentContent = val.toString()
+                }
+            } else {
+                self?.currentContent = val.toString()
+            }
+        }
+        let getString: @convention(block) (String) -> String = { [weak self] rule in
+            guard let self else { return "" }
+            if let stored = self.memoryStorage[rule] {
+                return stored
+            }
+            if rule.hasPrefix("$.") || rule.hasPrefix("@Json:") {
+                return JSONPathParser.parse(json: self.currentContent, path: rule).first ?? ""
+            } else {
+                return CSSSelectorParser.parseElements(
+                    html: self.currentContent,
+                    rule: rule,
+                    baseUrl: self.currentBaseUrl).first ?? ""
+            }
+        }
+        let getElements: @convention(block) (String) -> [String] = { [weak self] rule in
+            guard let self else { return [] }
+            if rule.hasPrefix("$.") || rule.hasPrefix("@Json:") {
+                return JSONPathParser.parse(json: self.currentContent, path: rule)
+            } else {
+                return CSSSelectorParser.parseElements(
+                    html: self.currentContent,
+                    rule: rule,
+                    baseUrl: self.currentBaseUrl)
+            }
+        }
+        let getElement: @convention(block) (String) -> String = { [weak self] rule in
+            guard let self else { return "" }
+            if rule.hasPrefix("$.") || rule.hasPrefix("@Json:") {
+                return JSONPathParser.parse(json: self.currentContent, path: rule).first ?? ""
+            } else {
+                return CSSSelectorParser.parseElements(
+                    html: self.currentContent,
+                    rule: rule,
+                    baseUrl: self.currentBaseUrl).first ?? ""
+            }
+        }
+        javaObj.setObject(setContent, forKeyedSubscript: "setContent" as NSString)
+        javaObj.setObject(getString, forKeyedSubscript: "getString" as NSString)
+        javaObj.setObject(getElement, forKeyedSubscript: "getElement" as NSString)
+        javaObj.setObject(getElements, forKeyedSubscript: "getElements" as NSString)
+    }
 
-        context.setObject(javaObj, forKeyedSubscript: "java" as NSString)
+    private func setupChineseAndEncodingMethods(on javaObj: JSValue) {
+        let t2s: @convention(block) (String) -> String = { input in
+            input.applyingTransform(StringTransform("Hant-Hans"), reverse: false) ?? input
+        }
+        let s2t: @convention(block) (String) -> String = { input in
+            input.applyingTransform(StringTransform("Hans-Hant"), reverse: false) ?? input
+        }
+        let encodeURI: @convention(block) (String) -> String = { input in
+            input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? input
+        }
+        javaObj.setObject(t2s, forKeyedSubscript: "t2s" as NSString)
+        javaObj.setObject(s2t, forKeyedSubscript: "s2t" as NSString)
+        javaObj.setObject(encodeURI, forKeyedSubscript: "encodeURI" as NSString)
+        context.setObject(t2s, forKeyedSubscript: "t2s" as NSString)
+        context.setObject(s2t, forKeyedSubscript: "s2t" as NSString)
+        context.setObject(encodeURI, forKeyedSubscript: "encodeURI" as NSString)
     }
 
     private func setupEncodingMethods(on javaObj: JSValue) {

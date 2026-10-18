@@ -1,5 +1,6 @@
 import Foundation
 @testable import Legado
+import SwiftSoup
 import Testing
 
 @Suite("Real Book Source Import and Debug Suite")
@@ -184,5 +185,211 @@ struct RealBookSourceTests {
         """
         let val = engine.evaluate(script: putGetScript)
         #expect(val == "myVal")
+    }
+
+    @Test("Test Parsing and Validating shidahuilang good.json Book Source Database")
+    func parseGoodShuyuanDatabase() throws {
+        let fileUrl = URL(fileURLWithPath: "/tmp/good_shuyuan.json")
+        guard let data = try? Data(contentsOf: fileUrl),
+              let jsonStr = String(data: data, encoding: .utf8) else {
+            return
+        }
+
+        let parser = ParseBookSourceUseCase()
+        let sources = try parser.parse(json: jsonStr)
+        #expect(sources.count > 1000)
+
+        // 验证大量源具备 Legado DOM 步进规则
+        let domRuleSources = sources.filter { s in
+            let bl = s.ruleSearch?.bookList ?? ""
+            return bl.contains("@") || bl.contains("tag.") || bl.contains("class.")
+        }
+        #expect(domRuleSources.count > 500)
+    }
+
+    @Test("Test Real-World 69Shuba Search and TOC HTML Extraction with Step Traversal")
+    func realWorld69ShubaExtraction() async throws {
+        let searchHtml = """
+        <div class="newbox">
+            <ul>
+                <li>
+                    <h3><a href="/author/1">忘语</a><a href="/book/101.html">凡人修仙传</a></h3>
+                    <p class="author"><span>作者：</span><span>忘语</span></p>
+                    <a href="/book/101.html"><img src="/cover/101.jpg" alt="凡人修仙传"/></a>
+                    <div class="intro">山村少年韩立出生贫寒...</div>
+                </li>
+                <li>
+                    <h3><a href="/author/2">我吃西红柿</a><a href="/book/102.html">吞噬星空</a></h3>
+                    <p class="author"><span>作者：</span><span>我吃西红柿</span></p>
+                    <a href="/book/102.html"><img src="/cover/102.jpg" alt="吞噬星空"/></a>
+                    <div class="intro">星空之变，罗峰崛起...</div>
+                </li>
+            </ul>
+        </div>
+        """
+
+        let source = BookSource(
+            bookSourceUrl: "https://www.69shuba.com",
+            bookSourceName: "69书吧",
+            searchUrl: "/modules/article/search.php,{'method':'POST','body':'searchkey={{key}}'}",
+            ruleSearch: RuleSearch(
+                bookList: "class.newbox.0@tag.ul.0@tag.li",
+                name: "tag.h3.0@tag.a.1@text",
+                author: "tag.p.0@tag.span.1@text",
+                intro: "class.intro@text",
+                coverUrl: "tag.img.0@src",
+                bookUrl: "tag.a.1@href"))
+
+        final class Mock69Client: HTTPClientProtocol, @unchecked Sendable {
+            let html: String
+            init(html: String) {
+                self.html = html
+            }
+
+            func get(
+                url _: URL,
+                headers _: [String: String]?,
+                timeout _: TimeInterval) async throws -> String {
+                html
+            }
+
+            func post(
+                url _: URL,
+                body _: Data?,
+                headers _: [String: String]?,
+                timeout _: TimeInterval) async throws -> String {
+                html
+            }
+        }
+
+        let searchService = SourceSearchService(httpClient: Mock69Client(html: searchHtml))
+        let results = try await searchService.search(source: source, keyword: "修仙")
+
+        #expect(results.count == 2)
+        #expect(results[0].name == "凡人修仙传")
+        #expect(results[0].author == "忘语")
+        #expect(results[0].bookUrl == "https://www.69shuba.com/book/101.html")
+        #expect(results[1].name == "吞噬星空")
+        #expect(results[1].author == "我吃西红柿")
+
+        // 验证目录反向切片抓取
+        let tocHtml = """
+        <div id="catalog">
+            <ul>
+                <li><a href="/read/101_3.html">第三章 拜入七玄门</a></li>
+                <li><a href="/read/101_2.html">第二章 离乡远行</a></li>
+                <li><a href="/read/101_1.html">第一章 山村少年</a></li>
+            </ul>
+        </div>
+        """
+        let tocSource = BookSource(
+            bookSourceUrl: "https://www.69shuba.com",
+            bookSourceName: "69书吧",
+            ruleToc: RuleToc(
+                chapterList: "id.catalog.0@tag.ul.0@tag.a[-1:0]",
+                chapterName: "text",
+                chapterUrl: "@href"))
+
+        let tocService = SourceDetailAndTocService(httpClient: Mock69Client(html: tocHtml))
+        let book = Book(
+            bookUrl: "https://www.69shuba.com/book/101.html",
+            tocUrl: "https://www.69shuba.com/book/101.html",
+            name: "凡人修仙传",
+            author: "忘语")
+        let chapters = try await tocService.fetchBookToc(book: book, source: tocSource)
+
+        #expect(chapters.count == 3)
+        // 验证 [-1:0] 切片成功反转为首章在先
+        #expect(chapters[0].title == "第一章 山村少年")
+        #expect(chapters[1].title == "第二章 离乡远行")
+        #expect(chapters[2].title == "第三章 拜入七玄门")
+    }
+
+    @Test("Test Parsing Eryuewuxue Real Book Sources Database (37 Sources)")
+    func parseEryuewuxueDatabase() throws {
+        let filePath = "/tmp/eryuewuxue_all.json"
+        guard FileManager.default.fileExists(atPath: filePath),
+              let data = try? Data(contentsOf: URL(fileURLWithPath: filePath)),
+              let json = String(data: data, encoding: .utf8) else {
+            return
+        }
+
+        let parser = ParseBookSourceUseCase()
+        let sources = try parser.parse(json: json)
+
+        #expect(sources.count == 37)
+        let novelCount = sources.filter { ($0.bookSourceType ?? 0) == 0 }.count
+        let audioCount = sources.filter { ($0.bookSourceType ?? 0) == 1 }.count
+        let comicCount = sources.filter { ($0.bookSourceType ?? 0) == 2 }.count
+        let videoCount = sources.filter { ($0.bookSourceType ?? 0) == 4 }.count
+
+        #expect(novelCount >= 20)
+        #expect(audioCount >= 2)
+        #expect(comicCount >= 4)
+        #expect(videoCount >= 4)
+    }
+
+    @Test("Test Bililightnovel Chinese Conversion and JS DOM Methods")
+    func bililightnovelAndChineseConversion() {
+        let jsEngine = JSEngine()
+
+        // 1. 验证 java.t2s 与全局 t2s (繁体转简体)
+        let s1 = jsEngine.evaluate(script: "java.t2s('嗶哩輕小說線上看')")
+        #expect(s1 == "哔哩轻小说线上看")
+
+        // 2. 验证 java.s2t 与全局 s2t (简体转繁体)
+        let s2 = jsEngine.evaluate(script: "java.s2t('斗罗大陆')")
+        #expect(s2 == "鬥羅大陸")
+
+        // 3. 验证 java.setContent 与 java.getString
+        let html = "<div class='novel-title'><a href='/novel/123.html'>春物第三季</a></div>"
+        let s3 = jsEngine.evaluate(
+            script: """
+            java.setContent(src);
+            var title = java.getString("class.novel-title@tag.a@text");
+            var link = java.getString("class.novel-title@tag.a@href");
+            title + "|" + link;
+            """,
+            bindings: ["src": html, "baseUrl": "https://www.linovelib.com"])
+        #expect(s3 == "春物第三季|https://www.linovelib.com/novel/123.html")
+    }
+
+    @Test("Test Real World XPath Rule Conversion")
+    func realWorldXPathConversion() {
+        let xpath1 = "//div[@class='list-group']/div[@class='list-group-item']"
+        let css1 = DOMStepEvaluator.convertXPathToCSSIfNeeded(xpath1)
+        #expect(css1 == "div.list-group div.list-group-item")
+
+        let xpath2 = "//div[@id='chapter_content']/text()"
+        let css2 = DOMStepEvaluator.convertXPathToCSSIfNeeded(xpath2)
+        #expect(css2 == "div#chapter_content@text")
+
+        let xpath3 = "//ul[@class='catalog']/li/a/@href"
+        let css3 = DOMStepEvaluator.convertXPathToCSSIfNeeded(xpath3)
+        #expect(css3 == "ul.catalog li a@href")
+    }
+
+    @Test("Test Prefix JS Rule Execution and Rule Branching with Logical OR")
+    func prefixJsAndRuleBranching() {
+        // 1. 验证前置 <js> 转换数据后再执行 follow-up 提取
+        let rawHtml = "<ul class='data'><li>item 1</li><li>item 2</li></ul>"
+        let rule = "<js>result.replace('item 1', 'first item')</js>tag.li@text"
+        guard let doc = try? SwiftSoup.parse(rawHtml) else {
+            Issue.record("SwiftSoup failed")
+            return
+        }
+        let parsed = CSSSelectorParser.parse(element: doc, rule: rule)
+        #expect(parsed.contains("first item"))
+        #expect(parsed.contains("item 2"))
+
+        // 2. 验证规则中带有 @js: 且 JS 脚本内部包含 || 逻辑时不被截断
+        let testHtml = "<h1></h1><h2>副标题内容</h2>"
+        guard let doc2 = try? SwiftSoup.parse(testHtml) else {
+            Issue.record("SwiftSoup failed")
+            return
+        }
+        let branchRule = "tag.h1@text || tag.h2@text @js: if (result == '' || result == null) { '兜底' } else { result + '_已处理' }"
+        let branchParsed = CSSSelectorParser.parse(element: doc2, rule: branchRule)
+        #expect(branchParsed.first == "副标题内容_已处理")
     }
 }
