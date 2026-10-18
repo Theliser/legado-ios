@@ -61,7 +61,7 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
 
     override public func send(_ intent: ReaderIntent) {
         switch intent {
-        case .loadChapter, .nextPage, .prevPage, .jumpToPage:
+        case .loadChapter, .nextPage, .prevPage, .jumpToPage, .jumpToChapterAndOffset:
             handleNavigationIntent(intent)
 
         case .toggleHUD, .hideHUD, .openToc, .closeToc:
@@ -94,6 +94,9 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
         switch intent {
         case let .loadChapter(index):
             loadChapterContent(chapterIndex: index, targetPageIndex: 0)
+
+        case let .jumpToChapterAndOffset(chapterIndex, matchOffset):
+            loadChapterContent(chapterIndex: chapterIndex, targetPageIndex: 0, targetOffset: matchOffset)
 
         case .nextPage:
             handleNextPage()
@@ -170,7 +173,10 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
         }
     }
 
-    private func loadChapterContent(chapterIndex: Int, targetPageIndex: Int) {
+    private func loadChapterContent(
+        chapterIndex: Int,
+        targetPageIndex: Int,
+        targetOffset: Int? = nil) {
         guard chapterIndex >= 0, chapterIndex < state.chapters.count else { return }
 
         let chapter = state.chapters[chapterIndex]
@@ -194,7 +200,14 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
                     bounds: layoutBounds,
                     config: state.config)
 
-                let safePageIndex = min(max(targetPageIndex, 0), max(pages.count - 1, 0))
+                let safePageIndex: Int
+                if let offset = targetOffset {
+                    safePageIndex = pages.firstIndex { page in
+                        offset >= page.textRange.location && offset < (page.textRange.location + page.textRange.length)
+                    } ?? 0
+                } else {
+                    safePageIndex = min(max(targetPageIndex, 0), max(pages.count - 1, 0))
+                }
 
                 self.updateState { state in
                     state.isLoading = false

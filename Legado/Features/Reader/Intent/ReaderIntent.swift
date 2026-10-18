@@ -33,6 +33,8 @@ public enum ReaderIntent: ViewIntent, Equatable, Sendable {
     case updateScreenBounds(CGRect)
     /// 切换书源并重载新目录与章节
     case switchSource(updatedBook: Book, newToc: [Chapter], matchedChapterIndex: Int)
+    /// 跳转到指定章节及字符偏移位置 (用于全文搜索定位)
+    case jumpToChapterAndOffset(chapterIndex: Int, matchOffset: Int)
 }
 
 /// 阅读器副作用

@@ -9,6 +9,7 @@ public struct ReaderView: View {
     @State private var hapticTrigger = false
     @State private var isTTSSpeaking = false
     @State private var isChangeSourcePresented = false
+    @State private var isSearchContentPresented = false
 
     public init(viewModel: ReaderViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -71,6 +72,12 @@ public struct ReaderView: View {
                                 viewModel.send(.hideHUD)
                                 isChangeSourcePresented = true
                             }
+                        },
+                        onOpenSearch: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                                viewModel.send(.hideHUD)
+                                isSearchContentPresented = true
+                            }
                         })
                         .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 }
@@ -113,6 +120,18 @@ public struct ReaderView: View {
                         updatedBook: updatedBook,
                         newToc: newToc,
                         matchedChapterIndex: matchedIndex))
+                })
+        }
+        .sheet(isPresented: $isSearchContentPresented) {
+            BookSearchContentSheet(
+                viewModel: environment.makeBookSearchContentViewModel(
+                    book: viewModel.state.book,
+                    chapters: viewModel.state.chapters),
+                onSelectMatch: { chapterIndex, matchOffset in
+                    isSearchContentPresented = false
+                    viewModel.send(.jumpToChapterAndOffset(
+                        chapterIndex: chapterIndex,
+                        matchOffset: matchOffset))
                 })
         }
         .sheet(isPresented: Binding(

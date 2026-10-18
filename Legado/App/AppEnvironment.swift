@@ -29,6 +29,7 @@ public final class AppEnvironment: ObservableObject {
     public let backupToWebDAVUseCase: BackupToWebDAVUseCase
     public let restoreFromWebDAVUseCase: RestoreFromWebDAVUseCase
     public let changeBookSourceUseCase: ChangeBookSourceUseCase
+    public let searchBookContentUseCase: SearchBookContentUseCase
 
     public init(inMemory: Bool = false) {
         let provider = ModelContainerProvider(inMemory: inMemory)
@@ -65,6 +66,7 @@ public final class AppEnvironment: ObservableObject {
         self.changeBookSourceUseCase = ChangeBookSourceUseCase(
             sourceRepository: sourceRepo,
             bookRepository: bookRepo)
+        self.searchBookContentUseCase = SearchBookContentUseCase()
 
         if !inMemory {
             primeSampleChapterCache()
@@ -263,5 +265,16 @@ public final class AppEnvironment: ObservableObject {
             currentChapterTitle: currentChapterTitle,
             currentChapterIndex: currentChapterIndex,
             changeBookSourceUseCase: changeBookSourceUseCase)
+    }
+
+    /// 创建正文全文搜索 ViewModel
+    public func makeBookSearchContentViewModel(
+        book: Book,
+        chapters: [Chapter]) -> BookSearchContentViewModel {
+        BookSearchContentViewModel(
+            book: book,
+            chapters: chapters,
+            getChapterContentUseCase: getChapterContentUseCase,
+            searchUseCase: searchBookContentUseCase)
     }
 }
