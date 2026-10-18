@@ -135,8 +135,13 @@ public struct BookshelfBookRowView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 5)
                         .padding(.vertical, 1.5)
-                        .background(Color.red)
-                        .clipShape(Capsule())
+                        .background {
+                            Capsule(style: .continuous)
+                                .fill(Color.red.gradient)
+                        }
+                        .overlay(
+                            Capsule(style: .continuous)
+                                .stroke(Color.white.opacity(0.35), lineWidth: 0.5))
                 }
 
                 Spacer()

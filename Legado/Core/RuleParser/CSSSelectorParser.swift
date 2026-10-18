@@ -1,7 +1,7 @@
 import Foundation
 import SwiftSoup
 
-/// 基于 SwiftSoup 的 HTML/CSS 规则解析器，支持 Legado 常见的 `@text`, `@href`, `@src`, `@html` 属性语法
+/// 基于 SwiftSoup 的 HTML/CSS 规则解析器，支持 Legado 常见的 `@text`, `@href`, `@src`, `@html`, `||`, `&&` 及 `##` 正则替换
 public enum CSSSelectorParser {
     /// 从 HTML 文档中提取字符串列表
     public static func parseElements(html: String, rule: String, baseUrl: String? = nil) -> [String] {
@@ -16,37 +16,20 @@ public enum CSSSelectorParser {
         let trimmedRule = rule.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedRule.isEmpty else { return [] }
 
-        // 兼容 Legado 各种语法: "@text", "@href", "text", "href", "a@href", "img@src", "h1.title@text"
-        let selector: String
-        let targetAttr: String
-
-        if trimmedRule.hasPrefix("@") {
-            selector = ""
-            targetAttr = String(trimmedRule.dropFirst()).trimmingCharacters(in: .whitespaces).lowercased()
-        } else if trimmedRule == "text" || trimmedRule == "href" || trimmedRule == "src" || trimmedRule == "html" {
-            selector = ""
-            targetAttr = trimmedRule.lowercased()
-        } else if trimmedRule.contains("@") {
-            let parts = trimmedRule.components(separatedBy: "@")
-            selector = parts.first?.trimmingCharacters(in: .whitespaces) ?? ""
-            targetAttr = parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespaces).lowercased() : "text"
-        } else {
-            selector = trimmedRule
-            targetAttr = "text"
+        if let branchResult = handleBranching(element: element, rule: trimmedRule, baseUrl: baseUrl) {
+            return branchResult
         }
 
-        do {
-            let matchedElements: Elements
-            if selector.isEmpty {
-                matchedElements = Elements([element])
-            } else {
-                matchedElements = try element.select(selector)
-            }
+        let (pureRule, regexPairs) = extractRegex(from: trimmedRule)
+        let (selector, targetAttr) = parseSelectorAndAttr(from: pureRule)
 
+        do {
+            let matchedElements: Elements = selector.isEmpty ? Elements([element]) : try element.select(selector)
             var results: [String] = []
             for item in matchedElements {
-                let value = extractAttribute(targetAttr, from: item, baseUrl: baseUrl)
-                let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                let rawValue = extractAttribute(targetAttr, from: item, baseUrl: baseUrl)
+                let cleanedValue = applyRegexPairs(rawValue, pairs: regexPairs)
+                let trimmed = cleanedValue.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmed.isEmpty {
                     results.append(trimmed)
                 }
@@ -54,6 +37,73 @@ public enum CSSSelectorParser {
             return results
         } catch {
             return []
+        }
+    }
+
+    private static func handleBranching(element: Element, rule: String, baseUrl: String?) -> [String]? {
+        if rule.contains("||") {
+            for candidate in rule.components(separatedBy: "||") {
+                let res = parse(element: element, rule: candidate, baseUrl: baseUrl)
+                if !res.isEmpty {
+                    return res
+                }
+            }
+            return []
+        }
+        if rule.contains("&&") {
+            var combined: [String] = []
+            for part in rule.components(separatedBy: "&&") {
+                combined.append(contentsOf: parse(element: element, rule: part, baseUrl: baseUrl))
+            }
+            return combined
+        }
+        return nil
+    }
+
+    private static func applyRegexPairs(_ text: String, pairs: [(String, String)]) -> String {
+        var value = text
+        for (pattern, replacement) in pairs {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
+                let range = NSRange(value.startIndex ..< value.endIndex, in: value)
+                value = regex.stringByReplacingMatches(
+                    in: value,
+                    options: [],
+                    range: range,
+                    withTemplate: replacement)
+            }
+        }
+        return value
+    }
+
+    private static func extractRegex(from input: String) -> (String, [(String, String)]) {
+        guard input.contains("##") else { return (input, []) }
+        let parts = input.components(separatedBy: "##")
+        let pure = parts[0].trimmingCharacters(in: .whitespaces)
+        var pairs: [(String, String)] = []
+        var index = 1
+        while index < parts.count {
+            let pattern = parts[index]
+            let replacement = (index + 1 < parts.count) ? parts[index + 1] : ""
+            if !pattern.isEmpty {
+                pairs.append((pattern, replacement))
+            }
+            index += 2
+        }
+        return (pure, pairs)
+    }
+
+    private static func parseSelectorAndAttr(from rule: String) -> (String, String) {
+        if rule.hasPrefix("@") {
+            return ("", String(rule.dropFirst()).trimmingCharacters(in: .whitespaces).lowercased())
+        } else if rule == "text" || rule == "href" || rule == "src" || rule == "html" || rule == "textNodes" {
+            return ("", rule.lowercased())
+        } else if rule.contains("@") {
+            let parts = rule.components(separatedBy: "@")
+            let selector = parts.first?.trimmingCharacters(in: .whitespaces) ?? ""
+            let targetAttr = parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespaces).lowercased() : "text"
+            return (selector, targetAttr)
+        } else {
+            return (rule, "text")
         }
     }
 

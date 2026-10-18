@@ -131,4 +131,58 @@ struct RealBookSourceTests {
         #expect(!collector.logs.isEmpty)
         #expect(collector.logs.contains { $0.message.contains("正文抓取成功") })
     }
+
+    @Test("Test Parsing XIU2 Yuedu Master Shuyuan List")
+    func parseXIU2ShuyuanList() throws {
+        let fileUrl = URL(fileURLWithPath: "/tmp/xiu2_shuyuan.json")
+        guard let data = try? Data(contentsOf: fileUrl),
+              let jsonStr = String(data: data, encoding: .utf8) else {
+            return
+        }
+
+        let parser = ParseBookSourceUseCase()
+        let sources = try parser.parse(json: jsonStr)
+        #expect(sources.count >= 20)
+        let sourceNames = Set(sources.map(\.bookSourceName))
+        #expect(sourceNames.contains("酷我小说"))
+        #expect(sourceNames.contains("番茄小说2"))
+        #expect(sourceNames.contains("起点中文"))
+    }
+
+    @Test("Test AnalyzeUrl with @js:, calculations and single-quote options")
+    func analyzeUrlFeatures() throws {
+        let raw1 = "/modules/article/search.php,{'charset':'gbk','body':'searchkey={{key}}&searchtype=all','method':'POST'}"
+        let parsed1 = try AnalyzeUrl(
+            rawUrl: raw1,
+            key: "剑来",
+            page: 1,
+            baseUrl: "https://www.69shuba.com")
+        #expect(parsed1.method == "POST")
+        #expect(parsed1.url.absoluteString == "https://www.69shuba.com/modules/article/search.php")
+        #expect(parsed1.body != nil)
+
+        let raw2 = "@js:url=\"https://api.example.com/search?q={{key}}&offset={{(page-1)*50}}\""
+        let parsed2 = try AnalyzeUrl(
+            rawUrl: raw2,
+            key: "宿命",
+            page: 3,
+            baseUrl: "https://api.example.com")
+        #expect(parsed2.url.absoluteString.contains("offset=100"))
+        #expect(parsed2.url.absoluteString.contains("q=%E5%AE%BF%E5%91%BD"))
+    }
+
+    @Test("Test JSEngine HexDecode, Put/Get and Java Bridge")
+    func jSEngineAdvancedBridges() {
+        let engine = JSEngine()
+        let hexScript = "java.hexDecodeToString('68656c6c6f')"
+        let decoded = engine.evaluate(script: hexScript)
+        #expect(decoded == "hello")
+
+        let putGetScript = """
+        java.put('myKey', 'myVal');
+        java.getString('myKey');
+        """
+        let val = engine.evaluate(script: putGetScript)
+        #expect(val == "myVal")
+    }
 }

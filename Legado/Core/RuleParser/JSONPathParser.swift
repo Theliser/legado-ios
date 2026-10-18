@@ -1,6 +1,6 @@
 import Foundation
 
-/// 轻量级 JSONPath 字段解析器，支持 `$.data.list[*]`, `$.book.title`, `a.b.c` 等常见书源规则
+/// 轻量级 JSONPath 字段解析器，支持 `$.data.list[*]`, `$.book.title`, `$..book_data[0]`, `||` 回退及 `&&` 合并等常见书源规则
 public enum JSONPathParser {
     /// 从 JSON 字符串中按路径提取字符串数组
     public static func parse(json: String, path: String) -> [String] {
@@ -13,10 +13,43 @@ public enum JSONPathParser {
 
     /// 针对已反序列化的对象进行路径求值
     public static func evaluate(root: Any, path: String) -> [String] {
+        let trimmed = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.contains("||") {
+            let candidates = trimmed.components(separatedBy: "||")
+            for candidate in candidates {
+                let res = evaluateSingle(root: root, path: candidate)
+                if !res.isEmpty {
+                    return res
+                }
+            }
+            return []
+        }
+
+        if trimmed.contains("&&") {
+            let parts = trimmed.components(separatedBy: "&&")
+            var combined: [String] = []
+            for part in parts {
+                combined.append(contentsOf: evaluateSingle(root: root, path: part))
+            }
+            return combined
+        }
+
+        return evaluateSingle(root: root, path: trimmed)
+    }
+
+    private static func evaluateSingle(root: Any, path: String) -> [String] {
         var cleanPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
         if cleanPath.hasPrefix("@Json:") {
             cleanPath = String(cleanPath.dropFirst(6))
         }
+
+        // 处理深度递归扫描 $..field
+        if cleanPath.hasPrefix("$..") {
+            let targetKey = String(cleanPath.dropFirst(3)).components(separatedBy: ".").first ?? ""
+            let deepNodes = deepFind(key: targetKey, in: root)
+            return deepNodes.compactMap { "\($0)" }
+        }
+
         if cleanPath.hasPrefix("$.") {
             cleanPath = String(cleanPath.dropFirst(2))
         } else if cleanPath.hasPrefix("$") {
@@ -27,40 +60,56 @@ public enum JSONPathParser {
         return extract(current: root, segments: segments)
     }
 
+    private static func extractLeafValues(_ current: Any) -> [String] {
+        if let stringVal = current as? String {
+            return [stringVal]
+        } else if let numVal = current as? NSNumber {
+            return [numVal.stringValue]
+        } else if let arrayVal = current as? [Any] {
+            return arrayVal.compactMap { "\($0)" }
+        }
+        return []
+    }
+
+    private static func resolveArray(key: String, from current: Any) -> [Any]? {
+        if key.isEmpty {
+            return current as? [Any]
+        } else if let dict = current as? [String: Any] {
+            return dict[key] as? [Any]
+        }
+        return nil
+    }
+
+    private static func parseSubscript(_ segment: String) -> (key: String, index: Int?)? {
+        guard let openBracket = segment.firstIndex(of: "["),
+              let closeBracket = segment.firstIndex(of: "]"),
+              openBracket < closeBracket else {
+            return nil
+        }
+        let key = String(segment[..<openBracket])
+        let inner = String(segment[segment.index(after: openBracket) ..< closeBracket])
+        if inner == "*" {
+            return (key, nil)
+        }
+        return (key, Int(inner))
+    }
+
     private static func extract(current: Any, segments: [String]) -> [String] {
         guard let first = segments.first else {
-            // 到达终点，提取当前节点值
-            if let stringVal = current as? String {
-                return [stringVal]
-            } else if let numVal = current as? NSNumber {
-                return [numVal.stringValue]
-            } else if let arrayVal = current as? [Any] {
-                return arrayVal.compactMap { "\($0)" }
-            }
-            return []
+            return extractLeafValues(current)
         }
 
         let remaining = Array(segments.dropFirst())
 
-        // 处理数组通配符，例如 list[*]
-        if first.hasSuffix("[*]") {
-            let key = String(first.dropLast(3))
-            var arrayNode: [Any]?
-            if key.isEmpty {
-                arrayNode = current as? [Any]
-            } else if let dict = current as? [String: Any] {
-                arrayNode = dict[key] as? [Any]
+        if let (key, index) = parseSubscript(first) {
+            guard let items = resolveArray(key: key, from: current) else { return [] }
+            if let idx = index {
+                guard idx >= 0, idx < items.count else { return [] }
+                return extract(current: items[idx], segments: remaining)
             }
-
-            guard let items = arrayNode else { return [] }
-            var results: [String] = []
-            for item in items {
-                results.append(contentsOf: extract(current: item, segments: remaining))
-            }
-            return results
+            return items.flatMap { extract(current: $0, segments: remaining) }
         }
 
-        // 普通字典 key
         if let dict = current as? [String: Any], let nextNode = dict[first] {
             return extract(current: nextNode, segments: remaining)
         }
@@ -74,10 +123,47 @@ public enum JSONPathParser {
               let root = try? JSONSerialization.jsonObject(with: data) else {
             return nil
         }
+
+        let trimmed = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.contains("||") {
+            let candidates = trimmed.components(separatedBy: "||")
+            for candidate in candidates {
+                if let res = parseSingleArray(root: root, path: candidate), !res.isEmpty {
+                    return res
+                }
+            }
+            return nil
+        }
+
+        if trimmed.contains("&&") {
+            let parts = trimmed.components(separatedBy: "&&")
+            var combined: [Any] = []
+            for part in parts {
+                if let sub = parseSingleArray(root: root, path: part) {
+                    combined.append(contentsOf: sub)
+                }
+            }
+            return combined.isEmpty ? nil : combined
+        }
+
+        return parseSingleArray(root: root, path: trimmed)
+    }
+
+    private static func parseSingleArray(root: Any, path: String) -> [Any]? {
         var cleanPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
         if cleanPath.hasPrefix("@Json:") {
             cleanPath = String(cleanPath.dropFirst(6))
         }
+
+        // 深度递归检索 $..field
+        if cleanPath.hasPrefix("$..") {
+            let targetKey = String(cleanPath.dropFirst(3)).components(separatedBy: ".").first ?? ""
+            let deepNodes = deepFind(key: targetKey, in: root)
+            if !deepNodes.isEmpty {
+                return deepNodes
+            }
+        }
+
         if cleanPath.hasPrefix("$.") {
             cleanPath = String(cleanPath.dropFirst(2))
         } else if cleanPath.hasPrefix("$") {
@@ -90,32 +176,25 @@ public enum JSONPathParser {
 
     private static func extractObjects(current: Any, segments: [String]) -> [Any]? {
         guard let first = segments.first else {
-            if let arr = current as? [Any] {
-                return arr
-            }
-            return [current]
+            return (current as? [Any]) ?? [current]
         }
 
         let remaining = Array(segments.dropFirst())
-        if first.hasSuffix("[*]") {
-            let key = String(first.dropLast(3))
-            var arrayNode: [Any]?
-            if key.isEmpty {
-                arrayNode = current as? [Any]
-            } else if let dict = current as? [String: Any] {
-                arrayNode = dict[key] as? [Any]
+
+        if let (key, index) = parseSubscript(first) {
+            guard let items = resolveArray(key: key, from: current) else { return nil }
+            if let idx = index {
+                guard idx >= 0, idx < items.count else { return nil }
+                let target = items[idx]
+                if remaining.isEmpty {
+                    return (target as? [Any]) ?? [target]
+                }
+                return extractObjects(current: target, segments: remaining)
             }
-            guard let items = arrayNode else { return nil }
             if remaining.isEmpty {
                 return items
             }
-            var results: [Any] = []
-            for item in items {
-                if let sub = extractObjects(current: item, segments: remaining) {
-                    results.append(contentsOf: sub)
-                }
-            }
-            return results
+            return items.compactMap { extractObjects(current: $0, segments: remaining) }.flatMap { $0 }
         }
 
         if let dict = current as? [String: Any], let nextNode = dict[first] {
@@ -123,5 +202,38 @@ public enum JSONPathParser {
         }
 
         return nil
+    }
+
+    private static func deepFind(key: String, in node: Any) -> [Any] {
+        var cleanKey = key
+        var targetIndex: Int?
+        if let parsed = parseSubscript(key) {
+            cleanKey = parsed.key
+            targetIndex = parsed.index
+        }
+
+        var results: [Any] = []
+        if let dict = node as? [String: Any] {
+            for (dictKey, val) in dict {
+                if dictKey == cleanKey {
+                    if let arr = val as? [Any] {
+                        if let targetIndex, targetIndex >= 0, targetIndex < arr.count {
+                            results.append(arr[targetIndex])
+                        } else {
+                            results.append(contentsOf: arr)
+                        }
+                    } else {
+                        results.append(val)
+                    }
+                } else {
+                    results.append(contentsOf: deepFind(key: key, in: val))
+                }
+            }
+        } else if let arr = node as? [Any] {
+            for item in arr {
+                results.append(contentsOf: deepFind(key: key, in: item))
+            }
+        }
+        return results
     }
 }

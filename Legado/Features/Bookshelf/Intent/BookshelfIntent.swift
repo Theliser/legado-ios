@@ -38,6 +38,8 @@ public enum BookshelfIntent: ViewIntent, Equatable {
     case batchMoveSelectedToGroup(groupName: String?)
     /// 手动全书架检查更新
     case refreshAllBookUpdates
+    /// 导入本地书籍文件 (TXT/EPUB)
+    case importLocalBook(URL)
 }
 
 /// 书架副作用

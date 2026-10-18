@@ -41,6 +41,8 @@ public final class AppEnvironment: ObservableObject {
     public let bookCacheRepository: BookCacheRepository
     public let batchDownloadChaptersUseCase: BatchDownloadChaptersUseCase
     public let manageBookCacheUseCase: ManageBookCacheUseCase
+    public let checkBookSourceHealthUseCase: CheckBookSourceHealthUseCase
+    public let importLocalBookUseCase: ImportLocalBookUseCase
 
     public init(inMemory: Bool = false) {
         let provider = ModelContainerProvider(inMemory: inMemory)
@@ -96,6 +98,10 @@ public final class AppEnvironment: ObservableObject {
         self.getBookGroupsUseCase = GetBookGroupsUseCase(groupRepository: groupRepo)
         self.saveBookGroupUseCase = SaveBookGroupUseCase(groupRepository: groupRepo)
         self.deleteBookGroupUseCase = DeleteBookGroupUseCase(groupRepository: groupRepo)
+        self.checkBookSourceHealthUseCase = CheckBookSourceHealthUseCase()
+        self.importLocalBookUseCase = ImportLocalBookUseCase(
+            bookRepository: bookRepo,
+            bookCacheRepository: cacheRepo)
 
         if !inMemory {
             primeSampleChapterCache()
@@ -249,7 +255,8 @@ public final class AppEnvironment: ObservableObject {
             saveBookToShelfUseCase: saveBookToShelfUseCase,
             getBookGroupsUseCase: getBookGroupsUseCase,
             saveBookGroupUseCase: saveBookGroupUseCase,
-            deleteBookGroupUseCase: deleteBookGroupUseCase)
+            deleteBookGroupUseCase: deleteBookGroupUseCase,
+            importLocalBookUseCase: importLocalBookUseCase)
     }
 
     /// 创建阅读器 ViewModel
@@ -283,7 +290,8 @@ public final class AppEnvironment: ObservableObject {
             toggleEnabledUseCase: toggleBookSourceEnabledUseCase,
             deleteSourceUseCase: deleteBookSourceUseCase,
             importSourcesUseCase: importBookSourcesUseCase,
-            debugSourceUseCase: debugBookSourceUseCase)
+            debugSourceUseCase: debugBookSourceUseCase,
+            checkHealthUseCase: checkBookSourceHealthUseCase)
     }
 
     /// 创建系统设置 ViewModel

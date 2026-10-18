@@ -23,20 +23,20 @@ public final class SourceSearchService: Sendable {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         // 1. 构建搜索请求
-        let requestInfo = try buildSearchRequest(
-            rawSearchUrl: rawSearchUrl,
-            baseUrl: source.bookSourceUrl,
-            keyword: keyword,
+        let requestInfo = try AnalyzeUrl(
+            rawUrl: rawSearchUrl,
+            key: keyword,
             page: page,
-            headerJson: source.header)
+            baseUrl: source.bookSourceUrl,
+            headerJson: source.header,
+            source: source)
 
         // 2. 发起网络抓取
         let responseBody: String
-        if requestInfo.method.uppercased() == "POST" {
-            let bodyData = requestInfo.body?.data(using: .utf8)
+        if requestInfo.method == "POST" {
             responseBody = try await httpClient.post(
                 url: requestInfo.url,
-                body: bodyData,
+                body: requestInfo.body,
                 headers: requestInfo.headers)
         } else {
             responseBody = try await httpClient.get(
@@ -186,78 +186,7 @@ public final class SourceSearchService: Sendable {
         return results
     }
 
-    // MARK: - URL 构建
-
-    private struct RequestInfo {
-        let url: URL
-        let method: String
-        let body: String?
-        let headers: [String: String]
-    }
-
-    private func buildSearchRequest(
-        rawSearchUrl: String,
-        baseUrl: String,
-        keyword: String,
-        page: Int,
-        headerJson: String?) throws -> RequestInfo {
-        var method = "GET"
-        var bodyString: String?
-        var urlPart = rawSearchUrl
-        var customHeaders: [String: String] = [:]
-
-        // 解析头部配置
-        if let headerJson, !headerJson.isEmpty,
-           let data = headerJson.data(using: .utf8),
-           let parsed = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
-            customHeaders = parsed
-        }
-
-        // 解析 Legado searchUrl 复合配置: url,{"method": "POST", "body": "key={{key}}"}
-        if let commaIndex = rawSearchUrl.firstIndex(of: ",") {
-            let potentialJson = String(rawSearchUrl[rawSearchUrl.index(after: commaIndex)...])
-            if potentialJson.trimmingCharacters(in: .whitespaces).hasPrefix("{") {
-                urlPart = String(rawSearchUrl[..<commaIndex])
-                if let data = potentialJson.data(using: .utf8),
-                   let options = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                    if let optMethod = options["method"] as? String {
-                        method = optMethod
-                    }
-                    if let optBody = options["body"] as? String {
-                        bodyString = optBody
-                    }
-                    if let optHeaders = options["headers"] as? [String: String] {
-                        customHeaders.merge(optHeaders) { _, new in new }
-                    }
-                }
-            }
-        }
-
-        // 替换占位符 {{key}}, {{page}}, searchKey
-        let encodedKey = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? keyword
-        let resolvedUrlString = urlPart
-            .replacingOccurrences(of: "{{key}}", with: encodedKey)
-            .replacingOccurrences(of: "{{searchKey}}", with: encodedKey)
-            .replacingOccurrences(of: "{{page}}", with: "\(page)")
-
-        if let body = bodyString {
-            bodyString = body
-                .replacingOccurrences(of: "{{key}}", with: keyword)
-                .replacingOccurrences(of: "{{searchKey}}", with: keyword)
-                .replacingOccurrences(of: "{{page}}", with: "\(page)")
-        }
-
-        let fullUrlString = resolveUrl(resolvedUrlString, baseUrl: baseUrl)
-        guard let url = URL(string: fullUrlString) else {
-            throw URLError(.badURL)
-        }
-
-        return RequestInfo(
-            url: url,
-            method: method,
-            body: bodyString,
-            headers: customHeaders)
-    }
+    // MARK: - URL 辅助
 
     private func resolveUrl(_ url: String, baseUrl: String) -> String {
         let trimmed = url.trimmingCharacters(in: .whitespacesAndNewlines)
