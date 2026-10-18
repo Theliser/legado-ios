@@ -48,7 +48,6 @@ public struct ExploreView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 24)
             }
-            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("发现")
             .navigationBarTitleDisplayMode(.large)
             .refreshable {

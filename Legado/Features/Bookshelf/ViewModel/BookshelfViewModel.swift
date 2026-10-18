@@ -10,6 +10,7 @@ public final class BookshelfViewModel: BaseMVIViewModel<BookshelfState, Bookshel
     private let getBookGroupsUseCase: GetBookGroupsUseCase?
     private let saveBookGroupUseCase: SaveBookGroupUseCase?
     private let deleteBookGroupUseCase: DeleteBookGroupUseCase?
+    let importLocalBookUseCase: ImportLocalBookUseCase?
 
     public init(
         getBookshelfUseCase: GetBookshelfUseCase,
@@ -18,7 +19,8 @@ public final class BookshelfViewModel: BaseMVIViewModel<BookshelfState, Bookshel
         saveBookToShelfUseCase: SaveBookToShelfUseCase? = nil,
         getBookGroupsUseCase: GetBookGroupsUseCase? = nil,
         saveBookGroupUseCase: SaveBookGroupUseCase? = nil,
-        deleteBookGroupUseCase: DeleteBookGroupUseCase? = nil) {
+        deleteBookGroupUseCase: DeleteBookGroupUseCase? = nil,
+        importLocalBookUseCase: ImportLocalBookUseCase? = nil) {
         self.getBookshelfUseCase = getBookshelfUseCase
         self.removeBookFromShelfUseCase = removeBookFromShelfUseCase
         self.checkBookUpdatesUseCase = checkBookUpdatesUseCase
@@ -26,6 +28,7 @@ public final class BookshelfViewModel: BaseMVIViewModel<BookshelfState, Bookshel
         self.getBookGroupsUseCase = getBookGroupsUseCase
         self.saveBookGroupUseCase = saveBookGroupUseCase
         self.deleteBookGroupUseCase = deleteBookGroupUseCase
+        self.importLocalBookUseCase = importLocalBookUseCase
         super.init(initialState: BookshelfState())
 
         send(.onAppear)
@@ -59,6 +62,9 @@ public final class BookshelfViewModel: BaseMVIViewModel<BookshelfState, Bookshel
 
         case .addCustomGroup, .deleteCustomGroup, .moveBookToGroup:
             handleGroupIntent(intent)
+
+        case let .importLocalBook(url):
+            handleImportLocalBook(url: url)
         }
     }
 

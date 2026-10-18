@@ -43,7 +43,8 @@ public struct ReaderHUDView: View {
         onOpenChangeSource: @escaping () -> Void = {},
         onOpenSearch: @escaping () -> Void = {},
         isBookmarked: Bool = false,
-        onToggleBookmark: @escaping () -> Void = {}) {
+        onToggleBookmark: @escaping () -> Void = {},
+        onOpenCache: @escaping () -> Void = {}) {
         self.bookTitle = bookTitle
         self.currentChapterTitle = currentChapterTitle
         self.currentChapterIndex = currentChapterIndex
@@ -64,7 +65,10 @@ public struct ReaderHUDView: View {
         self.onOpenSearch = onOpenSearch
         self.isBookmarked = isBookmarked
         self.onToggleBookmark = onToggleBookmark
+        self.onOpenCache = onOpenCache
     }
+
+    public let onOpenCache: () -> Void
 
     public var body: some View {
         VStack {
@@ -117,6 +121,16 @@ public struct ReaderHUDView: View {
 
             Button(action: onOpenSearch) {
                 Image(systemName: "magnifyingglass")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: 36, height: 36)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 0.5))
+            }
+
+            Button(action: onOpenCache) {
+                Image(systemName: "arrow.down.circle")
                     .font(.body.weight(.semibold))
                     .foregroundStyle(.primary)
                     .frame(width: 36, height: 36)

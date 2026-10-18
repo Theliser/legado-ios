@@ -33,7 +33,8 @@ extension ReaderView {
                 ReaderPageView(
                     page: page,
                     totalPages: viewModel.state.pages.count,
-                    config: viewModel.state.config)
+                    config: viewModel.state.config,
+                    highlightedSentence: ttsPlayer.state != .idle ? ttsPlayer.currentSentence : nil)
             }
             tapGestureOverlay(width: width)
         }
@@ -48,7 +49,8 @@ extension ReaderView {
                         ReaderPageView(
                             page: page,
                             totalPages: viewModel.state.pages.count,
-                            config: viewModel.state.config)
+                            config: viewModel.state.config,
+                            highlightedSentence: ttsPlayer.state != .idle ? ttsPlayer.currentSentence : nil)
                             .tag(page.pageIndex)
                     }
                 }
@@ -74,7 +76,7 @@ extension ReaderView {
                                 .foregroundStyle(viewModel.state.config.theme.textColor)
                                 .padding(.bottom, 6)
                         }
-                        Text(page.contentText)
+                        Text(renderedScrollText(page.contentText))
                             .font(.system(size: viewModel.state.config.fontSize))
                             .lineSpacing(viewModel.state.config.lineSpacing)
                             .foregroundStyle(viewModel.state.config.theme.textColor)
@@ -89,6 +91,16 @@ extension ReaderView {
         .onTapGesture {
             viewModel.send(.toggleHUD)
         }
+    }
+
+    private func renderedScrollText(_ content: String) -> AttributedString {
+        var attr = AttributedString(content)
+        if ttsPlayer.state != .idle, !ttsPlayer.currentSentence.isEmpty,
+           let range = attr.range(of: ttsPlayer.currentSentence) {
+            attr[range].backgroundColor = Color.accentColor.opacity(0.18)
+            attr[range].foregroundColor = .accentColor
+        }
+        return attr
     }
 
     func tapGestureOverlay(width: CGFloat) -> some View {

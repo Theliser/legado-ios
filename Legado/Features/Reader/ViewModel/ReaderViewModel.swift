@@ -4,7 +4,7 @@ import UIKit
 /// 阅读器核心控制器 (MVI 架构)
 @MainActor
 public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, ReaderEffect> {
-    private let getChapterContentUseCase: GetChapterContentUseCase
+    let getChapterContentUseCase: GetChapterContentUseCase
     private let getBookTocUseCase: GetBookTocUseCase
     private let bookRepository: BookRepository
     private let textLayoutEngine: TextLayoutEngine

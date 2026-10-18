@@ -1,7 +1,7 @@
 import Foundation
 import SwiftSoup
 
-/// Legado 统一规则求值器：统一处理 JSONPath、模板插值 {{...}}、正则替换 ##pattern##replace 及 @js: 脚本
+/// Legado 统一规则求值器：统一处理 JSONPath、模板插值 {{...}}、正则替换 ##pattern##replace、@js: 脚本及 || / && 组合
 public enum RuleEvaluator {
     private static let jsEngine = JSEngine()
 
@@ -14,18 +14,50 @@ public enum RuleEvaluator {
             return nil
         }
 
-        var workRule = rule.trimmingCharacters(in: .whitespacesAndNewlines)
+        let workRule = rule.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // 1. 处理 || 备选分支
+        if workRule.contains("||") {
+            let candidates = workRule.components(separatedBy: "||")
+            for candidate in candidates {
+                if let val = evaluate(dict: dict, rule: candidate, baseUrl: baseUrl), !val.isEmpty {
+                    return val
+                }
+            }
+            return nil
+        }
+
+        // 2. 处理 && 组合拼接
+        if workRule.contains("&&") {
+            let parts = workRule.components(separatedBy: "&&")
+            var combined: [String] = []
+            for part in parts {
+                if let val = evaluate(dict: dict, rule: part, baseUrl: baseUrl), !val.isEmpty {
+                    combined.append(val)
+                }
+            }
+            return combined.isEmpty ? nil : combined.joined(separator: " ")
+        }
+
+        return evaluateSingle(dict: dict, rule: workRule, baseUrl: baseUrl)
+    }
+
+    private static func evaluateSingle(
+        dict: [String: Any],
+        rule: String,
+        baseUrl: String) -> String? {
+        var currentRule = rule
 
         // 1. 提取脚本
-        let (extractedRule, jsScript) = extractScript(from: workRule)
-        workRule = extractedRule
+        let (extractedRule, jsScript) = extractScript(from: currentRule)
+        currentRule = extractedRule
 
         // 2. 提取正则替换
-        let (pureRule, regexPairs) = extractRegex(from: workRule)
-        workRule = pureRule
+        let (pureRule, regexPairs) = extractRegex(from: currentRule)
+        currentRule = pureRule
 
         // 3. 基础值提取
-        var result = evaluateBaseValue(workRule: workRule, dict: dict)
+        var result = evaluateBaseValue(workRule: currentRule, dict: dict)
 
         // 4. 正则清洗
         if var current = result {
@@ -55,7 +87,9 @@ public enum RuleEvaluator {
         } else if let openTag = input.range(of: "<js>"),
                   let closeTag = input.range(of: "</js>") {
             let script = String(input[openTag.upperBound ..< closeTag.lowerBound])
-            let pure = String(input[..<openTag.lowerBound]).trimmingCharacters(in: .whitespaces)
+            let before = String(input[..<openTag.lowerBound]).trimmingCharacters(in: .whitespaces)
+            let after = String(input[closeTag.upperBound...]).trimmingCharacters(in: .whitespaces)
+            let pure = before.isEmpty ? after : before
             return (pure, script)
         }
         return (input, nil)
@@ -130,7 +164,7 @@ public enum RuleEvaluator {
         return result
     }
 
-    /// 提取单个字段或深层键值
+    /// 提取单个字段或深层键值 (支持 a.b.c 及 a[0].b 数组索引)
     public static func extractField(from dict: [String: Any], path: String) -> String? {
         var cleanPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
         if cleanPath.hasPrefix("@Json:") {
@@ -149,10 +183,23 @@ public enum RuleEvaluator {
         let segments = cleanPath.split(separator: ".").map(String.init)
         var current: Any? = dict
         for seg in segments {
-            guard let curDict = current as? [String: Any], let next = curDict[seg] else {
-                return nil
+            if let openBracket = seg.firstIndex(of: "["),
+               let closeBracket = seg.firstIndex(of: "]"),
+               openBracket < closeBracket {
+                let key = String(seg[..<openBracket])
+                let indexStr = String(seg[seg.index(after: openBracket) ..< closeBracket])
+                guard let curDict = current as? [String: Any],
+                      let array = curDict[key] as? [Any],
+                      let idx = Int(indexStr), idx >= 0, idx < array.count else {
+                    return nil
+                }
+                current = array[idx]
+            } else {
+                guard let curDict = current as? [String: Any], let next = curDict[seg] else {
+                    return nil
+                }
+                current = next
             }
-            current = next
         }
 
         if let current {

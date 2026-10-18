@@ -1,7 +1,7 @@
 import Foundation
 import SwiftSoup
 
-/// 负责书籍详情页与目录 (TOC) 的抓取与规则解析服务
+/// 负责书籍详情页与目录 (TOC) 的抓取与规则解析服务 (全面集成 AnalyzeUrl 与 JS 规则引擎)
 public final class SourceDetailAndTocService: Sendable {
     public static let shared = SourceDetailAndTocService()
 
@@ -15,18 +15,14 @@ public final class SourceDetailAndTocService: Sendable {
 
     /// 抓取并解析书籍详情信息
     public func fetchBookDetail(book: Book, source: BookSource) async throws -> Book {
-        guard let url = URL(string: book.bookUrl) else {
-            return book
-        }
+        let requestInfo = try AnalyzeUrl(
+            rawUrl: book.bookUrl,
+            baseUrl: source.bookSourceUrl,
+            headerJson: source.header,
+            source: source,
+            book: book)
 
-        var headers: [String: String]?
-        if let headerJson = source.header,
-           let data = headerJson.data(using: .utf8),
-           let parsed = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
-            headers = parsed
-        }
-
-        let responseBody = try await httpClient.get(url: url, headers: headers)
+        let responseBody = try await httpClient.get(url: requestInfo.url, headers: requestInfo.headers)
         let trimmed = responseBody.trimmingCharacters(in: .whitespacesAndNewlines)
 
         var updatedBook = book
@@ -47,44 +43,36 @@ public final class SourceDetailAndTocService: Sendable {
     private func parseHtmlDetail(html: String, rule: RuleBookInfo, book: inout Book, baseUrl: String) {
         guard let doc = try? SwiftSoup.parse(html, baseUrl) else { return }
 
-        // 书名
         if let ruleName = rule.name, !ruleName.isEmpty,
            let val = CSSSelectorParser.parseSingle(element: doc, rule: ruleName, baseUrl: baseUrl), !val.isEmpty {
             book.name = val
         }
-        // 作者
         if let ruleAuthor = rule.author, !ruleAuthor.isEmpty,
            let val = CSSSelectorParser.parseSingle(element: doc, rule: ruleAuthor, baseUrl: baseUrl), !val.isEmpty {
             book.author = val
         }
-        // 封面
         if let ruleCover = rule.coverUrl, !ruleCover.isEmpty,
            let val = CSSSelectorParser.parseSingle(element: doc, rule: ruleCover, baseUrl: baseUrl), !val.isEmpty {
             book.coverUrl = resolveUrl(val, baseUrl: baseUrl)
         }
-        // 简介
         if let ruleIntro = rule.intro, !ruleIntro.isEmpty,
            let val = CSSSelectorParser.parseSingle(element: doc, rule: ruleIntro, baseUrl: baseUrl), !val.isEmpty {
             book.intro = val
         }
-        // 分类
         if let ruleKind = rule.kind, !ruleKind.isEmpty,
            let val = CSSSelectorParser.parseSingle(element: doc, rule: ruleKind, baseUrl: baseUrl), !val.isEmpty {
             book.kind = val
         }
-        // 最新章节
         if let ruleLastChapter = rule.lastChapter, !ruleLastChapter.isEmpty,
            let val = CSSSelectorParser.parseSingle(element: doc, rule: ruleLastChapter, baseUrl: baseUrl),
            !val.isEmpty {
             book.latestChapterTitle = val
             book.latestChapterTime = Int64(Date().timeIntervalSince1970 * 1000)
         }
-        // 字数
         if let ruleWord = rule.wordCount, !ruleWord.isEmpty,
            let val = CSSSelectorParser.parseSingle(element: doc, rule: ruleWord, baseUrl: baseUrl), !val.isEmpty {
             book.wordCount = val
         }
-        // 目录页 URL
         if let ruleToc = rule.tocUrl, !ruleToc.isEmpty,
            let val = CSSSelectorParser.parseSingle(element: doc, rule: ruleToc, baseUrl: baseUrl), !val.isEmpty {
             book.tocUrl = resolveUrl(val, baseUrl: baseUrl)
@@ -161,22 +149,19 @@ public final class SourceDetailAndTocService: Sendable {
         var currentUrlString: String? = initialUrl
         var visitedUrls = Set<String>()
         var pageCount = 0
-        let maxPages = 40 // 防止死循环
+        let maxPages = 40
 
         while let targetUrlStr = currentUrlString, pageCount < maxPages {
-            guard !visitedUrls.contains(targetUrlStr),
-                  let targetUrl = URL(string: targetUrlStr) else {
-                break
-            }
+            guard !visitedUrls.contains(targetUrlStr) else { break }
             visitedUrls.insert(targetUrlStr)
             pageCount += 1
 
             let (pageChapters, nextUrl) = try await fetchSingleTocPage(
-                targetUrl: targetUrl,
                 targetUrlStr: targetUrlStr,
                 ruleToc: ruleToc,
                 chapterListRule: chapterListRule,
-                bookUrl: book.bookUrl)
+                book: book,
+                source: source)
             chapters.append(contentsOf: pageChapters)
             currentUrlString = nextUrl
         }
@@ -185,7 +170,6 @@ public final class SourceDetailAndTocService: Sendable {
             chapters.reverse()
         }
 
-        // 重新规范化 index 索引
         for index in chapters.indices {
             chapters[index].index = index
         }
@@ -194,22 +178,40 @@ public final class SourceDetailAndTocService: Sendable {
     }
 
     private func fetchSingleTocPage(
-        targetUrl: URL,
         targetUrlStr: String,
         ruleToc: RuleToc,
         chapterListRule: String,
-        bookUrl: String) async throws -> ([Chapter], String?) {
-        let responseBody = try await httpClient.get(url: targetUrl)
+        book: Book,
+        source: BookSource) async throws -> ([Chapter], String?) {
+        let requestInfo = try AnalyzeUrl(
+            rawUrl: targetUrlStr,
+            baseUrl: source.bookSourceUrl,
+            headerJson: source.header,
+            source: source,
+            book: book)
+
+        let responseBody: String
+        if requestInfo.method == "POST" {
+            responseBody = try await httpClient.post(
+                url: requestInfo.url,
+                body: requestInfo.body,
+                headers: requestInfo.headers)
+        } else {
+            responseBody = try await httpClient.get(
+                url: requestInfo.url,
+                headers: requestInfo.headers)
+        }
+
         let trimmed = responseBody.trimmingCharacters(in: .whitespacesAndNewlines)
-        let isJson = trimmed.starts(with: "{") || trimmed.starts(with: "[")
+        let isJson = trimmed.starts(with: "{") || trimmed.starts(with: "[") || chapterListRule.contains("<js>")
 
         if isJson {
+            let context = TocContext(baseUrl: targetUrlStr, source: source, book: book)
             let pageChapters = parseJsonTocPage(
                 json: trimmed,
                 rule: ruleToc,
                 listRule: chapterListRule,
-                bookUrl: bookUrl,
-                baseUrl: targetUrlStr)
+                context: context)
             var nextUrl: String?
             if let nextRule = ruleToc.nextTocUrl, !nextRule.isEmpty,
                let next = JSONPathParser.parse(json: trimmed, path: nextRule).first, !next.isEmpty {
@@ -221,7 +223,7 @@ public final class SourceDetailAndTocService: Sendable {
                 html: responseBody,
                 rule: ruleToc,
                 listRule: chapterListRule,
-                bookUrl: bookUrl,
+                bookUrl: book.bookUrl,
                 baseUrl: targetUrlStr)
         }
     }
@@ -264,30 +266,57 @@ public final class SourceDetailAndTocService: Sendable {
         return (list, nextUrl)
     }
 
+    private struct TocContext {
+        let baseUrl: String
+        let source: BookSource
+        let book: Book
+    }
+
     private func parseJsonTocPage(
         json: String,
         rule: RuleToc,
         listRule: String,
-        bookUrl: String,
-        baseUrl: String) -> [Chapter] {
-        guard let array = JSONPathParser.parseArray(json: json, path: listRule) else {
-            return []
+        context: TocContext) -> [Chapter] {
+        var targetArray: [Any]? = JSONPathParser.parseArray(json: json, path: listRule)
+
+        if targetArray == nil || targetArray?.isEmpty == true, listRule.contains("<js>") || listRule.contains("@js:") {
+            let jsEngine = JSEngine()
+            let cleanScript = listRule
+                .replacingOccurrences(of: "<js>", with: "")
+                .replacingOccurrences(of: "</js>", with: "")
+                .replacingOccurrences(of: "@js:", with: "")
+            let bindings: [String: Any] = [
+                "result": json,
+                "baseUrl": context.baseUrl,
+                "bookUrl": context.book.bookUrl,
+                "bookName": context.book.name,
+                "bookAuthor": context.book.author,
+                "bookSourceUrl": context.source.bookSourceUrl,
+                "bookSourceName": context.source.bookSourceName,
+                "loginUrl": context.source.loginUrl ?? "",
+            ]
+            if let jsOutput = jsEngine.evaluate(script: cleanScript, bindings: bindings) {
+                targetArray = JSONPathParser.parseArray(json: jsOutput, path: "$")
+                    ?? JSONPathParser.parseArray(json: jsOutput, path: "$.*")
+            }
         }
+
+        guard let array = targetArray else { return [] }
 
         var list: [Chapter] = []
         for (index, item) in array.enumerated() {
             guard let dict = item as? [String: Any] else { continue }
 
-            let title = RuleEvaluator.evaluate(dict: dict, rule: rule.chapterName, baseUrl: baseUrl) ?? ""
-            let url = RuleEvaluator.evaluate(dict: dict, rule: rule.chapterUrl, baseUrl: baseUrl) ?? ""
+            let title = RuleEvaluator.evaluate(dict: dict, rule: rule.chapterName, baseUrl: context.baseUrl) ?? ""
+            let url = RuleEvaluator.evaluate(dict: dict, rule: rule.chapterUrl, baseUrl: context.baseUrl) ?? ""
 
             guard !title.isEmpty, !url.isEmpty else { continue }
 
-            let fullUrl = resolveUrl(url, baseUrl: baseUrl)
+            let fullUrl = resolveUrl(url, baseUrl: context.baseUrl)
             list.append(Chapter(
                 url: fullUrl,
                 title: title.trimmingCharacters(in: .whitespacesAndNewlines),
-                bookUrl: bookUrl,
+                bookUrl: context.book.bookUrl,
                 index: index))
         }
 
@@ -295,14 +324,6 @@ public final class SourceDetailAndTocService: Sendable {
     }
 
     private func resolveUrl(_ url: String, baseUrl: String) -> String {
-        let trimmed = url.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.lowercased().hasPrefix("http://") || trimmed.lowercased().hasPrefix("https://") {
-            return trimmed
-        }
-        guard let base = URL(string: baseUrl),
-              let resolved = URL(string: trimmed, relativeTo: base) else {
-            return trimmed
-        }
-        return resolved.absoluteURL.absoluteString
+        AnalyzeUrl.resolveAbsoluteUrl(url, baseUrl: baseUrl)
     }
 }

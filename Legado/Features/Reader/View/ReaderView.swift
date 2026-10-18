@@ -5,11 +5,13 @@ public struct ReaderView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var environment: AppEnvironment
     @StateObject var viewModel: ReaderViewModel
+    @ObservedObject var ttsPlayer: TTSPlayer = .shared
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
     @State private var isTTSSpeaking = false
     @State private var isChangeSourcePresented = false
     @State private var isSearchContentPresented = false
+    @State private var isCachePresented = false
 
     public init(viewModel: ReaderViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -60,8 +62,9 @@ public struct ReaderView: View {
                                 viewModel.send(.toggleHUD)
                                 isTTSSpeaking = true
                             }
+                            setupTTSCallbacks()
                             let text = viewModel.state.currentChapterText
-                            TTSPlayer.shared.startReading(
+                            ttsPlayer.startReading(
                                 content: text,
                                 bookTitle: viewModel.state.book.name,
                                 chapterTitle: viewModel.state.currentChapter?.title ?? "",
@@ -82,6 +85,12 @@ public struct ReaderView: View {
                         isBookmarked: viewModel.state.isCurrentPageBookmarked,
                         onToggleBookmark: {
                             viewModel.send(.toggleBookmark)
+                        },
+                        onOpenCache: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                                viewModel.send(.hideHUD)
+                                isCachePresented = true
+                            }
                         })
                         .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 }
@@ -167,6 +176,29 @@ public struct ReaderView: View {
                         viewModel.send(.deleteBookmark(id: bookmark.id))
                     })
         }
+        .sheet(isPresented: $isCachePresented) {
+            BookCacheSheet(
+                book: viewModel.state.book,
+                chapters: viewModel.state.chapters,
+                cacheInfo: environment.manageBookCacheUseCase.getBookCacheInfo(
+                    bookUrl: viewModel.state.book.bookUrl,
+                    totalChapters: viewModel.state.chapters.count),
+                downloadProgress: nil,
+                onStartDownload: { option in
+                    Task {
+                        try? await environment.batchDownloadChaptersUseCase.execute(
+                            book: viewModel.state.book,
+                            chapters: viewModel.state.chapters,
+                            option: option,
+                            concurrency: 3)
+                    }
+                },
+                onCancelDownload: {},
+                onClearCache: {
+                    try? environment.manageBookCacheUseCase.clearBookCache(bookUrl: viewModel.state.book.bookUrl)
+                },
+                onDismiss: { isCachePresented = false })
+        }
         .onReceive(viewModel.effectPublisher) { effect in
             switch effect {
             case let .showToast(msg):
@@ -202,6 +234,26 @@ public struct ReaderView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .animation(.spring(response: 0.35, dampingFraction: 0.8), value: toastMessage)
             }
+        }
+        .onChange(of: ttsPlayer.state) { _, newState in
+            if newState == .idle && isTTSSpeaking {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                    isTTSSpeaking = false
+                }
+            }
+        }
+    }
+
+    private func setupTTSCallbacks() {
+        ttsPlayer.onSentenceChanged = { _, sentence in
+            if let targetPageIndex = viewModel.state.pages.firstIndex(where: { $0.contentText.contains(sentence) }),
+               targetPageIndex != viewModel.state.currentPageIndex {
+                viewModel.send(.jumpToPage(targetPageIndex))
+            }
+        }
+        ttsPlayer.onRequestNextChapterAsync = { [weak viewModel] in
+            guard let viewModel else { return nil }
+            return await viewModel.fetchNextChapterForTTS()
         }
     }
 }

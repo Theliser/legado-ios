@@ -2,7 +2,7 @@ import SwiftUI
 
 /// 书源管理视图：遵循 MVI 纯渲染与 iOS 原生液态玻璃质感
 public struct SourceManageView: View {
-    @StateObject private var viewModel: SourceManageViewModel
+    @StateObject var viewModel: SourceManageViewModel
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
 
@@ -14,6 +14,10 @@ public struct SourceManageView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
+                    groupFilterBar
+
+                    healthCheckProgressBar
+
                     if viewModel.state.isLoading && viewModel.state.sources.isEmpty {
                         ProgressView("正在加载书源列表...")
                             .frame(maxWidth: .infinity, minHeight: 200)
@@ -32,7 +36,6 @@ public struct SourceManageView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 24)
             }
-            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("书源")
             .navigationBarTitleDisplayMode(.large)
             .searchable(
@@ -42,11 +45,46 @@ public struct SourceManageView: View {
                 prompt: "搜索书源名称或域名")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        viewModel.send(.openImportSheet)
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.body.weight(.semibold))
+                    HStack(spacing: 12) {
+                        Menu {
+                            if viewModel.state.isCheckingHealth {
+                                Button {
+                                    viewModel.send(.stopHealthCheck)
+                                } label: {
+                                    Label("停止体检", systemImage: "stop.circle")
+                                }
+                            } else {
+                                Button {
+                                    viewModel.send(.startHealthCheck)
+                                } label: {
+                                    Label("全源体检", systemImage: "waveform.path.ecg")
+                                }
+                            }
+
+                            Divider()
+
+                            Button {
+                                viewModel.send(.disableInvalidSources)
+                            } label: {
+                                Label("禁用失效书源", systemImage: "eye.slash")
+                            }
+
+                            Button(role: .destructive) {
+                                viewModel.send(.deleteInvalidSources)
+                            } label: {
+                                Label("清理失效书源", systemImage: "trash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .symbolRenderingMode(.hierarchical)
+                        }
+
+                        Button {
+                            viewModel.send(.openImportSheet)
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.body.weight(.semibold))
+                        }
                     }
                 }
             }

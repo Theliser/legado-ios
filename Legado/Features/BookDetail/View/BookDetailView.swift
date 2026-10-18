@@ -3,7 +3,7 @@ import SwiftUI
 /// 书籍详情页面视图 (纯声明式渲染 View = f(State))
 public struct BookDetailView: View {
     @EnvironmentObject private var environment: AppEnvironment
-    @StateObject private var viewModel: BookDetailViewModel
+    @StateObject var viewModel: BookDetailViewModel
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
     @State private var readerDestination: ReaderDestination?
@@ -33,14 +33,12 @@ public struct BookDetailView: View {
         .background {
             // 背景渐变与毛玻璃环境光
             ZStack {
-                Color(uiColor: .systemGroupedBackground)
-
                 if let coverUrl = viewModel.state.book.coverUrl, let url = URL(string: coverUrl) {
                     AsyncImage(url: url) { phase in
                         if case let .success(img) = phase {
                             img.resizable()
                                 .scaledToFill()
-                                .blur(radius: 50)
+                                .blur(radius: 60)
                                 .opacity(0.18)
                         }
                     }
@@ -53,6 +51,12 @@ public struct BookDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 8) {
+                    Button {
+                        viewModel.send(.toggleCacheSheet(true))
+                    } label: {
+                        Image(systemName: "arrow.down.circle")
+                    }
+
                     Button {
                         isChangeSourcePresented = true
                     } label: {
@@ -96,6 +100,19 @@ public struct BookDetailView: View {
                     onToggleReverse: { viewModel.send(.toggleTocReverse) },
                     onSearchChange: { viewModel.send(.updateTocSearch($0)) },
                     onSelectChapter: { viewModel.send(.selectChapter($0)) })
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.state.isCacheSheetPresented },
+            set: { viewModel.send(.toggleCacheSheet($0)) })) {
+                BookCacheSheet(
+                    book: viewModel.state.book,
+                    chapters: viewModel.state.chapters,
+                    cacheInfo: viewModel.state.cacheInfo,
+                    downloadProgress: viewModel.state.downloadProgress,
+                    onStartDownload: { viewModel.send(.startBatchDownload($0)) },
+                    onCancelDownload: { viewModel.send(.cancelBatchDownload) },
+                    onClearCache: { viewModel.send(.clearBookCache) },
+                    onDismiss: { viewModel.send(.toggleCacheSheet(false)) })
         }
         .sensoryFeedback(.impact(weight: .light), trigger: hapticTrigger)
         .onReceive(viewModel.effectPublisher) { effect in
@@ -254,6 +271,18 @@ public struct BookDetailView: View {
             }
             .buttonStyle(.glassProminent(tint: .accentColor, cornerRadius: 14))
 
+            // 离线缓存按钮
+            Button {
+                viewModel.send(.toggleCacheSheet(true))
+            } label: {
+                Image(systemName: "arrow.down.circle")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+            }
+            .buttonStyle(.glass(cornerRadius: 14))
+
             // 加入书架按钮
             Button {
                 viewModel.send(.toggleBookshelf)
@@ -269,69 +298,5 @@ public struct BookDetailView: View {
             }
             .buttonStyle(.glass(cornerRadius: 14))
         }
-    }
-
-    // MARK: - 简介卡片
-
-    private var introCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("作品简介")
-                .font(.headline)
-                .foregroundStyle(.primary)
-
-            Text(viewModel.state.book.intro ?? "暂无简介内容")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .lineSpacing(4)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(.white.opacity(0.15), lineWidth: 0.5))
-    }
-
-    // MARK: - 目录与最新章节预览卡片
-
-    private var tocPreviewCard: some View {
-        Button {
-            viewModel.send(.openToc)
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text("目录")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-
-                        Text("共 \(viewModel.state.chapters.count) 章")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    if let latest = viewModel.state.book.latestChapterTitle, !latest.isEmpty {
-                        Text("最新: \(latest)")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .lineLimit(1)
-                    }
-                }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(16)
-            .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(.white.opacity(0.15), lineWidth: 0.5))
-        }
-        .buttonStyle(.plain)
     }
 }
