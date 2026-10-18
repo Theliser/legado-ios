@@ -67,7 +67,7 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
         case .toggleHUD, .hideHUD, .openToc, .closeToc:
             handleHUDIntent(intent)
 
-        case .openConfig, .closeConfig, .changeFontSize, .selectTheme:
+        case .openConfig, .closeConfig, .changeFontSize, .selectTheme, .selectPageTurnMode:
             handleConfigIntent(intent)
 
         case let .updateScreenBounds(rect):
@@ -158,6 +158,11 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
         case let .selectTheme(theme):
             var newConfig = state.config
             newConfig.theme = theme
+            applyNewConfig(newConfig)
+
+        case let .selectPageTurnMode(mode):
+            var newConfig = state.config
+            newConfig.pageTurnMode = mode
             applyNewConfig(newConfig)
 
         default:

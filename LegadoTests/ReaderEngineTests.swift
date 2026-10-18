@@ -89,6 +89,13 @@ struct ReaderEngineTests {
         config.theme = .dark
         #expect(config.theme.isDark == true)
         #expect(config.theme.backgroundColor == Color(red: 0.14, green: 0.14, blue: 0.16))
+
+        // 翻页动效模式验证与切换
+        #expect(config.pageTurnMode == .cover)
+        config.pageTurnMode = .slide
+        #expect(config.pageTurnMode == .slide)
+        config.pageTurnMode = .scroll
+        #expect(config.pageTurnMode == .scroll)
     }
 
     @Test("Test ReaderState Page Navigation Logic")
