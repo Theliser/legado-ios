@@ -3,10 +3,12 @@ import SwiftUI
 /// 沉浸式阅读器主视图 (纯声明式渲染 View = f(State))
 public struct ReaderView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var environment: AppEnvironment
     @StateObject private var viewModel: ReaderViewModel
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
     @State private var isTTSSpeaking = false
+    @State private var isChangeSourcePresented = false
 
     public init(viewModel: ReaderViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -76,6 +78,12 @@ public struct ReaderView: View {
                                 bookTitle: viewModel.state.book.name,
                                 chapterTitle: viewModel.state.currentChapter?.title ?? "",
                                 author: viewModel.state.book.author)
+                        },
+                        onOpenChangeSource: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                                viewModel.send(.hideHUD)
+                                isChangeSourcePresented = true
+                            }
                         })
                         .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 }
@@ -107,6 +115,19 @@ public struct ReaderView: View {
         .navigationBarBackButtonHidden(true)
         .statusBarHidden(!viewModel.state.isHUDVisible)
         .sensoryFeedback(.impact(weight: .light), trigger: hapticTrigger)
+        .sheet(isPresented: $isChangeSourcePresented) {
+            ChangeSourceSheet(
+                viewModel: environment.makeChangeSourceViewModel(
+                    book: viewModel.state.book,
+                    currentChapterTitle: viewModel.state.currentChapter?.title,
+                    currentChapterIndex: viewModel.state.currentChapterIndex),
+                onSwitched: { updatedBook, newToc, matchedIndex in
+                    viewModel.send(.switchSource(
+                        updatedBook: updatedBook,
+                        newToc: newToc,
+                        matchedChapterIndex: matchedIndex))
+                })
+        }
         .sheet(isPresented: Binding(
             get: { viewModel.state.isTocSheetVisible },
             set: {

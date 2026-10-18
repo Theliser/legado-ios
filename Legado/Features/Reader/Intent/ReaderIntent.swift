@@ -29,6 +29,8 @@ public enum ReaderIntent: ViewIntent, Equatable, Sendable {
     case selectTheme(ReaderTheme)
     /// 屏幕尺寸尺寸更新重新排版
     case updateScreenBounds(CGRect)
+    /// 切换书源并重载新目录与章节
+    case switchSource(updatedBook: Book, newToc: [Chapter], matchedChapterIndex: Int)
 }
 
 /// 阅读器副作用
