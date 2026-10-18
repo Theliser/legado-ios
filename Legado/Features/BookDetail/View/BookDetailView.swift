@@ -109,11 +109,15 @@ public struct BookDetailView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(.ultraThinMaterial)
-                    .background(Color.black.opacity(0.65))
-                    .clipShape(Capsule())
+                    .background {
+                        ZStack {
+                            Rectangle().fill(.ultraThinMaterial)
+                            Color.black.opacity(0.55)
+                        }
+                    }
+                    .clipShape(Capsule(style: .continuous))
                     .overlay(
-                        Capsule().stroke(Color.white.opacity(0.2), lineWidth: 0.5))
+                        Capsule(style: .continuous).stroke(Color.white.opacity(0.25), lineWidth: 0.5))
                     .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
                     .padding(.bottom, 24)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -218,11 +222,9 @@ public struct BookDetailView: View {
                 }
                 .font(.headline)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(Color.accentColor)
-                .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.vertical, 4)
             }
+            .buttonStyle(.glassProminent(tint: .accentColor, cornerRadius: 14))
 
             // 加入书架按钮
             Button {
@@ -234,15 +236,10 @@ public struct BookDetailView: View {
                     Text(viewModel.state.isInBookshelf ? "移出书架" : "加入书架")
                 }
                 .font(.headline)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(.ultraThinMaterial)
                 .foregroundStyle(viewModel.state.isInBookshelf ? .red : .primary)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(.white.opacity(0.15), lineWidth: 0.5))
+                .padding(.vertical, 4)
             }
+            .buttonStyle(.glass(cornerRadius: 14))
         }
     }
 

@@ -36,16 +36,21 @@
 		49DC6A201BD1CCFEC076A2E1 /* BookshelfViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3777B09847394FBF2114ABBB /* BookshelfViewModel.swift */; };
 		4B3D62247B066C33BA7E7676 /* GetBookTocUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E4DE6B296379C2127A7773 /* GetBookTocUseCase.swift */; };
 		4CC1A82AF0FE6DB249AD5BE5 /* DebugBookSourceUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9DCCD619E5CC1C18079DA27 /* DebugBookSourceUseCase.swift */; };
+		4D6E3282B5DF35FE9A49B498 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADCAB812275FDE33A04D6B07 /* Container.swift */; };
 		4F209A78B51F8972C035027E /* RuleAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C34BCC5CD20CA995450349A /* RuleAnalyzer.swift */; };
 		55670D3E3D76CAB7B57A345F /* ReaderConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3831C41D2A097B74B1FD09E /* ReaderConfig.swift */; };
+		5ED4912DD4E3BE2302406565 /* AsyncSemaphore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76053674238E169A6066CFA4 /* AsyncSemaphore.swift */; };
 		5FA13FFE73FF0BBFE6969EBE /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9218E9FD8CBFF563E29FA1C /* SettingsViewModel.swift */; };
 		613BB3C1379639F1BB5A6DED /* ContentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D10ED5FD2ADE200366B951B /* ContentParser.swift */; };
 		6709DA70D185007A369E3A3A /* BookSourceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4C24DE259A92DDC60848BF /* BookSourceRepository.swift */; };
 		6800475B33DAE46FE1ED312E /* SearchBooksUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C48B01688E52F2448DAC896 /* SearchBooksUseCase.swift */; };
+		6AF6BC7E790958756A8BA02F /* RuleEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C572DCD6EDF95626802F28B0 /* RuleEvaluator.swift */; };
 		6BD6C55E9B5E2D781A09DB6B /* BookshelfIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D19B918137E163267DB3305 /* BookshelfIntent.swift */; };
+		712B3AE4134A4EB1A7476526 /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = B7D6AA9140F6B04D883CEF84 /* Factory */; };
 		72BBA7019381D3C693F5D982 /* SourceImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D700B21CCCCF441A0BBB8E06 /* SourceImportSheet.swift */; };
 		734B062046B2F2C56ECFEB1C /* SourceManageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9849949C6A05EDC40CA760 /* SourceManageView.swift */; };
 		73E5EF1019DA6594D4D8405A /* ReaderState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C948E594CD82D90C561FBB6 /* ReaderState.swift */; };
+		75415C5A26FAE74FD980DD6F /* SourceDebuggerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7089BA7E03A744CF893BAF0 /* SourceDebuggerUITests.swift */; };
 		78086B0B4AFA8EBEA2F420F3 /* GetExploreCategoriesUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF35F14BFFE2678C939D5983 /* GetExploreCategoriesUseCase.swift */; };
 		785A013FE4CF9219AD55046A /* GetChapterContentUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C6B9CAB58786493D1A4DC0 /* GetChapterContentUseCase.swift */; };
 		79870D14BF1DBB4D823D6249 /* SourceSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DAB34BC1928B1F4CDA43A03 /* SourceSearchService.swift */; };
@@ -61,6 +66,7 @@
 		920BAD93009B86B44AA1082B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA8683896300F879605C423 /* ContentView.swift */; };
 		93C622256A73E97F987971B7 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 933BBC8F482BE34F96380518 /* SearchView.swift */; };
 		9515F2571D28E3A6BB52A131 /* ToggleBookSourceEnabledUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C68DDD2446112B3C2201AFA /* ToggleBookSourceEnabledUseCase.swift */; };
+		959DBBF5858EE74ECB0D79D7 /* LegadoLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA210EEDD7392F9405D4D46 /* LegadoLog.swift */; };
 		961F62C702D19BC5F7B8FBBC /* SourceManageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32AE0B112AC87DE78F28B687 /* SourceManageViewModel.swift */; };
 		979B21B10F80D8E03A0CDF6D /* SourceManageState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D367CEBE10265063A6799FE /* SourceManageState.swift */; };
 		9889D386ADC6E826397B3817 /* TTSPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8151ACD752C019E5920CAD92 /* TTSPlayer.swift */; };
@@ -76,6 +82,7 @@
 		AFDBFCE45297EF30F0491D99 /* SearchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2DA3DC26EE2375DE20D6EC /* SearchState.swift */; };
 		BB1E2A54CECCBB42A5831646 /* TextLayoutEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0709CA4776F76CD42EAFD6D0 /* TextLayoutEngine.swift */; };
 		BC4F3DBE6AE72F01D9ACE782 /* LegadoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 605CC8429F35E3D40CB97EC7 /* LegadoApp.swift */; };
+		BDA15C9B7F4EEF47E33BE978 /* EndToEndMockFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E067C47943B79F83074583A /* EndToEndMockFlowTests.swift */; };
 		BF3C32FCCB2249A2A7C74DF4 /* GetBookDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136415F10FA7185A70B1C98F /* GetBookDetailUseCase.swift */; };
 		C0142B27767B6D30687E8856 /* SettingsState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D237603D6A13475365F850F /* SettingsState.swift */; };
 		C09E192781A9DAF68E029F66 /* ReadRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030BC20003890626B6C0F8B7 /* ReadRecord.swift */; };
@@ -93,6 +100,7 @@
 		D6F70266DA8CB742427C71B4 /* MVIViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FD9C38A2DC037B9B813B7B /* MVIViewModel.swift */; };
 		D8EEF2102493E3ABFD4EE2FF /* BookSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D204B151D78639C6699FC860 /* BookSource.swift */; };
 		D9578FB035C991E484223440 /* SearchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78A067A9C81B53066A9F1860 /* SearchResult.swift */; };
+		DBB939F8A28CD713B8147D04 /* GlassButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7197E5FB48B590F34515B61D /* GlassButton.swift */; };
 		DBBA264A61D99CD16BB7A169 /* ReaderPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE5D52D9F9BE03114FFC3B26 /* ReaderPage.swift */; };
 		DD5E280F8F08B53AC62600AE /* ReaderPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB3564CD09D8D3B33BBDB23 /* ReaderPageView.swift */; };
 		DE1DDA0583472E15E2D7FF49 /* RemoveBookFromShelfUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = B472DA351BB5FE96A9D153AE /* RemoveBookFromShelfUseCase.swift */; };
@@ -100,10 +108,13 @@
 		E2B19982223575510E5E7E65 /* RestoreFromWebDAVUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B8A77CCCD0BC4EEA03D8F73 /* RestoreFromWebDAVUseCase.swift */; };
 		E2F3C4109BF1AA83E5A6D590 /* BookDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 856737B421E6A58D722B34F7 /* BookDetailViewModel.swift */; };
 		E656F4463F81FC271A9676F4 /* PurifyContentUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCF87E5019CB3F4CB35CEBB9 /* PurifyContentUseCase.swift */; };
+		EA75DF388A4F533AD52E78FD /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = FCC559A7B884AC062689FB4D /* Factory */; };
+		EE2B4E4B9BB0E9E3E16D9C9B /* MockHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B04C2A6E69478DE4BC879EF /* MockHTTPClient.swift */; };
 		EF36A79DA8BF44CD2B5D348C /* BookTocSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EA00E331CF8452CB87DC57 /* BookTocSheet.swift */; };
 		EFFEA9C0A71C53EB28E0AF2C /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BF1FAA23E1C9B8F6199B2B /* Book.swift */; };
 		F2F758E86E05CF0D54D346D4 /* SourceDetailAndTocService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFD975D0B111E7DEFEF1BCBA /* SourceDetailAndTocService.swift */; };
 		F5629BFB2202159DC07188B9 /* ReaderHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7583F6DEB948F606F443366B /* ReaderHUDView.swift */; };
+		F784DDDA7AC50644C7E5E9AF /* RealBookSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3402E3C087B9477463F09123 /* RealBookSourceTests.swift */; };
 		FC58BCA459239072E7A74ACC /* SettingsIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCB0CC7B5655232D853BC31 /* SettingsIntent.swift */; };
 		FCCC968B3F3B6C3F0D712D43 /* GlassFloatingBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21DD55CED5927B17EB1DC7 /* GlassFloatingBar.swift */; };
 		FD77389D7FC5B4F148D4D7EA /* BookTocAndDetailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C321D3634EA8A34DFC246F6A /* BookTocAndDetailTests.swift */; };
@@ -114,6 +125,13 @@
 
 /* Begin PBXContainerItemProxy section */
 		6EFBA978D2E19D135BA78261 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C88D041936DFBF20C4AA23 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 545F723F8243B8264D863A84;
+			remoteInfo = Legado;
+		};
+		F3312F5F7B75AADCD5FF2515 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 97C88D041936DFBF20C4AA23 /* Project object */;
 			proxyType = 1;
@@ -134,9 +152,12 @@
 		136415F10FA7185A70B1C98F /* GetBookDetailUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetBookDetailUseCase.swift; sourceTree = "<group>"; };
 		14236656A1AB97CDC284C173 /* TTSFloatingBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSFloatingBar.swift; sourceTree = "<group>"; };
 		155CD78609421146C639E897 /* BookDetailIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailIntent.swift; sourceTree = "<group>"; };
+		157A1884A93EFBF4BC1D5A53 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		15E2D7AF2E95CCA1BDF19A57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		16CE8C2C19C278801E608CB1 /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
 		17BF1FAA23E1C9B8F6199B2B /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
 		1843E75AF75E4553D11171C5 /* ReadRecordEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadRecordEntity.swift; sourceTree = "<group>"; };
+		1B04C2A6E69478DE4BC879EF /* MockHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockHTTPClient.swift; sourceTree = "<group>"; };
 		1D367CEBE10265063A6799FE /* SourceManageState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceManageState.swift; sourceTree = "<group>"; };
 		1DCC19784AFA6992777A1AE1 /* ImportBookSourcesUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportBookSourcesUseCase.swift; sourceTree = "<group>"; };
 		1F0D52F259EE065DB61E0384 /* CookieJar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookieJar.swift; sourceTree = "<group>"; };
@@ -151,6 +172,7 @@
 		2E649F6F6DAEA9689FACEB38 /* WebDAVClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDAVClient.swift; sourceTree = "<group>"; };
 		326C485161DB4B0717E92D98 /* CheckBookUpdatesUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckBookUpdatesUseCase.swift; sourceTree = "<group>"; };
 		32AE0B112AC87DE78F28B687 /* SourceManageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceManageViewModel.swift; sourceTree = "<group>"; };
+		3402E3C087B9477463F09123 /* RealBookSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealBookSourceTests.swift; sourceTree = "<group>"; };
 		3777B09847394FBF2114ABBB /* BookshelfViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfViewModel.swift; sourceTree = "<group>"; };
 		37E4C150662476BEDD84BA72 /* ReaderDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderDestination.swift; sourceTree = "<group>"; };
 		3AA58C58347B5CD0D9E3EBF1 /* BookshelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfView.swift; sourceTree = "<group>"; };
@@ -173,12 +195,16 @@
 		6117A583361857887B16C40F /* ExploreCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreCategory.swift; sourceTree = "<group>"; };
 		671DD375F643BF6702EFE965 /* SourceManageIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceManageIntent.swift; sourceTree = "<group>"; };
 		6E7379D758A6FF6FF100EE0A /* Chapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter.swift; sourceTree = "<group>"; };
+		7197E5FB48B590F34515B61D /* GlassButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassButton.swift; sourceTree = "<group>"; };
 		745D29A1C38C7CC05B260B2B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		756839915BB9D12E7DA8F9EB /* BookSourceRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookSourceRepositoryImpl.swift; sourceTree = "<group>"; };
 		7583F6DEB948F606F443366B /* ReaderHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderHUDView.swift; sourceTree = "<group>"; };
+		76053674238E169A6066CFA4 /* AsyncSemaphore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncSemaphore.swift; sourceTree = "<group>"; };
+		76DBD1B7FF95C9C4781CC036 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		78A067A9C81B53066A9F1860 /* SearchResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResult.swift; sourceTree = "<group>"; };
 		7C21DD55CED5927B17EB1DC7 /* GlassFloatingBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassFloatingBar.swift; sourceTree = "<group>"; };
 		7D19B918137E163267DB3305 /* BookshelfIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfIntent.swift; sourceTree = "<group>"; };
+		7E067C47943B79F83074583A /* EndToEndMockFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndToEndMockFlowTests.swift; sourceTree = "<group>"; };
 		8151ACD752C019E5920CAD92 /* TTSPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSPlayer.swift; sourceTree = "<group>"; };
 		83B9106DCC4AF3CDD5B5FA6E /* SourceExploreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceExploreService.swift; sourceTree = "<group>"; };
 		856737B421E6A58D722B34F7 /* BookDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailViewModel.swift; sourceTree = "<group>"; };
@@ -195,7 +221,9 @@
 		A45DB483B476C3B988230547 /* BookshelfState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfState.swift; sourceTree = "<group>"; };
 		A4C9201EF1DAA6DD28D04875 /* ParseBookSourceUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseBookSourceUseCase.swift; sourceTree = "<group>"; };
 		A9218E9FD8CBFF563E29FA1C /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		AAA210EEDD7392F9405D4D46 /* LegadoLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegadoLog.swift; sourceTree = "<group>"; };
 		AAB3564CD09D8D3B33BBDB23 /* ReaderPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPageView.swift; sourceTree = "<group>"; };
+		ADCAB812275FDE33A04D6B07 /* Container.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Container.swift; sourceTree = "<group>"; };
 		AF35F14BFFE2678C939D5983 /* GetExploreCategoriesUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetExploreCategoriesUseCase.swift; sourceTree = "<group>"; };
 		B204BA76C641E07417561523 /* TTSAndWebDAVSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSAndWebDAVSyncTests.swift; sourceTree = "<group>"; };
 		B2511600AADB32CDA431340C /* ExploreAndSourceManageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreAndSourceManageTests.swift; sourceTree = "<group>"; };
@@ -203,7 +231,9 @@
 		B472DA351BB5FE96A9D153AE /* RemoveBookFromShelfUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoveBookFromShelfUseCase.swift; sourceTree = "<group>"; };
 		C27582F59CDFD585A60A6B6E /* ModelContainerProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContainerProvider.swift; sourceTree = "<group>"; };
 		C321D3634EA8A34DFC246F6A /* BookTocAndDetailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookTocAndDetailTests.swift; sourceTree = "<group>"; };
+		C572DCD6EDF95626802F28B0 /* RuleEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEvaluator.swift; sourceTree = "<group>"; };
 		C66FE16612E088F892D22CAF /* GetBookshelfUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetBookshelfUseCase.swift; sourceTree = "<group>"; };
+		C7089BA7E03A744CF893BAF0 /* SourceDebuggerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceDebuggerUITests.swift; sourceTree = "<group>"; };
 		C7987BD925A48D9B008EB75A /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		CFD975D0B111E7DEFEF1BCBA /* SourceDetailAndTocService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceDetailAndTocService.swift; sourceTree = "<group>"; };
 		D1E4DE6B296379C2127A7773 /* GetBookTocUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetBookTocUseCase.swift; sourceTree = "<group>"; };
@@ -223,6 +253,7 @@
 		F3FE0A95B10AC444C8596A47 /* ChapterEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterEntity.swift; sourceTree = "<group>"; };
 		F66FBEB55BE7BA91EAD40800 /* ExploreIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreIntent.swift; sourceTree = "<group>"; };
 		F745F58D070587F9128C8B82 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		FC28998AF1FED04FBB73D5A8 /* LegadoUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LegadoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FCF87E5019CB3F4CB35CEBB9 /* PurifyContentUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurifyContentUseCase.swift; sourceTree = "<group>"; };
 		FD97F0BD7D3018C88C3DCBED /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
 		FE0C1C8D2F318FBFA601C6B7 /* LegadoTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LegadoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -234,6 +265,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A27AA8BDF6A6A27595D26D20 /* SwiftSoup in Frameworks */,
+				EA75DF388A4F533AD52E78FD /* Factory in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,6 +274,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4842CACE34A69C810C820C33 /* SwiftSoup in Frameworks */,
+				712B3AE4134A4EB1A7476526 /* Factory in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -389,6 +422,7 @@
 			children = (
 				5D63B928D47EE3FF922ED119 /* Legado */,
 				8A026352A08576F4BA363FAC /* LegadoTests */,
+				376EFAE5146945C1AB7DCC2B /* LegadoUITests */,
 				7A9998A08F31415169D8903D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -400,6 +434,15 @@
 				AF35F14BFFE2678C939D5983 /* GetExploreCategoriesUseCase.swift */,
 			);
 			path = Explore;
+			sourceTree = "<group>";
+		};
+		376EFAE5146945C1AB7DCC2B /* LegadoUITests */ = {
+			isa = PBXGroup;
+			children = (
+				157A1884A93EFBF4BC1D5A53 /* Info.plist */,
+				C7089BA7E03A744CF893BAF0 /* SourceDebuggerUITests.swift */,
+			);
+			path = LegadoUITests;
 			sourceTree = "<group>";
 		};
 		413E16A221C07E0842F23DAF /* Materials */ = {
@@ -447,6 +490,7 @@
 			children = (
 				745D29A1C38C7CC05B260B2B /* Assets.xcassets */,
 				3DA8683896300F879605C423 /* ContentView.swift */,
+				76DBD1B7FF95C9C4781CC036 /* Info.plist */,
 				605CC8429F35E3D40CB97EC7 /* LegadoApp.swift */,
 				1C714AB60EA6F04A9B08C4AB /* App */,
 				F6652446051FEC479B6F81D6 /* Core */,
@@ -501,6 +545,7 @@
 				47EB65BE6993603DE7AF01CB /* CSSSelectorParser.swift */,
 				B26DADC92553447DCFE369BD /* JSONPathParser.swift */,
 				4C34BCC5CD20CA995450349A /* RuleAnalyzer.swift */,
+				C572DCD6EDF95626802F28B0 /* RuleEvaluator.swift */,
 				CFD975D0B111E7DEFEF1BCBA /* SourceDetailAndTocService.swift */,
 				83B9106DCC4AF3CDD5B5FA6E /* SourceExploreService.swift */,
 				2DAB34BC1928B1F4CDA43A03 /* SourceSearchService.swift */,
@@ -562,6 +607,7 @@
 			children = (
 				5E494EB6E5276C0FA16C637F /* Legado.app */,
 				FE0C1C8D2F318FBFA601C6B7 /* LegadoTests.xctest */,
+				FC28998AF1FED04FBB73D5A8 /* LegadoUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -573,6 +619,15 @@
 				DD4C24DE259A92DDC60848BF /* BookSourceRepository.swift */,
 			);
 			path = Repository;
+			sourceTree = "<group>";
+		};
+		83B43B9EB5F3FCAEDCE47D9D /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				76053674238E169A6066CFA4 /* AsyncSemaphore.swift */,
+				AAA210EEDD7392F9405D4D46 /* LegadoLog.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 		8457CFCC78A35FDA0A3BDCB6 /* State */ = {
@@ -610,8 +665,11 @@
 			isa = PBXGroup;
 			children = (
 				C321D3634EA8A34DFC246F6A /* BookTocAndDetailTests.swift */,
+				7E067C47943B79F83074583A /* EndToEndMockFlowTests.swift */,
 				B2511600AADB32CDA431340C /* ExploreAndSourceManageTests.swift */,
+				15E2D7AF2E95CCA1BDF19A57 /* Info.plist */,
 				234087DDDB3FFC0C394AC9C8 /* ReaderEngineTests.swift */,
+				3402E3C087B9477463F09123 /* RealBookSourceTests.swift */,
 				A0A9BF92309334C790BDC19D /* RuleEngineTests.swift */,
 				42615715D4203DF27D63DB31 /* SearchAndStorageTests.swift */,
 				B204BA76C641E07417561523 /* TTSAndWebDAVSyncTests.swift */,
@@ -770,6 +828,7 @@
 		D2D407893E979F224C57ABAE /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				7197E5FB48B590F34515B61D /* GlassButton.swift */,
 				7C21DD55CED5927B17EB1DC7 /* GlassFloatingBar.swift */,
 			);
 			path = Components;
@@ -789,8 +848,17 @@
 				EF0A9B1557AB0BF07D145FE8 /* CharsetDetector.swift */,
 				1F0D52F259EE065DB61E0384 /* CookieJar.swift */,
 				030ED8BE6A4C9E7AD0DD4733 /* HTTPClient.swift */,
+				1B04C2A6E69478DE4BC879EF /* MockHTTPClient.swift */,
 			);
 			path = Network;
+			sourceTree = "<group>";
+		};
+		DF130FD8BD29FBDFE029D7C2 /* DI */ = {
+			isa = PBXGroup;
+			children = (
+				ADCAB812275FDE33A04D6B07 /* Container.swift */,
+			);
+			path = DI;
 			sourceTree = "<group>";
 		};
 		E7CC7F0358ADA4E63C8267F1 /* Source */ = {
@@ -855,9 +923,11 @@
 			children = (
 				F35943A49C8BCD3B895A5CCD /* Architecture */,
 				04A47262C1936B9466B306BE /* Audio */,
+				DF130FD8BD29FBDFE029D7C2 /* DI */,
 				DC56C86ED55D9193AA1C6091 /* Network */,
 				6DDABC5DF9C2009CBA800646 /* RuleParser */,
 				B457E0A96D8E0C686E93A633 /* ScriptEngine */,
+				83B43B9EB5F3FCAEDCE47D9D /* Utilities */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -904,6 +974,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		38DA11D44B0536722C528EBB /* LegadoUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D69117678C5C1F6FBDFF12D3 /* Build configuration list for PBXNativeTarget "LegadoUITests" */;
+			buildPhases = (
+				2AD3FDFA0D05FE1C66A152B7 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				01611FB3F1C4AB69A3DAA8AC /* PBXTargetDependency */,
+			);
+			name = LegadoUITests;
+			packageProductDependencies = (
+			);
+			productName = LegadoUITests;
+			productReference = FC28998AF1FED04FBB73D5A8 /* LegadoUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		545F723F8243B8264D863A84 /* Legado */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1799323148C07C0AECB8B810 /* Build configuration list for PBXNativeTarget "Legado" */;
@@ -920,6 +1008,7 @@
 			name = Legado;
 			packageProductDependencies = (
 				F679ABA63CD2BD11E85A4BA4 /* SwiftSoup */,
+				B7D6AA9140F6B04D883CEF84 /* Factory */,
 			);
 			productName = Legado;
 			productReference = 5E494EB6E5276C0FA16C637F /* Legado.app */;
@@ -940,6 +1029,7 @@
 			name = LegadoTests;
 			packageProductDependencies = (
 				CB6899744A7A3C1DBDBC7980 /* SwiftSoup */,
+				FCC559A7B884AC062689FB4D /* Factory */,
 			);
 			productName = LegadoTests;
 			productReference = FE0C1C8D2F318FBFA601C6B7 /* LegadoTests.xctest */;
@@ -954,6 +1044,11 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					38DA11D44B0536722C528EBB = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+						TestTargetID = 545F723F8243B8264D863A84;
+					};
 					545F723F8243B8264D863A84 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
@@ -974,6 +1069,7 @@
 			mainGroup = 2EFA8535A04955DF845418B2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				53ED710AD3D0BFA06CA1E015 /* XCRemoteSwiftPackageReference "Factory" */,
 				572B4A14EB4F81BFF47EB37F /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -983,6 +1079,7 @@
 			targets = (
 				545F723F8243B8264D863A84 /* Legado */,
 				8086C70D204522BE22D900CC /* LegadoTests */,
+				38DA11D44B0536722C528EBB /* LegadoUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -1021,13 +1118,23 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2AD3FDFA0D05FE1C66A152B7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				75415C5A26FAE74FD980DD6F /* SourceDebuggerUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5A75EE015A537D14B822DE9A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				FD77389D7FC5B4F148D4D7EA /* BookTocAndDetailTests.swift in Sources */,
+				BDA15C9B7F4EEF47E33BE978 /* EndToEndMockFlowTests.swift in Sources */,
 				30CD330D182D8AE3ED12C71C /* ExploreAndSourceManageTests.swift in Sources */,
 				178AB174552C6B3B163EC6A1 /* ReaderEngineTests.swift in Sources */,
+				F784DDDA7AC50644C7E5E9AF /* RealBookSourceTests.swift in Sources */,
 				34923805166AC511E92EB236 /* RuleEngineTests.swift in Sources */,
 				A98B190558A8CA8FB096B120 /* SearchAndStorageTests.swift in Sources */,
 				2C59E15EBBFC5D4E1DC1C9AA /* TTSAndWebDAVSyncTests.swift in Sources */,
@@ -1040,6 +1147,7 @@
 			files = (
 				119391C9314901E3956AEF8B /* AppEnvironment.swift in Sources */,
 				1F95F2E0B418C91491491E48 /* AppTheme.swift in Sources */,
+				5ED4912DD4E3BE2302406565 /* AsyncSemaphore.swift in Sources */,
 				A869E4E5FD8EB3B24887D6E9 /* BackupToWebDAVUseCase.swift in Sources */,
 				EFFEA9C0A71C53EB28E0AF2C /* Book.swift in Sources */,
 				296C9F3A97EAEADE231C9CB6 /* BookDetailIntent.swift in Sources */,
@@ -1063,6 +1171,7 @@
 				41741F2D28410C72482596B5 /* ChapterEntity.swift in Sources */,
 				FEB003479C06B006CD3B9301 /* CharsetDetector.swift in Sources */,
 				8E31B8AF3170047B9857AEEC /* CheckBookUpdatesUseCase.swift in Sources */,
+				4D6E3282B5DF35FE9A49B498 /* Container.swift in Sources */,
 				613BB3C1379639F1BB5A6DED /* ContentParser.swift in Sources */,
 				920BAD93009B86B44AA1082B /* ContentView.swift in Sources */,
 				03AF360CB2D64647EBBB9C49 /* CookieJar.swift in Sources */,
@@ -1079,6 +1188,7 @@
 				A77BFFECC1FB1B914E86C912 /* GetBookshelfUseCase.swift in Sources */,
 				785A013FE4CF9219AD55046A /* GetChapterContentUseCase.swift in Sources */,
 				78086B0B4AFA8EBEA2F420F3 /* GetExploreCategoriesUseCase.swift in Sources */,
+				DBB939F8A28CD713B8147D04 /* GlassButton.swift in Sources */,
 				C89E020B7E12AF89F987E13A /* GlassCard.swift in Sources */,
 				FCCC968B3F3B6C3F0D712D43 /* GlassFloatingBar.swift in Sources */,
 				C4D1A92471A9AFA848B3EC84 /* HTTPClient.swift in Sources */,
@@ -1086,7 +1196,9 @@
 				C80CB720B93D55ADAE23CC6D /* JSEngine.swift in Sources */,
 				36A679B29B3AC90A9D0DE4B2 /* JSONPathParser.swift in Sources */,
 				BC4F3DBE6AE72F01D9ACE782 /* LegadoApp.swift in Sources */,
+				959DBBF5858EE74ECB0D79D7 /* LegadoLog.swift in Sources */,
 				D6F70266DA8CB742427C71B4 /* MVIViewModel.swift in Sources */,
+				EE2B4E4B9BB0E9E3E16D9C9B /* MockHTTPClient.swift in Sources */,
 				C18493D055835B99C5EAA1FA /* ModelContainerProvider.swift in Sources */,
 				4083FE8D2F41F76B86A64615 /* ParseBookSourceUseCase.swift in Sources */,
 				E656F4463F81FC271A9676F4 /* PurifyContentUseCase.swift in Sources */,
@@ -1105,6 +1217,7 @@
 				066C4A0ED72EB54A808AAC76 /* ReplaceRule.swift in Sources */,
 				E2B19982223575510E5E7E65 /* RestoreFromWebDAVUseCase.swift in Sources */,
 				4F209A78B51F8972C035027E /* RuleAnalyzer.swift in Sources */,
+				6AF6BC7E790958756A8BA02F /* RuleEvaluator.swift in Sources */,
 				7EACFE13EE1CAFED8242E2F9 /* SaveBookToShelfUseCase.swift in Sources */,
 				6800475B33DAE46FE1ED312E /* SearchBooksUseCase.swift in Sources */,
 				9A663FE3E5D5B446D95B802C /* SearchIntent.swift in Sources */,
@@ -1138,6 +1251,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		01611FB3F1C4AB69A3DAA8AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 545F723F8243B8264D863A84 /* Legado */;
+			targetProxy = F3312F5F7B75AADCD5FF2515 /* PBXContainerItemProxy */;
+		};
 		17A0898F1AAAAAB662625624 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 545F723F8243B8264D863A84 /* Legado */;
@@ -1213,6 +1331,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LegadoTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1231,6 +1350,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LegadoTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1311,6 +1431,25 @@
 			};
 			name = Debug;
 		};
+		978281F03E5549B94B605160 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LegadoUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.theliser.legadouitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Legado;
+			};
+			name = Debug;
+		};
 		BA82717EEACA8E58B6E6C2DC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1320,6 +1459,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Legado/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1345,6 +1485,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Legado/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1358,6 +1499,25 @@
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F9A3B234DA1A9B89452AAF10 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LegadoUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.theliser.legadouitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Legado;
 			};
 			name = Release;
 		};
@@ -1391,9 +1551,26 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		D69117678C5C1F6FBDFF12D3 /* Build configuration list for PBXNativeTarget "LegadoUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				978281F03E5549B94B605160 /* Debug */,
+				F9A3B234DA1A9B89452AAF10 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		53ED710AD3D0BFA06CA1E015 /* XCRemoteSwiftPackageReference "Factory" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hmlongco/Factory.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.0;
+			};
+		};
 		572B4A14EB4F81BFF47EB37F /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
@@ -1405,6 +1582,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		B7D6AA9140F6B04D883CEF84 /* Factory */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 53ED710AD3D0BFA06CA1E015 /* XCRemoteSwiftPackageReference "Factory" */;
+			productName = Factory;
+		};
 		CB6899744A7A3C1DBDBC7980 /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 572B4A14EB4F81BFF47EB37F /* XCRemoteSwiftPackageReference "SwiftSoup" */;
@@ -1414,6 +1596,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 572B4A14EB4F81BFF47EB37F /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
+		};
+		FCC559A7B884AC062689FB4D /* Factory */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 53ED710AD3D0BFA06CA1E015 /* XCRemoteSwiftPackageReference "Factory" */;
+			productName = Factory;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

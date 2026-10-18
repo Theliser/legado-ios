@@ -5,9 +5,9 @@ import SwiftSoup
 public final class ContentParser: Sendable {
     public static let shared = ContentParser()
 
-    private let httpClient: HTTPClient
+    private let httpClient: HTTPClientProtocol
 
-    public init(httpClient: HTTPClient = .shared) {
+    public init(httpClient: HTTPClientProtocol = HTTPClient.shared) {
         self.httpClient = httpClient
     }
 
@@ -80,11 +80,16 @@ public final class ContentParser: Sendable {
         if isJson {
             var text = ""
             if let contentRule = rule.content {
-                text = JSONPathParser.parse(json: trimmed, path: contentRule).joined(separator: "\n")
+                if let evaluated = RuleEvaluator.evaluate(json: trimmed, rule: contentRule, baseUrl: baseUrl) {
+                    text = evaluated
+                } else {
+                    text = JSONPathParser.parse(json: trimmed, path: contentRule).joined(separator: "\n")
+                }
             }
             var nextUrl: String?
             if let nextRule = rule.nextContentUrl {
-                nextUrl = JSONPathParser.parse(json: trimmed, path: nextRule).first
+                nextUrl = RuleEvaluator.evaluate(json: trimmed, rule: nextRule, baseUrl: baseUrl)
+                    ?? JSONPathParser.parse(json: trimmed, path: nextRule).first
             }
             return (text, nextUrl)
         } else {

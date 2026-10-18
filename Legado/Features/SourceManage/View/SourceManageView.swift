@@ -32,7 +32,7 @@ public struct SourceManageView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 24)
             }
-            .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("书源")
             .navigationBarTitleDisplayMode(.large)
             .searchable(
@@ -74,17 +74,13 @@ public struct SourceManageView: View {
                 })) { source in
                     SourceDebugSheet(
                         source: source,
-                        report: viewModel.state.debugReport,
-                        isDebugging: viewModel.state.isDebugging,
-                        onRunDebug: { keyword in
-                            viewModel.send(.runDebug(source: source, keyword: keyword))
+                        state: viewModel.state,
+                        onIntent: { intent in
+                            viewModel.send(intent)
                         })
             }
             .onAppear {
                 viewModel.send(.loadSources)
-                if ProcessInfo.processInfo.arguments.contains("--open-import-sheet") {
-                    viewModel.send(.openImportSheet)
-                }
             }
             .onReceive(viewModel.effectPublisher) { effect in
                 switch effect {
@@ -108,10 +104,14 @@ public struct SourceManageView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
-                        .background(.ultraThinMaterial)
-                        .background(Color.black.opacity(0.65))
-                        .clipShape(Capsule())
-                        .overlay(Capsule().stroke(Color.white.opacity(0.2), lineWidth: 0.5))
+                        .background {
+                            ZStack {
+                                Rectangle().fill(.ultraThinMaterial)
+                                Color.black.opacity(0.55)
+                            }
+                        }
+                        .clipShape(Capsule(style: .continuous))
+                        .overlay(Capsule(style: .continuous).stroke(Color.white.opacity(0.25), lineWidth: 0.5))
                         .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
                         .padding(.bottom, 24)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -167,8 +167,14 @@ public struct SourceManageView: View {
         }
         .padding(14)
         .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.15), lineWidth: 0.5))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.white.opacity(0.18), lineWidth: 0.5))
+        .contentShape(Rectangle())
+        .onTapGesture {
+            viewModel.send(.openDebug(source))
+        }
         .contextMenu {
             Button {
                 viewModel.send(.openDebug(source))

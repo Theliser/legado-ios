@@ -1,0 +1,90 @@
+name: Build Test Package
+
+on:
+  push:
+    branches: [ test ]
+  workflow_dispatch:
+    inputs:
+      include_simulator:
+        description: 'Build & package Simulator .app.zip as well'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-and-package:
+    name: Build & Package Test Release
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup tools
+        run: |
+          brew install xcodegen swiftlint swiftformat xcbeautify
+
+      - name: Check code formatting & linting
+        run: |
+          make format-check
+
+      - name: Generate Xcode project
+        run: |
+          make generate
+
+      - name: Run Unit Tests
+        run: |
+          set -o pipefail
+          xcodebuild -project Legado.xcodeproj \
+            -scheme Legado \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            test | xcbeautify
+
+      - name: Build Release Archive (Unsigned iOS Device)
+        run: |
+          set -o pipefail
+          xcodebuild -project Legado.xcodeproj \
+            -scheme Legado \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/Legado.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            archive | xcbeautify
+
+      - name: Package IPA
+        run: |
+          mkdir -p build/Payload
+          cp -r build/Legado.xcarchive/Products/Applications/Legado.app build/Payload/
+          cd build
+          zip -r -q Legado-Test.ipa Payload
+          ls -lh Legado-Test.ipa
+
+      - name: Upload Test IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Legado-Test-IPA-${{ github.sha }}
+          path: build/Legado-Test.ipa
+          retention-days: 14
+
+      - name: Build Simulator App (Optional)
+        if: ${{ inputs.include_simulator == true }}
+        run: |
+          set -o pipefail
+          xcodebuild -project Legado.xcodeproj \
+            -scheme Legado \
+            -configuration Release \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -derivedDataPath build/DerivedData \
+            build | xcbeautify
+          cd build/DerivedData/Build/Products/Release-iphonesimulator
+          zip -r -q ../../../Legado-Simulator.zip Legado.app
+
+      - name: Upload Simulator App Artifact
+        if: ${{ inputs.include_simulator == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Legado-Simulator-App-${{ github.sha }}
+          path: build/Legado-Simulator.zip
+          retention-days: 14

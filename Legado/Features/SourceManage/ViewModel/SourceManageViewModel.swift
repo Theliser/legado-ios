@@ -9,6 +9,8 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
     private let importSourcesUseCase: ImportBookSourcesUseCase
     private let debugSourceUseCase: DebugBookSourceUseCase
 
+    private var debugTask: Task<Void, Never>?
+
     public init(
         sourceRepository: BookSourceRepository,
         toggleEnabledUseCase: ToggleBookSourceEnabledUseCase,
@@ -33,8 +35,12 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
         case .openImportSheet, .closeImportSheet, .importFromText:
             handleSheetIntent(intent)
 
-        case .openDebug, .closeDebug, .runDebug:
-            handleDebugIntent(intent)
+        case .openDebug, .closeDebug, .selectDebugTarget, .updateDebugQuery,
+             .selectDebugFilter, .useDebugExample:
+            handleDebugConfigIntent(intent)
+
+        case .startDebug, .stopDebug, .clearDebugLogs, .selectPayloadLog, .runDebug:
+            handleDebugActionIntent(intent)
         }
     }
 
@@ -74,35 +80,76 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
         }
     }
 
-    private func handleDebugIntent(_ intent: SourceManageIntent) {
+    private func handleDebugConfigIntent(_ intent: SourceManageIntent) {
         switch intent {
         case let .openDebug(source):
-            updateState {
-                $0.debuggingSource = source
-                $0.debugReport = nil
-            }
-            emitEffect(.hapticFeedback)
+            openDebugConsole(source: source)
 
         case .closeDebug:
-            updateState {
-                $0.debuggingSource = nil
-                $0.debugReport = nil
-            }
+            closeDebugConsole()
 
-        case let .runDebug(source, keyword):
-            executeDebug(source: source, keyword: keyword)
+        case let .selectDebugTarget(target):
+            switchDebugTarget(target)
+
+        case let .updateDebugQuery(query):
+            updateState { $0.debugQuery = query }
+
+        case let .selectDebugFilter(filter):
+            updateState { $0.debugFilter = filter }
+
+        case let .useDebugExample(example):
+            updateState {
+                $0.debugTarget = example.target
+                $0.debugQuery = example.value
+            }
 
         default:
             break
         }
     }
 
+    private func handleDebugActionIntent(_ intent: SourceManageIntent) {
+        switch intent {
+        case .startDebug:
+            startDebugExecution()
+
+        case .stopDebug:
+            stopDebugExecution()
+
+        case .clearDebugLogs:
+            updateState {
+                $0.debugLogs = []
+                $0.debugReport = nil
+            }
+
+        case let .selectPayloadLog(log):
+            updateState { $0.selectedPayloadLog = log }
+
+        case let .runDebug(source, keyword):
+            updateState {
+                $0.debuggingSource = source
+                $0.debugQuery = keyword
+                $0.debugTarget = .search
+            }
+            startDebugExecution()
+
+        default:
+            break
+        }
+    }
+
+    // MARK: - 书源列表数据操作
+
     private func loadAllSources() {
         updateState { $0.isLoading = true }
 
         Task {
             do {
-                let list = try await sourceRepository.fetchSources()
+                var list = try await sourceRepository.fetchSources()
+                if list.isEmpty {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    list = try await sourceRepository.fetchSources()
+                }
                 self.updateState { state in
                     state.isLoading = false
                     state.sources = list
@@ -124,7 +171,7 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
                 self.loadAllSources()
                 self.emitEffect(.hapticFeedback)
             } catch {
-                self.emitEffect(.showToast("更新状态失败: \(error.localizedDescription)"))
+                self.emitEffect(.showToast("更新书源状态失败: \(error.localizedDescription)"))
             }
         }
     }
@@ -162,16 +209,92 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
         }
     }
 
-    private func executeDebug(source: BookSource, keyword: String) {
-        updateState { $0.isDebugging = true }
+    // MARK: - 书源调试逻辑
 
-        Task {
-            let report = await debugSourceUseCase.execute(source: source, keyword: keyword)
+    private func openDebugConsole(source: BookSource) {
+        let examples = debugSourceUseCase.generateExamples(for: source)
+        let defaultQuery = examples.first?.value ?? "斗罗大陆"
+
+        updateState {
+            $0.debuggingSource = source
+            $0.debugReport = nil
+            $0.debugLogs = []
+            $0.debugExamples = examples
+            $0.debugTarget = .search
+            $0.debugQuery = defaultQuery
+            $0.debugFilter = .all
+        }
+        emitEffect(.hapticFeedback)
+    }
+
+    private func closeDebugConsole() {
+        debugTask?.cancel()
+        debugTask = nil
+        updateState {
+            $0.isDebugging = false
+            $0.debuggingSource = nil
+            $0.debugReport = nil
+            $0.debugLogs = []
+        }
+    }
+
+    private func switchDebugTarget(_ target: SourceDebugTarget) {
+        updateState { state in
+            state.debugTarget = target
+            if let matchingExample = state.debugExamples.first(where: { $0.target == target }) {
+                state.debugQuery = matchingExample.value
+            }
+        }
+    }
+
+    private func startDebugExecution() {
+        guard let source = state.debuggingSource else { return }
+        let target = state.debugTarget
+        let query = state.debugQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !query.isEmpty else {
+            emitEffect(.showToast("调试内容不能为空"))
+            return
+        }
+
+        debugTask?.cancel()
+        updateState {
+            $0.isDebugging = true
+            $0.debugLogs = []
+            $0.debugReport = nil
+        }
+        emitEffect(.hapticFeedback)
+
+        debugTask = Task {
+            let report = await debugSourceUseCase.execute(
+                source: source,
+                target: target,
+                query: query,
+                onLog: { [weak self] newLog in
+                    Task { @MainActor [weak self] in
+                        self?.updateState { $0.debugLogs.append(newLog) }
+                    }
+                })
+
+            guard !Task.isCancelled else { return }
             self.updateState {
                 $0.isDebugging = false
                 $0.debugReport = report
             }
             self.emitEffect(.hapticFeedback)
         }
+    }
+
+    private func stopDebugExecution() {
+        debugTask?.cancel()
+        debugTask = nil
+        updateState {
+            $0.isDebugging = false
+            $0.debugLogs.append(SourceDebugLog(
+                level: .warning,
+                message: "⏹️ 用户手动终止调试",
+                elapsedMs: 0))
+        }
+        emitEffect(.hapticFeedback)
     }
 }

@@ -30,6 +30,12 @@ build:
 	@xcodebuild -project Legado.xcodeproj -scheme Legado -destination 'platform=iOS Simulator,name=iPhone 17' build | xcbeautify
 
 test:
+	@xcodebuild -project Legado.xcodeproj -scheme Legado -destination 'platform=iOS Simulator,name=iPhone 17' test -only-testing:LegadoTests | xcbeautify
+
+test-ui:
+	@xcodebuild -project Legado.xcodeproj -scheme Legado -destination 'platform=iOS Simulator,name=iPhone 17' test -only-testing:LegadoUITests | xcbeautify
+
+test-all:
 	@xcodebuild -project Legado.xcodeproj -scheme Legado -destination 'platform=iOS Simulator,name=iPhone 17' test | xcbeautify
 
 clean:

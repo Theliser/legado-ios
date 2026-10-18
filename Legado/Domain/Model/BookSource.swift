@@ -106,6 +106,41 @@ public struct RuleBookInfo: Codable, Equatable, Sendable {
         self.tocUrl = tocUrl
         self.canReName = canReName
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case bookInfoInit = "init"
+        case legacyBookInfoInit = "bookInfoInit"
+        case name, author, kind, wordCount, lastChapter, intro, coverUrl, tocUrl, canReName
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.bookInfoInit = try container.decodeIfPresent(String.self, forKey: .bookInfoInit)
+            ?? container.decodeIfPresent(String.self, forKey: .legacyBookInfoInit)
+        self.name = try container.decodeIfPresent(String.self, forKey: .name)
+        self.author = try container.decodeIfPresent(String.self, forKey: .author)
+        self.kind = try container.decodeIfPresent(String.self, forKey: .kind)
+        self.wordCount = try container.decodeIfPresent(String.self, forKey: .wordCount)
+        self.lastChapter = try container.decodeIfPresent(String.self, forKey: .lastChapter)
+        self.intro = try container.decodeIfPresent(String.self, forKey: .intro)
+        self.coverUrl = try container.decodeIfPresent(String.self, forKey: .coverUrl)
+        self.tocUrl = try container.decodeIfPresent(String.self, forKey: .tocUrl)
+        self.canReName = try container.decodeIfPresent(String.self, forKey: .canReName)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(bookInfoInit, forKey: .bookInfoInit)
+        try container.encodeIfPresent(name, forKey: .name)
+        try container.encodeIfPresent(author, forKey: .author)
+        try container.encodeIfPresent(kind, forKey: .kind)
+        try container.encodeIfPresent(wordCount, forKey: .wordCount)
+        try container.encodeIfPresent(lastChapter, forKey: .lastChapter)
+        try container.encodeIfPresent(intro, forKey: .intro)
+        try container.encodeIfPresent(coverUrl, forKey: .coverUrl)
+        try container.encodeIfPresent(tocUrl, forKey: .tocUrl)
+        try container.encodeIfPresent(canReName, forKey: .canReName)
+    }
 }
 
 /// 目录规则
@@ -149,6 +184,31 @@ public struct RuleContent: Codable, Equatable, Sendable {
         self.nextContentUrl = nextContentUrl
         self.sourceRegex = sourceRegex
         self.webJs = webJs
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case content
+        case nextContentUrl
+        case sourceRegex
+        case replaceRegex
+        case webJs
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.content = try container.decodeIfPresent(String.self, forKey: .content)
+        self.nextContentUrl = try container.decodeIfPresent(String.self, forKey: .nextContentUrl)
+        self.sourceRegex = try container.decodeIfPresent(String.self, forKey: .sourceRegex)
+            ?? container.decodeIfPresent(String.self, forKey: .replaceRegex)
+        self.webJs = try container.decodeIfPresent(String.self, forKey: .webJs)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(content, forKey: .content)
+        try container.encodeIfPresent(nextContentUrl, forKey: .nextContentUrl)
+        try container.encodeIfPresent(sourceRegex, forKey: .sourceRegex)
+        try container.encodeIfPresent(webJs, forKey: .webJs)
     }
 }
 

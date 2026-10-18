@@ -6,7 +6,7 @@ public final class PurifyContentUseCase: Sendable {
     public static let defaultRules: [ReplaceRule] = [
         ReplaceRule(
             name: "过滤换页提示",
-            pattern: "(本章未完|请点击下一页继续阅读|未完待续|点击下一页|第[0-9]+页/共[0-9]+页)",
+            pattern: "(本章未完|请点击下一[页章]继续阅读|未完待续|点击下一[页章]|第[0-9]+页/共[0-9]+页)",
             replacement: ""),
         ReplaceRule(
             name: "过滤广告推广网址",
@@ -14,7 +14,7 @@ public final class PurifyContentUseCase: Sendable {
             replacement: ""),
         ReplaceRule(
             name: "过滤阅读APP水印与防盗章节提示",
-            pattern: "(笔趣阁.*?最快更新|首发.*?最新章节|最新最快更新|天才一秒记住|手机用户请浏览)",
+            pattern: "(笔趣阁.*?最快更新|首发.*?最新章节|最新最快更新|天才一秒记住|手机用户请浏览|请牢记.*?网址|请牢记本站|收藏本站|笔趣阁提醒您)",
             replacement: ""),
     ]
 

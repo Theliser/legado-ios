@@ -118,11 +118,15 @@ public struct BookshelfView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
-                        .background(.ultraThinMaterial)
-                        .background(Color.black.opacity(0.65))
-                        .clipShape(Capsule())
+                        .background {
+                            ZStack {
+                                Rectangle().fill(.ultraThinMaterial)
+                                Color.black.opacity(0.55)
+                            }
+                        }
+                        .clipShape(Capsule(style: .continuous))
                         .overlay(
-                            Capsule().stroke(Color.white.opacity(0.2), lineWidth: 0.5))
+                            Capsule(style: .continuous).stroke(Color.white.opacity(0.25), lineWidth: 0.5))
                         .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
                         .padding(.top, 8)
                         .transition(.move(edge: .top).combined(with: .opacity))
@@ -146,7 +150,6 @@ public struct BookshelfView: View {
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing)
-            .ignoresSafeArea()
     }
 
     private var groupSelectorView: some View {
@@ -163,10 +166,12 @@ public struct BookshelfView: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background(isSelected ? .regularMaterial : .ultraThinMaterial)
-                            .clipShape(Capsule())
+                            .clipShape(Capsule(style: .continuous))
                             .overlay(
-                                Capsule().stroke(.white.opacity(0.15), lineWidth: 0.5))
+                                Capsule(style: .continuous)
+                                    .stroke(.white.opacity(isSelected ? 0.3 : 0.16), lineWidth: 0.5))
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -257,10 +262,10 @@ public struct BookshelfView: View {
         }
         .padding(12)
         .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(.white.opacity(0.15), lineWidth: 0.5))
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(.white.opacity(0.18), lineWidth: 0.5))
     }
 
     private var placeholderCover: some View {

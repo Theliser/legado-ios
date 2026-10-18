@@ -16,6 +16,18 @@ public struct SourceManageState: ViewState, Equatable, Sendable {
     public var debugReport: SourceDebugReport?
     /// 是否正在调试中
     public var isDebugging: Bool
+    /// 调试目标
+    public var debugTarget: SourceDebugTarget
+    /// 调试输入内容
+    public var debugQuery: String
+    /// 调试日志过滤器
+    public var debugFilter: SourceDebugFilter
+    /// 调试快捷预设示例
+    public var debugExamples: [SourceDebugExample]
+    /// 调试实时日志条目
+    public var debugLogs: [SourceDebugLog]
+    /// 选中的查看详情数据载荷的日志
+    public var selectedPayloadLog: SourceDebugLog?
     /// 错误提示
     public var errorMessage: String?
 
@@ -27,6 +39,12 @@ public struct SourceManageState: ViewState, Equatable, Sendable {
         debuggingSource: BookSource? = nil,
         debugReport: SourceDebugReport? = nil,
         isDebugging: Bool = false,
+        debugTarget: SourceDebugTarget = .search,
+        debugQuery: String = "",
+        debugFilter: SourceDebugFilter = .all,
+        debugExamples: [SourceDebugExample] = [],
+        debugLogs: [SourceDebugLog] = [],
+        selectedPayloadLog: SourceDebugLog? = nil,
         errorMessage: String? = nil) {
         self.sources = sources
         self.searchKeyword = searchKeyword
@@ -35,6 +53,12 @@ public struct SourceManageState: ViewState, Equatable, Sendable {
         self.debuggingSource = debuggingSource
         self.debugReport = debugReport
         self.isDebugging = isDebugging
+        self.debugTarget = debugTarget
+        self.debugQuery = debugQuery
+        self.debugFilter = debugFilter
+        self.debugExamples = debugExamples
+        self.debugLogs = debugLogs
+        self.selectedPayloadLog = selectedPayloadLog
         self.errorMessage = errorMessage
     }
 
@@ -44,6 +68,23 @@ public struct SourceManageState: ViewState, Equatable, Sendable {
         return sources.filter {
             $0.bookSourceName.localizedCaseInsensitiveContains(searchKeyword) ||
                 $0.bookSourceUrl.localizedCaseInsensitiveContains(searchKeyword)
+        }
+    }
+
+    /// 依分类过滤后的调试日志
+    public var filteredDebugLogs: [SourceDebugLog] {
+        switch debugFilter {
+        case .all:
+            return debugLogs
+
+        case .messages:
+            return debugLogs.filter { $0.level == .info || $0.level == .success }
+
+        case .payload:
+            return debugLogs.filter { $0.level == .payload || $0.payload != nil }
+
+        case .errors:
+            return debugLogs.filter { $0.level == .error || $0.level == .warning }
         }
     }
 }

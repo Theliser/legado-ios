@@ -35,6 +35,20 @@
                ReferencedContainer = "container:Legado.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "38DA11D44B0536722C528EBB"
+               BuildableName = "LegadoUITests.xctest"
+               BlueprintName = "LegadoUITests"
+               ReferencedContainer = "container:Legado.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -61,6 +75,17 @@
                BlueprintIdentifier = "8086C70D204522BE22D900CC"
                BuildableName = "LegadoTests.xctest"
                BlueprintName = "LegadoTests"
+               ReferencedContainer = "container:Legado.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "38DA11D44B0536722C528EBB"
+               BuildableName = "LegadoUITests.xctest"
+               BlueprintName = "LegadoUITests"
                ReferencedContainer = "container:Legado.xcodeproj">
             </BuildableReference>
          </TestableReference>

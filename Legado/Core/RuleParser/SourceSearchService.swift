@@ -5,9 +5,9 @@ import SwiftSoup
 public final class SourceSearchService: Sendable {
     public static let shared = SourceSearchService()
 
-    private let httpClient: HTTPClient
+    private let httpClient: HTTPClientProtocol
 
-    public init(httpClient: HTTPClient = .shared) {
+    public init(httpClient: HTTPClientProtocol = HTTPClient.shared) {
         self.httpClient = httpClient
     }
 
@@ -146,23 +146,27 @@ public final class SourceSearchService: Sendable {
             return []
         }
 
+        let baseUrl = source.bookSourceUrl
         var results: [SearchResult] = []
         for item in array {
             guard let dict = item as? [String: Any] else { continue }
+            let eval: (String?) -> String? = { ruleStr in
+                RuleEvaluator.evaluate(dict: dict, rule: ruleStr, baseUrl: baseUrl)
+            }
 
-            let name = parseJsonField(dict, rule: ruleSearch.name) ?? ""
-            let bookUrl = parseJsonField(dict, rule: ruleSearch.bookUrl) ?? ""
+            let name = eval(ruleSearch.name) ?? ""
+            let bookUrl = eval(ruleSearch.bookUrl) ?? ""
             guard !name.isEmpty, !bookUrl.isEmpty else { continue }
 
-            let author = parseJsonField(dict, rule: ruleSearch.author) ?? ""
-            let kind = parseJsonField(dict, rule: ruleSearch.kind)
-            let coverUrl = parseJsonField(dict, rule: ruleSearch.coverUrl)
-            let intro = parseJsonField(dict, rule: ruleSearch.intro)
-            let lastChapter = parseJsonField(dict, rule: ruleSearch.lastChapter)
-            let wordCount = parseJsonField(dict, rule: ruleSearch.wordCount)
+            let author = eval(ruleSearch.author) ?? ""
+            let kind = eval(ruleSearch.kind)
+            let coverUrl = eval(ruleSearch.coverUrl)
+            let intro = eval(ruleSearch.intro)
+            let lastChapter = eval(ruleSearch.lastChapter)
+            let wordCount = eval(ruleSearch.wordCount)
 
-            let fullBookUrl = resolveUrl(bookUrl, baseUrl: source.bookSourceUrl)
-            let fullCoverUrl = coverUrl.map { resolveUrl($0, baseUrl: source.bookSourceUrl) }
+            let fullBookUrl = resolveUrl(bookUrl, baseUrl: baseUrl)
+            let fullCoverUrl = coverUrl.map { resolveUrl($0, baseUrl: baseUrl) }
 
             results.append(SearchResult(
                 bookUrl: fullBookUrl,
@@ -180,15 +184,6 @@ public final class SourceSearchService: Sendable {
         }
 
         return results
-    }
-
-    private func parseJsonField(_ dict: [String: Any], rule: String?) -> String? {
-        guard let rule, !rule.isEmpty else { return nil }
-        let trimmed = rule.replacingOccurrences(of: "$.", with: "").trimmingCharacters(in: .whitespaces)
-        if let val = dict[trimmed] {
-            return "\(val)"
-        }
-        return nil
     }
 
     // MARK: - URL 构建

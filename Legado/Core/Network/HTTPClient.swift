@@ -1,7 +1,38 @@
 import Foundation
 
+/// 异步 HTTP 客户端抽象协议，便于单元测试与 Mock 模拟注入
+public protocol HTTPClientProtocol: Sendable {
+    func get(
+        url: URL,
+        headers: [String: String]?,
+        timeout: TimeInterval) async throws -> String
+
+    func post(
+        url: URL,
+        body: Data?,
+        headers: [String: String]?,
+        timeout: TimeInterval) async throws -> String
+}
+
+public extension HTTPClientProtocol {
+    func get(
+        url: URL,
+        headers: [String: String]? = nil,
+        timeout: TimeInterval = 15) async throws -> String {
+        try await get(url: url, headers: headers, timeout: timeout)
+    }
+
+    func post(
+        url: URL,
+        body: Data? = nil,
+        headers: [String: String]? = nil,
+        timeout: TimeInterval = 15) async throws -> String {
+        try await post(url: url, body: body, headers: headers, timeout: timeout)
+    }
+}
+
 /// 书源抓取专用异步网络客户端
-public final class HTTPClient: Sendable {
+public final class HTTPClient: HTTPClientProtocol, Sendable {
     public static let shared = HTTPClient()
 
     private let session: URLSession
