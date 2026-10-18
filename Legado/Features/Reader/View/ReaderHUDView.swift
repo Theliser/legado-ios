@@ -17,6 +17,7 @@ public struct ReaderHUDView: View {
     let onFontSizeChange: (CGFloat) -> Void
     let onSelectTheme: (ReaderTheme) -> Void
     let onStartTTS: () -> Void
+    let onOpenChangeSource: () -> Void
 
     public init(
         bookTitle: String,
@@ -33,7 +34,8 @@ public struct ReaderHUDView: View {
         onToggleConfig: @escaping () -> Void,
         onFontSizeChange: @escaping (CGFloat) -> Void,
         onSelectTheme: @escaping (ReaderTheme) -> Void,
-        onStartTTS: @escaping () -> Void = {}) {
+        onStartTTS: @escaping () -> Void = {},
+        onOpenChangeSource: @escaping () -> Void = {}) {
         self.bookTitle = bookTitle
         self.currentChapterTitle = currentChapterTitle
         self.currentChapterIndex = currentChapterIndex
@@ -49,6 +51,7 @@ public struct ReaderHUDView: View {
         self.onFontSizeChange = onFontSizeChange
         self.onSelectTheme = onSelectTheme
         self.onStartTTS = onStartTTS
+        self.onOpenChangeSource = onOpenChangeSource
     }
 
     public var body: some View {
@@ -168,6 +171,16 @@ public struct ReaderHUDView: View {
                         Image(systemName: "headphones")
                             .font(.body)
                         Text("听书")
+                            .font(.caption2)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+
+                Button(action: onOpenChangeSource) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.body)
+                        Text("换源")
                             .font(.caption2)
                     }
                     .frame(maxWidth: .infinity)

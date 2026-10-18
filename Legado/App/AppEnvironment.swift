@@ -28,6 +28,7 @@ public final class AppEnvironment: ObservableObject {
     public let purifyContentUseCase: PurifyContentUseCase
     public let backupToWebDAVUseCase: BackupToWebDAVUseCase
     public let restoreFromWebDAVUseCase: RestoreFromWebDAVUseCase
+    public let changeBookSourceUseCase: ChangeBookSourceUseCase
 
     public init(inMemory: Bool = false) {
         let provider = ModelContainerProvider(inMemory: inMemory)
@@ -61,6 +62,9 @@ public final class AppEnvironment: ObservableObject {
         self.restoreFromWebDAVUseCase = RestoreFromWebDAVUseCase(
             bookRepository: bookRepo,
             sourceRepository: sourceRepo)
+        self.changeBookSourceUseCase = ChangeBookSourceUseCase(
+            sourceRepository: sourceRepo,
+            bookRepository: bookRepo)
 
         if !inMemory {
             primeSampleChapterCache()
@@ -247,5 +251,17 @@ public final class AppEnvironment: ObservableObject {
         SettingsViewModel(
             backupUseCase: backupToWebDAVUseCase,
             restoreUseCase: restoreFromWebDAVUseCase)
+    }
+
+    /// 创建换源 ViewModel
+    public func makeChangeSourceViewModel(
+        book: Book,
+        currentChapterTitle: String? = nil,
+        currentChapterIndex: Int = 0) -> ChangeSourceViewModel {
+        ChangeSourceViewModel(
+            book: book,
+            currentChapterTitle: currentChapterTitle,
+            currentChapterIndex: currentChapterIndex,
+            changeBookSourceUseCase: changeBookSourceUseCase)
     }
 }

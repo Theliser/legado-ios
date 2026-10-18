@@ -70,6 +70,13 @@ public final class BookDetailViewModel: BaseMVIViewModel<BookDetailState, BookDe
 
         case let .switchSource(newSource):
             handleSwitchSource(newSource)
+
+        case let .updateBook(updatedBook, newToc):
+            updateState {
+                $0.book = updatedBook
+                $0.chapters = newToc
+            }
+            checkShelfStatus()
         }
     }
 
