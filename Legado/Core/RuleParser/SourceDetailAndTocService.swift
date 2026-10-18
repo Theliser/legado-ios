@@ -234,8 +234,11 @@ public final class SourceDetailAndTocService: Sendable {
         listRule: String,
         bookUrl: String,
         baseUrl: String) -> ([Chapter], String?) {
-        guard let doc = try? SwiftSoup.parse(html, baseUrl),
-              let elements = try? doc.select(listRule) else {
+        guard let doc = try? SwiftSoup.parse(html, baseUrl) else {
+            return ([], nil)
+        }
+        let elements = CSSSelectorParser.selectElements(element: doc, rule: listRule)
+        if elements.isEmpty() {
             return ([], nil)
         }
 

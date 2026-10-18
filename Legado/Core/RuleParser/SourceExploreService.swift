@@ -163,12 +163,7 @@ public final class SourceExploreService: Sendable {
             return []
         }
 
-        let elements: Elements
-        do {
-            elements = try doc.select(rule.bookList)
-        } catch {
-            return []
-        }
+        let elements = CSSSelectorParser.selectElements(element: doc, rule: rule.bookList)
 
         var books: [Book] = []
         for element in elements.array() {

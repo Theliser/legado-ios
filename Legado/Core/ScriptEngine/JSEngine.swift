@@ -7,6 +7,8 @@ public final class JSEngine {
     let context: JSContext
     var memoryStorage: [String: String] = [:]
     var sourceVariables: [String: Any] = [:]
+    var currentContent = ""
+    var currentBaseUrl = ""
 
     public init() {
         self.context = JSContext() ?? JSContext(virtualMachine: JSVirtualMachine())
@@ -18,6 +20,13 @@ public final class JSEngine {
     public func evaluate(
         script: String,
         bindings: [String: Any] = [:]) -> String? {
+        if let baseUrl = bindings["baseUrl"] as? String {
+            self.currentBaseUrl = baseUrl
+        }
+        if let result = bindings["result"] as? String {
+            self.currentContent = result
+        }
+
         // 绑定外部变量
         for (key, value) in bindings {
             context.setObject(value, forKeyedSubscript: key as NSString)

@@ -30,18 +30,15 @@ final class ReaderAndFeaturesUITests: XCTestCase {
         if tocButton.waitForExistence(timeout: 4) {
             tocButton.tap()
 
-            let tocSheetTitle = app.staticTexts["目录与书签"]
-            XCTAssertTrue(tocSheetTitle.waitForExistence(timeout: 5), "目录与书签液态面板应成功弹出")
+            let bookmarkTab = app.buttons["书签"]
+            XCTAssertTrue(bookmarkTab.waitForExistence(timeout: 5), "目录与书签液态面板应成功弹出")
             captureScreenshot(name: "reader_02_toc_sheet")
 
             // 切换至书签 Tab
-            let bookmarkTab = app.buttons["书签"]
-            if bookmarkTab.exists {
-                bookmarkTab.tap()
-                captureScreenshot(name: "reader_03_bookmarks_tab")
-            }
+            bookmarkTab.tap()
+            captureScreenshot(name: "reader_03_bookmarks_tab")
 
-            let closeTocButton = app.buttons["关闭"]
+            let closeTocButton = app.buttons.matching(identifier: "完成").firstMatch
             if closeTocButton.exists {
                 closeTocButton.tap()
             }
@@ -61,7 +58,7 @@ final class ReaderAndFeaturesUITests: XCTestCase {
                 captureScreenshot(name: "reader_05_search_content_typed")
             }
 
-            let doneSearchButton = app.buttons["完成"]
+            let doneSearchButton = app.buttons.matching(identifier: "完成").firstMatch
             if doneSearchButton.exists {
                 doneSearchButton.tap()
             }
@@ -73,13 +70,9 @@ final class ReaderAndFeaturesUITests: XCTestCase {
         if changeSourceButton.waitForExistence(timeout: 4) {
             changeSourceButton.tap()
 
-            let changeSourceTitle = app.staticTexts["聚合换源"]
-            if changeSourceTitle.waitForExistence(timeout: 4) {
+            let closeChangeSource = app.buttons.matching(identifier: "完成").firstMatch
+            if closeChangeSource.waitForExistence(timeout: 4) {
                 captureScreenshot(name: "reader_06_change_source_sheet")
-            }
-
-            let closeChangeSource = app.buttons["关闭"]
-            if closeChangeSource.exists {
                 closeChangeSource.tap()
             }
         }
@@ -90,13 +83,9 @@ final class ReaderAndFeaturesUITests: XCTestCase {
         if cacheTopButton.waitForExistence(timeout: 4) {
             cacheTopButton.tap()
 
-            let cacheTitle = app.staticTexts["离线章节缓存"]
-            if cacheTitle.waitForExistence(timeout: 4) {
+            let closeCache = app.buttons.matching(identifier: "完成").firstMatch
+            if closeCache.waitForExistence(timeout: 4) {
                 captureScreenshot(name: "reader_07_book_cache_sheet")
-            }
-
-            let closeCache = app.buttons["关闭"]
-            if closeCache.exists {
                 closeCache.tap()
             }
         }
