@@ -83,18 +83,39 @@ targets:
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
 
+  LegadoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: LegadoUITests
+    dependencies:
+      - target: Legado
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.theliser.legadouitests
+        GENERATE_INFOPLIST_FILE: YES
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        TEST_TARGET_NAME: Legado
+    info:
+      path: LegadoUITests/Info.plist
+      properties:
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+
 schemes:
   Legado:
     build:
       targets:
         Legado: all
         LegadoTests: [test]
+        LegadoUITests: [test]
     run:
       config: Debug
     test:
       config: Debug
       targets:
         - LegadoTests
+        - LegadoUITests
     profile:
       config: Release
     analyze:

@@ -50,6 +50,7 @@
 		72BBA7019381D3C693F5D982 /* SourceImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D700B21CCCCF441A0BBB8E06 /* SourceImportSheet.swift */; };
 		734B062046B2F2C56ECFEB1C /* SourceManageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9849949C6A05EDC40CA760 /* SourceManageView.swift */; };
 		73E5EF1019DA6594D4D8405A /* ReaderState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C948E594CD82D90C561FBB6 /* ReaderState.swift */; };
+		75415C5A26FAE74FD980DD6F /* SourceDebuggerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7089BA7E03A744CF893BAF0 /* SourceDebuggerUITests.swift */; };
 		78086B0B4AFA8EBEA2F420F3 /* GetExploreCategoriesUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF35F14BFFE2678C939D5983 /* GetExploreCategoriesUseCase.swift */; };
 		785A013FE4CF9219AD55046A /* GetChapterContentUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C6B9CAB58786493D1A4DC0 /* GetChapterContentUseCase.swift */; };
 		79870D14BF1DBB4D823D6249 /* SourceSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DAB34BC1928B1F4CDA43A03 /* SourceSearchService.swift */; };
@@ -129,6 +130,13 @@
 			remoteGlobalIDString = 545F723F8243B8264D863A84;
 			remoteInfo = Legado;
 		};
+		F3312F5F7B75AADCD5FF2515 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C88D041936DFBF20C4AA23 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 545F723F8243B8264D863A84;
+			remoteInfo = Legado;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -143,6 +151,7 @@
 		136415F10FA7185A70B1C98F /* GetBookDetailUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetBookDetailUseCase.swift; sourceTree = "<group>"; };
 		14236656A1AB97CDC284C173 /* TTSFloatingBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSFloatingBar.swift; sourceTree = "<group>"; };
 		155CD78609421146C639E897 /* BookDetailIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailIntent.swift; sourceTree = "<group>"; };
+		157A1884A93EFBF4BC1D5A53 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		15E2D7AF2E95CCA1BDF19A57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		16CE8C2C19C278801E608CB1 /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
 		17BF1FAA23E1C9B8F6199B2B /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
@@ -222,6 +231,7 @@
 		C321D3634EA8A34DFC246F6A /* BookTocAndDetailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookTocAndDetailTests.swift; sourceTree = "<group>"; };
 		C572DCD6EDF95626802F28B0 /* RuleEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEvaluator.swift; sourceTree = "<group>"; };
 		C66FE16612E088F892D22CAF /* GetBookshelfUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetBookshelfUseCase.swift; sourceTree = "<group>"; };
+		C7089BA7E03A744CF893BAF0 /* SourceDebuggerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceDebuggerUITests.swift; sourceTree = "<group>"; };
 		C7987BD925A48D9B008EB75A /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		CFD975D0B111E7DEFEF1BCBA /* SourceDetailAndTocService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceDetailAndTocService.swift; sourceTree = "<group>"; };
 		D1E4DE6B296379C2127A7773 /* GetBookTocUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetBookTocUseCase.swift; sourceTree = "<group>"; };
@@ -241,6 +251,7 @@
 		F3FE0A95B10AC444C8596A47 /* ChapterEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterEntity.swift; sourceTree = "<group>"; };
 		F66FBEB55BE7BA91EAD40800 /* ExploreIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreIntent.swift; sourceTree = "<group>"; };
 		F745F58D070587F9128C8B82 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		FC28998AF1FED04FBB73D5A8 /* LegadoUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LegadoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FCF87E5019CB3F4CB35CEBB9 /* PurifyContentUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurifyContentUseCase.swift; sourceTree = "<group>"; };
 		FD97F0BD7D3018C88C3DCBED /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
 		FE0C1C8D2F318FBFA601C6B7 /* LegadoTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LegadoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -409,6 +420,7 @@
 			children = (
 				5D63B928D47EE3FF922ED119 /* Legado */,
 				8A026352A08576F4BA363FAC /* LegadoTests */,
+				376EFAE5146945C1AB7DCC2B /* LegadoUITests */,
 				7A9998A08F31415169D8903D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -420,6 +432,15 @@
 				AF35F14BFFE2678C939D5983 /* GetExploreCategoriesUseCase.swift */,
 			);
 			path = Explore;
+			sourceTree = "<group>";
+		};
+		376EFAE5146945C1AB7DCC2B /* LegadoUITests */ = {
+			isa = PBXGroup;
+			children = (
+				157A1884A93EFBF4BC1D5A53 /* Info.plist */,
+				C7089BA7E03A744CF893BAF0 /* SourceDebuggerUITests.swift */,
+			);
+			path = LegadoUITests;
 			sourceTree = "<group>";
 		};
 		413E16A221C07E0842F23DAF /* Materials */ = {
@@ -584,6 +605,7 @@
 			children = (
 				5E494EB6E5276C0FA16C637F /* Legado.app */,
 				FE0C1C8D2F318FBFA601C6B7 /* LegadoTests.xctest */,
+				FC28998AF1FED04FBB73D5A8 /* LegadoUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -949,6 +971,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		38DA11D44B0536722C528EBB /* LegadoUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D69117678C5C1F6FBDFF12D3 /* Build configuration list for PBXNativeTarget "LegadoUITests" */;
+			buildPhases = (
+				2AD3FDFA0D05FE1C66A152B7 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				01611FB3F1C4AB69A3DAA8AC /* PBXTargetDependency */,
+			);
+			name = LegadoUITests;
+			packageProductDependencies = (
+			);
+			productName = LegadoUITests;
+			productReference = FC28998AF1FED04FBB73D5A8 /* LegadoUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		545F723F8243B8264D863A84 /* Legado */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1799323148C07C0AECB8B810 /* Build configuration list for PBXNativeTarget "Legado" */;
@@ -1001,6 +1041,11 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					38DA11D44B0536722C528EBB = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+						TestTargetID = 545F723F8243B8264D863A84;
+					};
 					545F723F8243B8264D863A84 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
@@ -1031,6 +1076,7 @@
 			targets = (
 				545F723F8243B8264D863A84 /* Legado */,
 				8086C70D204522BE22D900CC /* LegadoTests */,
+				38DA11D44B0536722C528EBB /* LegadoUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -1069,6 +1115,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2AD3FDFA0D05FE1C66A152B7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				75415C5A26FAE74FD980DD6F /* SourceDebuggerUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5A75EE015A537D14B822DE9A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1193,6 +1247,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		01611FB3F1C4AB69A3DAA8AC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 545F723F8243B8264D863A84 /* Legado */;
+			targetProxy = F3312F5F7B75AADCD5FF2515 /* PBXContainerItemProxy */;
+		};
 		17A0898F1AAAAAB662625624 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 545F723F8243B8264D863A84 /* Legado */;
@@ -1368,6 +1427,25 @@
 			};
 			name = Debug;
 		};
+		978281F03E5549B94B605160 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LegadoUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.theliser.legadouitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Legado;
+			};
+			name = Debug;
+		};
 		BA82717EEACA8E58B6E6C2DC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1420,6 +1498,25 @@
 			};
 			name = Release;
 		};
+		F9A3B234DA1A9B89452AAF10 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LegadoUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.theliser.legadouitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Legado;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1446,6 +1543,15 @@
 			buildConfigurations = (
 				8AB3E3FCC8820D9722F576DE /* Debug */,
 				1008F408AA1428A45896270A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D69117678C5C1F6FBDFF12D3 /* Build configuration list for PBXNativeTarget "LegadoUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				978281F03E5549B94B605160 /* Debug */,
+				F9A3B234DA1A9B89452AAF10 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

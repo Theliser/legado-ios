@@ -145,7 +145,11 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
 
         Task {
             do {
-                let list = try await sourceRepository.fetchSources()
+                var list = try await sourceRepository.fetchSources()
+                if list.isEmpty {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    list = try await sourceRepository.fetchSources()
+                }
                 self.updateState { state in
                     state.isLoading = false
                     state.sources = list
