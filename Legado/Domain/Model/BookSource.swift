@@ -282,4 +282,110 @@ public struct BookSource: Identifiable, Codable, Equatable, Sendable {
         self.ruleToc = ruleToc
         self.ruleContent = ruleContent
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case bookSourceUrl
+        case bookSourceName
+        case bookSourceGroup
+        case bookSourceType
+        case bookUrlPattern
+        case header
+        case loginUrl
+        case exploreUrl
+        case searchUrl
+        case weight
+        case enabled
+        case enabledExplore
+        case customOrder
+        case lastUpdateTime
+        case bookSourceComment
+        case ruleSearch
+        case ruleExplore
+        case ruleBookInfo
+        case ruleToc
+        case ruleContent
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.bookSourceUrl = try container.decode(String.self, forKey: .bookSourceUrl)
+        self.bookSourceName = try container.decode(String.self, forKey: .bookSourceName)
+        self.bookSourceGroup = try container.decodeIfPresent(String.self, forKey: .bookSourceGroup)
+        self.bookSourceType = container.decodeLenientInt(forKey: .bookSourceType)
+        self.bookUrlPattern = try container.decodeIfPresent(String.self, forKey: .bookUrlPattern)
+        self.header = try container.decodeIfPresent(String.self, forKey: .header)
+        self.loginUrl = try container.decodeIfPresent(String.self, forKey: .loginUrl)
+        self.exploreUrl = try container.decodeIfPresent(String.self, forKey: .exploreUrl)
+        self.searchUrl = try container.decodeIfPresent(String.self, forKey: .searchUrl)
+        self.weight = container.decodeLenientInt(forKey: .weight)
+        self.enabled = container.decodeLenientBool(forKey: .enabled)
+        self.enabledExplore = container.decodeLenientBool(forKey: .enabledExplore)
+        self.customOrder = container.decodeLenientInt(forKey: .customOrder)
+        self.lastUpdateTime = container.decodeLenientInt64(forKey: .lastUpdateTime)
+        self.bookSourceComment = try container.decodeIfPresent(String.self, forKey: .bookSourceComment)
+        self.ruleSearch = try container.decodeIfPresent(RuleSearch.self, forKey: .ruleSearch)
+        self.ruleExplore = try container.decodeIfPresent(RuleExplore.self, forKey: .ruleExplore)
+        self.ruleBookInfo = try container.decodeIfPresent(RuleBookInfo.self, forKey: .ruleBookInfo)
+        self.ruleToc = try container.decodeIfPresent(RuleToc.self, forKey: .ruleToc)
+        self.ruleContent = try container.decodeIfPresent(RuleContent.self, forKey: .ruleContent)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(bookSourceUrl, forKey: .bookSourceUrl)
+        try container.encode(bookSourceName, forKey: .bookSourceName)
+        try container.encodeIfPresent(bookSourceGroup, forKey: .bookSourceGroup)
+        try container.encodeIfPresent(bookSourceType, forKey: .bookSourceType)
+        try container.encodeIfPresent(bookUrlPattern, forKey: .bookUrlPattern)
+        try container.encodeIfPresent(header, forKey: .header)
+        try container.encodeIfPresent(loginUrl, forKey: .loginUrl)
+        try container.encodeIfPresent(exploreUrl, forKey: .exploreUrl)
+        try container.encodeIfPresent(searchUrl, forKey: .searchUrl)
+        try container.encodeIfPresent(weight, forKey: .weight)
+        try container.encodeIfPresent(enabled, forKey: .enabled)
+        try container.encodeIfPresent(enabledExplore, forKey: .enabledExplore)
+        try container.encodeIfPresent(customOrder, forKey: .customOrder)
+        try container.encodeIfPresent(lastUpdateTime, forKey: .lastUpdateTime)
+        try container.encodeIfPresent(bookSourceComment, forKey: .bookSourceComment)
+        try container.encodeIfPresent(ruleSearch, forKey: .ruleSearch)
+        try container.encodeIfPresent(ruleExplore, forKey: .ruleExplore)
+        try container.encodeIfPresent(ruleBookInfo, forKey: .ruleBookInfo)
+        try container.encodeIfPresent(ruleToc, forKey: .ruleToc)
+        try container.encodeIfPresent(ruleContent, forKey: .ruleContent)
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func decodeLenientInt(forKey key: Key) -> Int? {
+        if let val = try? decodeIfPresent(Int.self, forKey: key) {
+            return val
+        }
+        if let str = try? decodeIfPresent(String.self, forKey: key) {
+            return Int(str)
+        }
+        return nil
+    }
+
+    func decodeLenientInt64(forKey key: Key) -> Int64? {
+        if let val = try? decodeIfPresent(Int64.self, forKey: key) {
+            return val
+        }
+        if let str = try? decodeIfPresent(String.self, forKey: key) {
+            return Int64(str)
+        }
+        return nil
+    }
+
+    func decodeLenientBool(forKey key: Key) -> Bool? {
+        if let val = try? decodeIfPresent(Bool.self, forKey: key) {
+            return val
+        }
+        if let intVal = try? decodeIfPresent(Int.self, forKey: key) {
+            return intVal != 0
+        }
+        if let str = try? decodeIfPresent(String.self, forKey: key) {
+            return str == "true" || str == "1"
+        }
+        return nil
+    }
 }

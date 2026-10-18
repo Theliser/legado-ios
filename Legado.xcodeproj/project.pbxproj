@@ -87,11 +87,13 @@
 		712B3AE4134A4EB1A7476526 /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = B7D6AA9140F6B04D883CEF84 /* Factory */; };
 		71B3BCAE900F466F8CFD18D2 /* ReaderAndFeaturesUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0FFB44434E4094FD599017 /* ReaderAndFeaturesUITests.swift */; };
 		7287CCB982723C785F8B1436 /* SourceManageView+Bars.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02587D467614E83B760F9D4C /* SourceManageView+Bars.swift */; };
+		728A4A86AC640AE4BFA54CB3 /* CSSSelectorParser+Script.swift in Sources */ = {isa = PBXBuildFile; fileRef = A777017F514D687186703B37 /* CSSSelectorParser+Script.swift */; };
 		72BBA7019381D3C693F5D982 /* SourceImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D700B21CCCCF441A0BBB8E06 /* SourceImportSheet.swift */; };
 		7312F0B7BB9C6214DA9EEEBD /* BookCacheSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2175B355FEF292AA381593CB /* BookCacheSheet.swift */; };
 		734B062046B2F2C56ECFEB1C /* SourceManageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9849949C6A05EDC40CA760 /* SourceManageView.swift */; };
 		736F4016110B9FEB94C69EC7 /* TTSPlayer+RemoteControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFFEBEF130B3BCB3472CD24B /* TTSPlayer+RemoteControl.swift */; };
 		73E5EF1019DA6594D4D8405A /* ReaderState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C948E594CD82D90C561FBB6 /* ReaderState.swift */; };
+		748A36A2AEE5AC31788BC13C /* DOMStepEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38CC46017E0FDDB0241C39EC /* DOMStepEvaluator.swift */; };
 		75415C5A26FAE74FD980DD6F /* SourceDebuggerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7089BA7E03A744CF893BAF0 /* SourceDebuggerUITests.swift */; };
 		78086B0B4AFA8EBEA2F420F3 /* GetExploreCategoriesUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF35F14BFFE2678C939D5983 /* GetExploreCategoriesUseCase.swift */; };
 		785A013FE4CF9219AD55046A /* GetChapterContentUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C6B9CAB58786493D1A4DC0 /* GetChapterContentUseCase.swift */; };
@@ -254,6 +256,7 @@
 		3493A17D1785E598ED821D58 /* ChangeSourceState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeSourceState.swift; sourceTree = "<group>"; };
 		3777B09847394FBF2114ABBB /* BookshelfViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfViewModel.swift; sourceTree = "<group>"; };
 		37E4C150662476BEDD84BA72 /* ReaderDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderDestination.swift; sourceTree = "<group>"; };
+		38CC46017E0FDDB0241C39EC /* DOMStepEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DOMStepEvaluator.swift; sourceTree = "<group>"; };
 		3AA58C58347B5CD0D9E3EBF1 /* BookshelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfView.swift; sourceTree = "<group>"; };
 		3B8A77CCCD0BC4EEA03D8F73 /* RestoreFromWebDAVUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestoreFromWebDAVUseCase.swift; sourceTree = "<group>"; };
 		3BD6F880D3B23FD59FB65CC3 /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
@@ -329,6 +332,7 @@
 		A4AFF782F538D21A304DE124 /* BookDetailView+Cards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BookDetailView+Cards.swift"; sourceTree = "<group>"; };
 		A4C9201EF1DAA6DD28D04875 /* ParseBookSourceUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseBookSourceUseCase.swift; sourceTree = "<group>"; };
 		A633C9E9A7558E3ECDE60479 /* GetBookGroupsUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetBookGroupsUseCase.swift; sourceTree = "<group>"; };
+		A777017F514D687186703B37 /* CSSSelectorParser+Script.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CSSSelectorParser+Script.swift"; sourceTree = "<group>"; };
 		A9218E9FD8CBFF563E29FA1C /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		AAA210EEDD7392F9405D4D46 /* LegadoLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegadoLog.swift; sourceTree = "<group>"; };
 		AAB3564CD09D8D3B33BBDB23 /* ReaderPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPageView.swift; sourceTree = "<group>"; };
@@ -757,6 +761,8 @@
 				453DA2591F368E167EF7B2E4 /* AnalyzeUrl.swift */,
 				2D10ED5FD2ADE200366B951B /* ContentParser.swift */,
 				47EB65BE6993603DE7AF01CB /* CSSSelectorParser.swift */,
+				A777017F514D687186703B37 /* CSSSelectorParser+Script.swift */,
+				38CC46017E0FDDB0241C39EC /* DOMStepEvaluator.swift */,
 				B26DADC92553447DCFE369BD /* JSONPathParser.swift */,
 				4C34BCC5CD20CA995450349A /* RuleAnalyzer.swift */,
 				C572DCD6EDF95626802F28B0 /* RuleEvaluator.swift */,
@@ -1498,6 +1504,7 @@
 				D0F0FEA61625B516034C73B4 /* BookshelfView.swift in Sources */,
 				A37F02D1A03885273E0CA1F4 /* BookshelfViewModel+Import.swift in Sources */,
 				49DC6A201BD1CCFEC076A2E1 /* BookshelfViewModel.swift in Sources */,
+				728A4A86AC640AE4BFA54CB3 /* CSSSelectorParser+Script.swift in Sources */,
 				385A62FC83CE45B963A8D79C /* CSSSelectorParser.swift in Sources */,
 				0C1ACF52E66AA4370C8ACFEA /* ChangeBookSourceUseCase.swift in Sources */,
 				93A30F5DC042049464EBAB61 /* ChangeSourceCandidate.swift in Sources */,
@@ -1514,6 +1521,7 @@
 				613BB3C1379639F1BB5A6DED /* ContentParser.swift in Sources */,
 				920BAD93009B86B44AA1082B /* ContentView.swift in Sources */,
 				03AF360CB2D64647EBBB9C49 /* CookieJar.swift in Sources */,
+				748A36A2AEE5AC31788BC13C /* DOMStepEvaluator.swift in Sources */,
 				4CC1A82AF0FE6DB249AD5BE5 /* DebugBookSourceUseCase.swift in Sources */,
 				3666D0B6F4499B0DB9872792 /* DeleteBookGroupUseCase.swift in Sources */,
 				356860092A7101551AD150DD /* DeleteBookSourceUseCase.swift in Sources */,

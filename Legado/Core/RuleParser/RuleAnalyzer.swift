@@ -17,7 +17,7 @@ public final class RuleAnalyzer {
         let trimmedRule = rule.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedRule.isEmpty else { return [] }
 
-        // 1. 判断是否包含 JS 尾随脚本，例如 "rule<js>result.trim()</js>" 或 "@js:..."
+        // 1. 判断是否包含 JS 尾随脚本，例如 "rule<js>result.trim()</js>" 或 "rule@js:..."
         var mainRule = trimmedRule
         var trailingJS: String?
 
@@ -27,9 +27,9 @@ public final class RuleAnalyzer {
             if let endRange = trimmedRule.range(of: endTag) {
                 trailingJS = String(trimmedRule[jsRange.upperBound ..< endRange.lowerBound])
             }
-        } else if trimmedRule.hasPrefix("@js:") {
-            trailingJS = String(trimmedRule.dropFirst(4))
-            mainRule = ""
+        } else if let jsRange = trimmedRule.range(of: "@js:") {
+            trailingJS = String(trimmedRule[jsRange.upperBound...])
+            mainRule = String(trimmedRule[..<jsRange.lowerBound]).trimmingCharacters(in: .whitespaces)
         }
 
         // 2. 调度执行主规则

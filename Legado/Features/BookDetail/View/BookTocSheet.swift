@@ -23,6 +23,7 @@ public struct BookTocSheet: View {
     let onDeleteBookmark: (Bookmark) -> Void
 
     @State private var selectedTab: Tab = .toc
+    @Environment(\.dismiss) private var dismiss
 
     public init(
         chapters: [Chapter],
@@ -80,6 +81,14 @@ public struct BookTocSheet: View {
                     set: { onSearchChange($0) }),
                 placement: .navigationBarDrawer(displayMode: .automatic),
                 prompt: "搜索章节名...")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("完成") {
+                        dismiss()
+                    }
+                    .font(.body.weight(.semibold))
+                }
+            }
         }
         .presentationDetents([.fraction(0.45), .medium, .large])
         .presentationBackground(.ultraThinMaterial)

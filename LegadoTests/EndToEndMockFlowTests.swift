@@ -357,7 +357,7 @@ struct EndToEndMockFlowTests {
         await withTaskGroup(of: Void.self) { group in
             for _ in 0 ..< totalTasks {
                 group.addTask {
-                    try? await semaphore.withPermit {
+                    await semaphore.withPermit {
                         await tracker.taskStarted()
                         try? await Task.sleep(nanoseconds: 15_000_000) // 15ms
                         await tracker.taskFinished()

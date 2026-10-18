@@ -60,7 +60,7 @@ final class BookshelfUITests: XCTestCase {
         if batchManageButton.waitForExistence(timeout: 3) {
             batchManageButton.tap()
 
-            let doneButton = app.buttons["完成"]
+            let doneButton = app.buttons.matching(identifier: "完成").firstMatch
             XCTAssertTrue(doneButton.waitForExistence(timeout: 3), "点击管理后应出现【完成】按钮")
             captureScreenshot(name: "bookshelf_06_batch_mode_active")
 
