@@ -57,6 +57,18 @@ extension JSEngine {
             return self.wrapResponse(res)
         }
         javaObj.setObject(post, forKeyedSubscript: "post" as NSString)
+
+        typealias BrowserAwaitBlock = @convention(block) (String, String, JSValue?) -> JSValue
+        let startBrowserAwait: BrowserAwaitBlock = { [weak self] urlStr, titleStr, refetchVal in
+            guard let self else { return JSValue(undefinedIn: self?.context) }
+            let refetch = refetchVal?.toBool() ?? true
+            let result = BrowserVerificationManager.shared.verifySync(
+                url: urlStr,
+                title: titleStr,
+                refetchAfterSuccess: refetch)
+            return self.wrapBrowserResponse(result)
+        }
+        javaObj.setObject(startBrowserAwait, forKeyedSubscript: "startBrowserAwait" as NSString)
     }
 
     private func setupJavaStorageMethods(on javaObj: JSValue) {
@@ -66,8 +78,16 @@ extension JSEngine {
         let getVal: @convention(block) (String) -> String = { [weak self] key in
             self?.memoryStorage[key] ?? ""
         }
+        let getCookieVal: @convention(block) (String) -> String = { url in
+            CookieStore.shared.getCookie(url: url)
+        }
+        let setCookieVal: @convention(block) (String, String) -> Void = { url, cookie in
+            CookieStore.shared.setCookie(url: url, cookie: cookie)
+        }
         javaObj.setObject(putVal, forKeyedSubscript: "put" as NSString)
         javaObj.setObject(getVal, forKeyedSubscript: "get" as NSString)
+        javaObj.setObject(getCookieVal, forKeyedSubscript: "getCookie" as NSString)
+        javaObj.setObject(setCookieVal, forKeyedSubscript: "setCookie" as NSString)
     }
 
     private func setupJavaDOMMethods(on javaObj: JSValue) {
@@ -311,11 +331,30 @@ extension JSEngine {
 
     private func setupCookieBridge() {
         guard let cookieObj = JSValue(newObjectIn: context) else { return }
-        let removeCookie: @convention(block) (String) -> Void = { _ in }
-        let getCookie: @convention(block) (String) -> String = { _ in "" }
+        let removeCookie: @convention(block) (String) -> Void = { url in
+            CookieStore.shared.removeCookie(url: url)
+        }
+        let getCookie: @convention(block) (String) -> String = { url in
+            CookieStore.shared.getCookie(url: url)
+        }
+        let setCookie: @convention(block) (String, String) -> Void = { url, cookie in
+            CookieStore.shared.setCookie(url: url, cookie: cookie)
+        }
         cookieObj.setObject(removeCookie, forKeyedSubscript: "removeCookie" as NSString)
         cookieObj.setObject(getCookie, forKeyedSubscript: "getCookie" as NSString)
+        cookieObj.setObject(setCookie, forKeyedSubscript: "setCookie" as NSString)
         context.setObject(cookieObj, forKeyedSubscript: "cookie" as NSString)
+    }
+
+    private func wrapBrowserResponse(_ res: BrowserVerificationResult) -> JSValue {
+        guard let respObj = JSValue(newObjectIn: context) else {
+            return JSValue(undefinedIn: context)
+        }
+        let bodyFunc: @convention(block) () -> String = { res.body }
+        let urlFunc: @convention(block) () -> String = { res.url }
+        respObj.setObject(bodyFunc, forKeyedSubscript: "body" as NSString)
+        respObj.setObject(urlFunc, forKeyedSubscript: "url" as NSString)
+        return respObj
     }
 
     private func wrapResponse(_ res: SyncHTTPResponse) -> JSValue {
@@ -351,6 +390,11 @@ extension JSEngine {
             request.setValue(val, forHTTPHeaderField: key)
         }
 
+        let persistentCookie = CookieStore.shared.getCookie(url: url.absoluteString)
+        if !persistentCookie.isEmpty {
+            request.setValue(persistentCookie, forHTTPHeaderField: "Cookie")
+        }
+
         var resultData: Data?
         var httpResponse: HTTPURLResponse?
         let semaphore = DispatchSemaphore(value: 0)
@@ -370,6 +414,9 @@ extension JSEngine {
                 headerDict[String(describing: headerKey)] = String(describing: headerVal)
             }
             if let stringHeaders = httpResponse.allHeaderFields as? [String: String] {
+                if let setCookie = stringHeaders["Set-Cookie"] ?? stringHeaders["set-cookie"] {
+                    CookieStore.shared.setCookie(url: url.absoluteString, cookie: setCookie)
+                }
                 let cookies = HTTPCookie.cookies(withResponseHeaderFields: stringHeaders, for: url)
                 for cookie in cookies {
                     cookieDict[cookie.name] = cookie.value
