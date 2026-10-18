@@ -91,7 +91,7 @@ extension JSEngine {
             if let stored = self.memoryStorage[rule] {
                 return stored
             }
-            if rule.hasPrefix("$.") || rule.hasPrefix("@Json:") {
+            if rule.hasPrefix("$.") || rule.lowercased().hasPrefix("@json:") {
                 return JSONPathParser.parse(json: self.currentContent, path: rule).first ?? ""
             } else {
                 return CSSSelectorParser.parseElements(
@@ -102,7 +102,7 @@ extension JSEngine {
         }
         let getElements: @convention(block) (String) -> [String] = { [weak self] rule in
             guard let self else { return [] }
-            if rule.hasPrefix("$.") || rule.hasPrefix("@Json:") {
+            if rule.hasPrefix("$.") || rule.lowercased().hasPrefix("@json:") {
                 return JSONPathParser.parse(json: self.currentContent, path: rule)
             } else {
                 return CSSSelectorParser.parseElements(

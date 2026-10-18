@@ -35,7 +35,7 @@ public final class RuleAnalyzer {
         // 2. 调度执行主规则
         var rawResults: [String] = []
         if !mainRule.isEmpty {
-            if mainRule.hasPrefix("$.") || mainRule.hasPrefix("@Json:") {
+            if mainRule.hasPrefix("$.") || mainRule.lowercased().hasPrefix("@json:") {
                 rawResults = JSONPathParser.parse(json: content, path: mainRule)
             } else {
                 rawResults = CSSSelectorParser.parseElements(html: content, rule: mainRule, baseUrl: baseUrl)

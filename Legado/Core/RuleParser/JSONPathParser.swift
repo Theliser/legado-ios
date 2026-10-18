@@ -39,7 +39,7 @@ public enum JSONPathParser {
 
     private static func evaluateSingle(root: Any, path: String) -> [String] {
         var cleanPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
-        if cleanPath.hasPrefix("@Json:") {
+        if cleanPath.lowercased().hasPrefix("@json:") {
             cleanPath = String(cleanPath.dropFirst(6))
         }
 
@@ -151,7 +151,7 @@ public enum JSONPathParser {
 
     private static func parseSingleArray(root: Any, path: String) -> [Any]? {
         var cleanPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
-        if cleanPath.hasPrefix("@Json:") {
+        if cleanPath.lowercased().hasPrefix("@json:") {
             cleanPath = String(cleanPath.dropFirst(6))
         }
 

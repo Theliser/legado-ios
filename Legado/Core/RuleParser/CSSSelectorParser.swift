@@ -106,7 +106,7 @@ public enum CSSSelectorParser {
             if followUp.isEmpty {
                 let trimmedOut = jsOutput.trimmingCharacters(in: .whitespacesAndNewlines)
                 return trimmedOut.isEmpty ? [] : [trimmedOut]
-            } else if followUp.hasPrefix("$.") || followUp.hasPrefix("@Json:") {
+            } else if followUp.hasPrefix("$.") || followUp.lowercased().hasPrefix("@json:") {
                 return JSONPathParser.parse(json: jsOutput, path: followUp)
             } else {
                 return parseElements(html: jsOutput, rule: followUp, baseUrl: baseUrl)

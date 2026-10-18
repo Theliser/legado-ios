@@ -394,7 +394,7 @@ struct RealBookSourceTests {
     }
 
     @Test("Test Real Source Crypto and Encoding Methods in JSEngine")
-    func realSourceCryptoAndEncodingMethods() throws {
+    func realSourceCryptoAndEncodingMethods() {
         let jsEngine = JSEngine()
 
         // 1. MD5-16
@@ -409,12 +409,12 @@ struct RealBookSourceTests {
         let hmacHex = jsEngine.evaluate(script: "java.HMacHex('hello', 'SHA-256', 'secret_key')")
         let hmacB64 = jsEngine.evaluate(script: "java.HMacBase64('hello', 'SHA-256', 'secret_key')")
         #expect(hmacHex?.count == 64)
-        #expect(try hmacB64 != nil && !#require(hmacB64?.isEmpty))
+        #expect(hmacB64?.isEmpty == false)
 
         // 4. 对称加解密 (AES/ECB)
         let encrypted = jsEngine.evaluate(
             script: "java.createSymmetricCrypto('AES/ECB/PKCS5Padding', '1234567890123456').encryptBase64('hello world')")
-        #expect(try encrypted != nil && !#require(encrypted?.isEmpty))
+        #expect(encrypted?.isEmpty == false)
         let decrypted = jsEngine.evaluate(
             script: "java.createSymmetricCrypto('AES/ECB/PKCS5Padding', '1234567890123456').decryptStr('\(encrypted!)')")
         #expect(decrypted == "hello world")
@@ -500,5 +500,42 @@ struct RealBookSourceTests {
         #expect(trResults.count == 2)
         #expect(trResults[0].contains("宿命之环"))
         #expect(trResults[1].contains("诡秘之主"))
+    }
+
+    @Test("Test Case-Insensitive @json: Prefix Rule Handling")
+    func caseInsensitiveJsonPrefix() {
+        let jsonStr = """
+        {
+            "code": 1,
+            "data": {
+                "name": "星之剑士",
+                "list": [
+                    {"id": "1001", "title": "第一章 序幕"},
+                    {"id": "1002", "title": "第二章 出发"}
+                ]
+            }
+        }
+        """
+
+        // 1. JSONPathParser.parseArray with @json:
+        let listLowercase = JSONPathParser.parseArray(json: jsonStr, path: "@json:$.data.list")
+        #expect(listLowercase?.count == 2)
+
+        let listUppercase = JSONPathParser.parseArray(json: jsonStr, path: "@Json:$.data.list")
+        #expect(listUppercase?.count == 2)
+
+        // 2. RuleEvaluator.extractField with @json:
+        guard let data = jsonStr.data(using: .utf8),
+              let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            Issue.record("Failed to deserialize JSON")
+            return
+        }
+
+        let nameResult = RuleEvaluator.evaluate(dict: dict, rule: "@json:$.data.name")
+        #expect(nameResult == "星之剑士")
+
+        // 3. RuleAnalyzer with @json:
+        let analyzerResults = RuleAnalyzer().extractList(content: jsonStr, rule: "@json:$.data.name")
+        #expect(analyzerResults == ["星之剑士"])
     }
 }

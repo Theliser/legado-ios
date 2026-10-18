@@ -167,7 +167,7 @@ public enum RuleEvaluator {
     /// 提取单个字段或深层键值 (支持 a.b.c 及 a[0].b 数组索引)
     public static func extractField(from dict: [String: Any], path: String) -> String? {
         var cleanPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
-        if cleanPath.hasPrefix("@Json:") {
+        if cleanPath.lowercased().hasPrefix("@json:") {
             cleanPath = String(cleanPath.dropFirst(6))
         }
         if cleanPath.hasPrefix("$.") {
