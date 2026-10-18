@@ -35,13 +35,15 @@ public final class JSEngine {
         }
 
         // 如果结果是复杂 JS 对象或数组，转换为标准 JSON 字符串返回
-        if jsResult.isObject, let jsonFunc = context.objectForKeyedSubscript("JSON" as NSString)?
-            .objectForKeyedSubscript("stringify" as NSString),
-           let stringified = jsonFunc.call(withArguments: [jsResult]),
-           !stringified.isUndefined, !stringified.isNull {
-            let jsonStr = stringified.toString()
-            if jsonStr != "{}" {
-                return jsonStr
+        if jsResult.isObject {
+            let json = context.objectForKeyedSubscript("JSON" as NSString)
+            let stringify = json?.objectForKeyedSubscript("stringify" as NSString)
+            if let stringified = stringify?.call(withArguments: [jsResult]),
+               !stringified.isUndefined, !stringified.isNull {
+                let jsonStr = stringified.toString()
+                if jsonStr != "{}" {
+                    return jsonStr
+                }
             }
         }
 
