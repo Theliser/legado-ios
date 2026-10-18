@@ -4,7 +4,7 @@ import SwiftUI
 public struct ReaderView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var environment: AppEnvironment
-    @StateObject private var viewModel: ReaderViewModel
+    @StateObject var viewModel: ReaderViewModel
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
     @State private var isTTSSpeaking = false
@@ -78,6 +78,10 @@ public struct ReaderView: View {
                                 viewModel.send(.hideHUD)
                                 isSearchContentPresented = true
                             }
+                        },
+                        isBookmarked: viewModel.state.isCurrentPageBookmarked,
+                        onToggleBookmark: {
+                            viewModel.send(.toggleBookmark)
                         })
                         .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 }
@@ -146,11 +150,21 @@ public struct ReaderView: View {
                     durChapterIndex: viewModel.state.currentChapterIndex,
                     isReverse: false,
                     searchText: "",
+                    bookmarks: viewModel.state.bookmarks,
                     onToggleReverse: {},
                     onSearchChange: { _ in },
                     onSelectChapter: { chapter in
                         viewModel.send(.closeToc)
                         viewModel.send(.loadChapter(chapter.index))
+                    },
+                    onSelectBookmark: { bookmark in
+                        viewModel.send(.closeToc)
+                        viewModel.send(.jumpToChapterAndOffset(
+                            chapterIndex: bookmark.chapterIndex,
+                            matchOffset: bookmark.chapterPos))
+                    },
+                    onDeleteBookmark: { bookmark in
+                        viewModel.send(.deleteBookmark(id: bookmark.id))
                     })
         }
         .onReceive(viewModel.effectPublisher) { effect in
@@ -188,130 +202,6 @@ public struct ReaderView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .animation(.spring(response: 0.35, dampingFraction: 0.8), value: toastMessage)
             }
-        }
-    }
-
-    @ViewBuilder
-    private func contentLayer(width: CGFloat) -> some View {
-        if viewModel.state.isLoading {
-            ProgressView("正在排版正文...")
-                .tint(viewModel.state.config.theme.textColor)
-        } else if viewModel.state.pages.isEmpty {
-            ContentUnavailableView(
-                "章节内容加载失败",
-                systemImage: "book.pages",
-                description: Text("轻触屏幕中央呼出控制栏"))
-        } else {
-            switch viewModel.state.config.pageTurnMode {
-            case .cover:
-                coverContent(width: width)
-
-            case .slide:
-                slideContent(width: width)
-
-            case .scroll:
-                scrollContent
-            }
-        }
-    }
-
-    private func coverContent(width: CGFloat) -> some View {
-        ZStack {
-            if let page = viewModel.state.currentPage {
-                ReaderPageView(
-                    page: page,
-                    totalPages: viewModel.state.pages.count,
-                    config: viewModel.state.config)
-            }
-            tapGestureOverlay(width: width)
-        }
-    }
-
-    private func slideContent(width: CGFloat) -> some View {
-        ZStack {
-            TabView(selection: Binding(
-                get: { viewModel.state.currentPageIndex },
-                set: { viewModel.send(.jumpToPage($0)) })) {
-                    ForEach(viewModel.state.pages) { page in
-                        ReaderPageView(
-                            page: page,
-                            totalPages: viewModel.state.pages.count,
-                            config: viewModel.state.config)
-                            .tag(page.pageIndex)
-                    }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-
-            Color.clear
-                .frame(width: width * 0.4)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    viewModel.send(.toggleHUD)
-                }
-        }
-    }
-
-    private var scrollContent: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 24) {
-                ForEach(viewModel.state.pages) { page in
-                    VStack(alignment: .leading, spacing: 8) {
-                        if page.pageIndex == 0 {
-                            Text(page.chapterTitle)
-                                .font(.title2.bold())
-                                .foregroundStyle(viewModel.state.config.theme.textColor)
-                                .padding(.bottom, 6)
-                        }
-                        Text(page.contentText)
-                            .font(.system(size: viewModel.state.config.fontSize))
-                            .lineSpacing(viewModel.state.config.lineSpacing)
-                            .foregroundStyle(viewModel.state.config.theme.textColor)
-                    }
-                    .padding(.horizontal, viewModel.state.config.horizontalMargin)
-                }
-            }
-            .padding(.top, viewModel.state.config.topMargin)
-            .padding(.bottom, viewModel.state.config.bottomMargin + 24)
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            viewModel.send(.toggleHUD)
-        }
-    }
-
-    private func tapGestureOverlay(width: CGFloat) -> some View {
-        HStack(spacing: 0) {
-            // 左侧 30% 热区 (上一页)
-            Color.clear
-                .contentShape(Rectangle())
-                .frame(width: width * 0.3)
-                .onTapGesture {
-                    if viewModel.state.isHUDVisible {
-                        viewModel.send(.hideHUD)
-                    } else {
-                        viewModel.send(.prevPage)
-                    }
-                }
-
-            // 中间 40% 热区 (呼出/隐藏 HUD)
-            Color.clear
-                .contentShape(Rectangle())
-                .frame(width: width * 0.4)
-                .onTapGesture {
-                    viewModel.send(.toggleHUD)
-                }
-
-            // 右侧 30% 热区 (下一页)
-            Color.clear
-                .contentShape(Rectangle())
-                .frame(width: width * 0.3)
-                .onTapGesture {
-                    if viewModel.state.isHUDVisible {
-                        viewModel.send(.hideHUD)
-                    } else {
-                        viewModel.send(.nextPage)
-                    }
-                }
         }
     }
 }

@@ -30,6 +30,10 @@ public final class AppEnvironment: ObservableObject {
     public let restoreFromWebDAVUseCase: RestoreFromWebDAVUseCase
     public let changeBookSourceUseCase: ChangeBookSourceUseCase
     public let searchBookContentUseCase: SearchBookContentUseCase
+    public let bookmarkRepository: BookmarkRepository
+    public let getBookmarksUseCase: GetBookmarksUseCase
+    public let saveBookmarkUseCase: SaveBookmarkUseCase
+    public let deleteBookmarkUseCase: DeleteBookmarkUseCase
 
     public init(inMemory: Bool = false) {
         let provider = ModelContainerProvider(inMemory: inMemory)
@@ -37,9 +41,11 @@ public final class AppEnvironment: ObservableObject {
 
         let sourceRepo = BookSourceRepositoryImpl(modelContainer: provider.container)
         let bookRepo = BookRepositoryImpl(modelContainer: provider.container)
+        let bookmarkRepo = BookmarkRepositoryImpl(modelContainer: provider.container)
 
         self.bookSourceRepository = sourceRepo
         self.bookRepository = bookRepo
+        self.bookmarkRepository = bookmarkRepo
 
         self.searchBooksUseCase = SearchBooksUseCase(sourceRepository: sourceRepo)
         self.saveBookToShelfUseCase = SaveBookToShelfUseCase(bookRepository: bookRepo)
@@ -67,6 +73,9 @@ public final class AppEnvironment: ObservableObject {
             sourceRepository: sourceRepo,
             bookRepository: bookRepo)
         self.searchBookContentUseCase = SearchBookContentUseCase()
+        self.getBookmarksUseCase = GetBookmarksUseCase(bookmarkRepository: bookmarkRepo)
+        self.saveBookmarkUseCase = SaveBookmarkUseCase(bookmarkRepository: bookmarkRepo)
+        self.deleteBookmarkUseCase = DeleteBookmarkUseCase(bookmarkRepository: bookmarkRepo)
 
         if !inMemory {
             primeSampleChapterCache()
@@ -228,7 +237,10 @@ public final class AppEnvironment: ObservableObject {
             showHUDInitially: showHUDInitially,
             getChapterContentUseCase: getChapterContentUseCase,
             getBookTocUseCase: getBookTocUseCase,
-            bookRepository: bookRepository)
+            bookRepository: bookRepository,
+            getBookmarksUseCase: getBookmarksUseCase,
+            saveBookmarkUseCase: saveBookmarkUseCase,
+            deleteBookmarkUseCase: deleteBookmarkUseCase)
     }
 
     /// 创建发现 ViewModel

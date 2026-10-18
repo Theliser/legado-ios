@@ -8,6 +8,9 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
     private let getBookTocUseCase: GetBookTocUseCase
     private let bookRepository: BookRepository
     private let textLayoutEngine: TextLayoutEngine
+    let getBookmarksUseCase: GetBookmarksUseCase?
+    let saveBookmarkUseCase: SaveBookmarkUseCase?
+    let deleteBookmarkUseCase: DeleteBookmarkUseCase?
 
     public init(
         book: Book,
@@ -16,11 +19,17 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
         getChapterContentUseCase: GetChapterContentUseCase,
         getBookTocUseCase: GetBookTocUseCase,
         bookRepository: BookRepository,
-        textLayoutEngine: TextLayoutEngine = .shared) {
+        textLayoutEngine: TextLayoutEngine = .shared,
+        getBookmarksUseCase: GetBookmarksUseCase? = nil,
+        saveBookmarkUseCase: SaveBookmarkUseCase? = nil,
+        deleteBookmarkUseCase: DeleteBookmarkUseCase? = nil) {
         self.getChapterContentUseCase = getChapterContentUseCase
         self.getBookTocUseCase = getBookTocUseCase
         self.bookRepository = bookRepository
         self.textLayoutEngine = textLayoutEngine
+        self.getBookmarksUseCase = getBookmarksUseCase
+        self.saveBookmarkUseCase = saveBookmarkUseCase
+        self.deleteBookmarkUseCase = deleteBookmarkUseCase
 
         let startChapter = initialChapterIndex ?? book.durChapterIndex
         super.init(initialState: ReaderState(
@@ -29,6 +38,7 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
             isHUDVisible: showHUDInitially))
 
         loadTocAndStartReading()
+        loadBookmarks()
     }
 
     private func loadTocAndStartReading() {
@@ -87,6 +97,9 @@ public final class ReaderViewModel: BaseMVIViewModel<ReaderState, ReaderIntent, 
             loadChapterContent(chapterIndex: matchedChapterIndex, targetPageIndex: 0)
             emitEffect(.showToast("已成功换源至 [\(updatedBook.originName)]"))
             emitEffect(.hapticFeedback)
+
+        case .toggleBookmark, .addBookmark, .deleteBookmark, .loadBookmarks:
+            handleBookmarkIntent(intent)
         }
     }
 
