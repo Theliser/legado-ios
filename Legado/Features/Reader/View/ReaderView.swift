@@ -21,24 +21,8 @@ public struct ReaderView: View {
                 viewModel.state.config.theme.backgroundColor
                     .ignoresSafeArea()
 
-                // 单页正文排版
-                if let page = viewModel.state.currentPage {
-                    ReaderPageView(
-                        page: page,
-                        totalPages: viewModel.state.pages.count,
-                        config: viewModel.state.config)
-                } else if viewModel.state.isLoading {
-                    ProgressView("正在排版正文...")
-                        .tint(viewModel.state.config.theme.textColor)
-                } else {
-                    ContentUnavailableView(
-                        "章节内容加载失败",
-                        systemImage: "book.pages",
-                        description: Text("轻触屏幕中央呼出控制栏"))
-                }
-
-                // 全屏交互手势热区 (左30% 上一页，中40% 呼出HUD，右30% 下一页)
-                tapGestureOverlay(width: geometry.size.width)
+                // 多模式正文排版呈现 (覆盖 / 滑动 / 连续上下滚动)
+                contentLayer(width: geometry.size.width)
 
                 // 液态玻璃 HUD 控制面板
                 if viewModel.state.isHUDVisible {
@@ -66,6 +50,9 @@ public struct ReaderView: View {
                         },
                         onSelectTheme: { theme in
                             viewModel.send(.selectTheme(theme))
+                        },
+                        onSelectPageTurnMode: { mode in
+                            viewModel.send(.selectPageTurnMode(mode))
                         },
                         onStartTTS: {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
@@ -182,6 +169,94 @@ public struct ReaderView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .animation(.spring(response: 0.35, dampingFraction: 0.8), value: toastMessage)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func contentLayer(width: CGFloat) -> some View {
+        if viewModel.state.isLoading {
+            ProgressView("正在排版正文...")
+                .tint(viewModel.state.config.theme.textColor)
+        } else if viewModel.state.pages.isEmpty {
+            ContentUnavailableView(
+                "章节内容加载失败",
+                systemImage: "book.pages",
+                description: Text("轻触屏幕中央呼出控制栏"))
+        } else {
+            switch viewModel.state.config.pageTurnMode {
+            case .cover:
+                coverContent(width: width)
+
+            case .slide:
+                slideContent(width: width)
+
+            case .scroll:
+                scrollContent
+            }
+        }
+    }
+
+    private func coverContent(width: CGFloat) -> some View {
+        ZStack {
+            if let page = viewModel.state.currentPage {
+                ReaderPageView(
+                    page: page,
+                    totalPages: viewModel.state.pages.count,
+                    config: viewModel.state.config)
+            }
+            tapGestureOverlay(width: width)
+        }
+    }
+
+    private func slideContent(width: CGFloat) -> some View {
+        ZStack {
+            TabView(selection: Binding(
+                get: { viewModel.state.currentPageIndex },
+                set: { viewModel.send(.jumpToPage($0)) })) {
+                    ForEach(viewModel.state.pages) { page in
+                        ReaderPageView(
+                            page: page,
+                            totalPages: viewModel.state.pages.count,
+                            config: viewModel.state.config)
+                            .tag(page.pageIndex)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+
+            Color.clear
+                .frame(width: width * 0.4)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    viewModel.send(.toggleHUD)
+                }
+        }
+    }
+
+    private var scrollContent: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 24) {
+                ForEach(viewModel.state.pages) { page in
+                    VStack(alignment: .leading, spacing: 8) {
+                        if page.pageIndex == 0 {
+                            Text(page.chapterTitle)
+                                .font(.title2.bold())
+                                .foregroundStyle(viewModel.state.config.theme.textColor)
+                                .padding(.bottom, 6)
+                        }
+                        Text(page.contentText)
+                            .font(.system(size: viewModel.state.config.fontSize))
+                            .lineSpacing(viewModel.state.config.lineSpacing)
+                            .foregroundStyle(viewModel.state.config.theme.textColor)
+                    }
+                    .padding(.horizontal, viewModel.state.config.horizontalMargin)
+                }
+            }
+            .padding(.top, viewModel.state.config.topMargin)
+            .padding(.bottom, viewModel.state.config.bottomMargin + 24)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            viewModel.send(.toggleHUD)
         }
     }
 

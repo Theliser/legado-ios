@@ -16,6 +16,7 @@ public struct ReaderHUDView: View {
     let onToggleConfig: () -> Void
     let onFontSizeChange: (CGFloat) -> Void
     let onSelectTheme: (ReaderTheme) -> Void
+    let onSelectPageTurnMode: (PageTurnMode) -> Void
     let onStartTTS: () -> Void
     let onOpenChangeSource: () -> Void
 
@@ -34,6 +35,7 @@ public struct ReaderHUDView: View {
         onToggleConfig: @escaping () -> Void,
         onFontSizeChange: @escaping (CGFloat) -> Void,
         onSelectTheme: @escaping (ReaderTheme) -> Void,
+        onSelectPageTurnMode: @escaping (PageTurnMode) -> Void = { _ in },
         onStartTTS: @escaping () -> Void = {},
         onOpenChangeSource: @escaping () -> Void = {}) {
         self.bookTitle = bookTitle
@@ -50,6 +52,7 @@ public struct ReaderHUDView: View {
         self.onToggleConfig = onToggleConfig
         self.onFontSizeChange = onFontSizeChange
         self.onSelectTheme = onSelectTheme
+        self.onSelectPageTurnMode = onSelectPageTurnMode
         self.onStartTTS = onStartTTS
         self.onOpenChangeSource = onOpenChangeSource
     }
@@ -256,6 +259,35 @@ public struct ReaderHUDView: View {
                                 .font(.caption.bold())
                                 .foregroundStyle(theme.textColor)
                         }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // 翻页动效模式切换
+            HStack(spacing: 12) {
+                Text("翻页")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                ForEach(PageTurnMode.allCases) { mode in
+                    let isSelected = config.pageTurnMode == mode
+                    Button {
+                        onSelectPageTurnMode(mode)
+                    } label: {
+                        Text(mode.rawValue)
+                            .font(.footnote.weight(isSelected ? .semibold : .regular))
+                            .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 7)
+                            .background(
+                                Capsule(style: .continuous)
+                                    .fill(isSelected ? Color.accentColor.opacity(0.14) : Color.secondary.opacity(0.10)))
+                            .overlay(
+                                Capsule(style: .continuous)
+                                    .stroke(
+                                        isSelected ? Color.accentColor.opacity(0.35) : Color.white.opacity(0.12),
+                                        lineWidth: 0.5))
                     }
                     .buttonStyle(.plain)
                 }

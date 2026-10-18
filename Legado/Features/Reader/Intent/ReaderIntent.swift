@@ -27,6 +27,8 @@ public enum ReaderIntent: ViewIntent, Equatable, Sendable {
     case changeFontSize(delta: CGFloat)
     /// 切换配色主题
     case selectTheme(ReaderTheme)
+    /// 切换翻页动效模式
+    case selectPageTurnMode(PageTurnMode)
     /// 屏幕尺寸尺寸更新重新排版
     case updateScreenBounds(CGRect)
     /// 切换书源并重载新目录与章节
