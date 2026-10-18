@@ -61,11 +61,12 @@ flowchart TD
   - 核心功能：
     - 在阅读器内部搜索关键词，列出包含关键字的章节、上下文摘录与段落；
     - 点击匹配项瞬时跳转至正文对应位置并精确定位。
-- [ ] **1.4 书签与划线笔记标注系统 (Bookmarks & Highlights)**
+- [x] **1.4 书签与划线笔记标注系统 (Bookmarks & Highlights)** (已完成，Commit: `e19a1e8`)
   - 对标文件：`data/entities/Bookmark.kt`, `ui/book/bookmark/`
   - 核心功能：
-    - 正文长按选中文字，支持添加书签、复制、笔记随笔；
-    - 目录侧栏 (`BookTocSheet`) 增加「书签」Tab 分页，支持一键定位与滑动删除。
+    - SwiftData `BookmarkEntity` 增删查改持久化；
+    - 阅读器 HUD 实时书签联动与一键添加/取消；
+    - 目录侧栏 (`BookTocSheet`) 分段集成「目录/书签」双视图，支持一键定位与滑动删除。
 
 ---
 
