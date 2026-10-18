@@ -113,6 +113,7 @@
 		8C617A23D278093C5931F930 /* SourceManageIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 671DD375F643BF6702EFE965 /* SourceManageIntent.swift */; };
 		8DDB93FEBC6C4D3DB8612351 /* BookGroupEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C82F9440373CBCBC1609D26 /* BookGroupEntity.swift */; };
 		8E31B8AF3170047B9857AEEC /* CheckBookUpdatesUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 326C485161DB4B0717E92D98 /* CheckBookUpdatesUseCase.swift */; };
+		91BEF34798025AC5A47D5A65 /* JSEngine+Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA88885C513D00C17AA1FE /* JSEngine+Crypto.swift */; };
 		920BAD93009B86B44AA1082B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA8683896300F879605C423 /* ContentView.swift */; };
 		93A30F5DC042049464EBAB61 /* ChangeSourceCandidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98070D79985B7014D1F420AA /* ChangeSourceCandidate.swift */; };
 		93C622256A73E97F987971B7 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 933BBC8F482BE34F96380518 /* SearchView.swift */; };
@@ -347,6 +348,7 @@
 		B55532E1649A18599B808ED9 /* BookCacheInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookCacheInfo.swift; sourceTree = "<group>"; };
 		B75E1693843D3A93EA32F683 /* BookmarkRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkRepository.swift; sourceTree = "<group>"; };
 		B8BB85DD228B65F15B913D69 /* CheckBookSourceHealthUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckBookSourceHealthUseCase.swift; sourceTree = "<group>"; };
+		BBFA88885C513D00C17AA1FE /* JSEngine+Crypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSEngine+Crypto.swift"; sourceTree = "<group>"; };
 		BEC1355A3492E05645B8C086 /* BookSearchContentIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookSearchContentIntent.swift; sourceTree = "<group>"; };
 		C27582F59CDFD585A60A6B6E /* ModelContainerProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelContainerProvider.swift; sourceTree = "<group>"; };
 		C321D3634EA8A34DFC246F6A /* BookTocAndDetailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookTocAndDetailTests.swift; sourceTree = "<group>"; };
@@ -982,6 +984,7 @@
 			children = (
 				4D38C56D6EE9C6C7CE33E1B7 /* JSEngine.swift */,
 				F5FE431F82D63E312ABEBF77 /* JSEngine+Bridge.swift */,
+				BBFA88885C513D00C17AA1FE /* JSEngine+Crypto.swift */,
 			);
 			path = ScriptEngine;
 			sourceTree = "<group>";
@@ -1546,6 +1549,7 @@
 				43396C34CBAEC1AD10605445 /* ImportBookSourcesUseCase.swift in Sources */,
 				274FCCF76691A49EA24B43C4 /* ImportLocalBookUseCase.swift in Sources */,
 				0AABC258821FE60A976963BB /* JSEngine+Bridge.swift in Sources */,
+				91BEF34798025AC5A47D5A65 /* JSEngine+Crypto.swift in Sources */,
 				C80CB720B93D55ADAE23CC6D /* JSEngine.swift in Sources */,
 				36A679B29B3AC90A9D0DE4B2 /* JSONPathParser.swift in Sources */,
 				BC4F3DBE6AE72F01D9ACE782 /* LegadoApp.swift in Sources */,

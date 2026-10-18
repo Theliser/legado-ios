@@ -392,4 +392,113 @@ struct RealBookSourceTests {
         let branchParsed = CSSSelectorParser.parse(element: doc2, rule: branchRule)
         #expect(branchParsed.first == "副标题内容_已处理")
     }
+
+    @Test("Test Real Source Crypto and Encoding Methods in JSEngine")
+    func realSourceCryptoAndEncodingMethods() throws {
+        let jsEngine = JSEngine()
+
+        // 1. MD5-16
+        let md516 = jsEngine.evaluate(script: "java.md5Encode16('123456')")
+        #expect(md516 == "49ba59abbe56e057")
+
+        // 2. Digest Hex (SHA-256)
+        let sha256 = jsEngine.evaluate(script: "java.digestHex('hello', 'SHA-256')")
+        #expect(sha256 == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
+
+        // 3. HMAC Hex & Base64
+        let hmacHex = jsEngine.evaluate(script: "java.HMacHex('hello', 'SHA-256', 'secret_key')")
+        let hmacB64 = jsEngine.evaluate(script: "java.HMacBase64('hello', 'SHA-256', 'secret_key')")
+        #expect(hmacHex?.count == 64)
+        #expect(try hmacB64 != nil && !#require(hmacB64?.isEmpty))
+
+        // 4. 对称加解密 (AES/ECB)
+        let encrypted = jsEngine.evaluate(
+            script: "java.createSymmetricCrypto('AES/ECB/PKCS5Padding', '1234567890123456').encryptBase64('hello world')")
+        #expect(try encrypted != nil && !#require(encrypted?.isEmpty))
+        let decrypted = jsEngine.evaluate(
+            script: "java.createSymmetricCrypto('AES/ECB/PKCS5Padding', '1234567890123456').decryptStr('\(encrypted!)')")
+        #expect(decrypted == "hello world")
+
+        // 5. 中文数字章节名转换 (toNumChapter)
+        let title1 = jsEngine.evaluate(script: "java.toNumChapter('第一千二百三十四章 远古太阳神')")
+        #expect(title1 == "第1234章 远古太阳神")
+
+        // 6. htmlFormat 与 randomUUID
+        let formatted = jsEngine.evaluate(script: "java.htmlFormat('<p>第一段<br>换行</p><p>第二段</p>')")
+        #expect(formatted?.contains("第一段") == true)
+        let uuid = jsEngine.evaluate(script: "java.randomUUID()")
+        #expect(uuid?.contains("-") == true)
+    }
+
+    @Test("Test Real World Complex AnalyzeUrl Parsing")
+    func realWorldComplexAnalyzeUrlParsing() throws {
+        // 1. 和图书: 前置 <js> 校验真人后跟随相对搜索 URL
+        let hetuRule = "<js>if(baseUrl == 'https://hetushu.com') { 'passed'; };</js>/search/?keyword={{key}}"
+        let hetuUrl = try AnalyzeUrl(
+            rawUrl: hetuRule,
+            key: "宿命之环",
+            baseUrl: "https://hetushu.com")
+        #expect(hetuUrl.url.absoluteString == "https://hetushu.com/search/?keyword=%E5%AE%BF%E5%91%BD%E4%B9%8B%E7%8E%AF")
+
+        // 2. 69书吧.com: 误加 <js> 标签包裹的 POST URL
+        let shubaRule = "<js>/modules/article/search.php,{'charset':'gbk','body':'searchkey={{key}}&searchtype=all','method':'POST'};result='';result;</js>"
+        let shubaUrl = try AnalyzeUrl(
+            rawUrl: shubaRule,
+            key: "宿命之环",
+            baseUrl: "https://www.69shuba.com")
+        #expect(shubaUrl.method == "POST")
+        #expect(shubaUrl.url.absoluteString.contains("/modules/article/search.php"))
+        #expect(shubaUrl.body != nil)
+
+        // 3. 顶点小说: @js: 动态生成带 JSON 请求体的 POST URL
+        let ddxsRule = "@js:url=\"https://m.ddxs.com/search.php,{'body':'keyword={{key}}&json=1','method':'POST'}\";result=url;"
+        let ddxsUrl = try AnalyzeUrl(
+            rawUrl: ddxsRule,
+            key: "宿命之环",
+            baseUrl: "https://m.ddxs.com")
+        #expect(ddxsUrl.method == "POST")
+        #expect(ddxsUrl.url.absoluteString == "https://m.ddxs.com/search.php")
+        #expect(ddxsUrl.body != nil)
+    }
+
+    @Test("Test Real World DOM Step Exclusion Rules (tag.p.!-1 and tr!0)")
+    func realWorldDOMStepExclusionRules() {
+        // 1. 武林中文网: 排除末尾广告段落 tag.p.!-1@text
+        let html1 = """
+        <div class="word_read">
+            <p>第一段小说正文内容</p>
+            <p>第二段小说正文内容</p>
+            <p>武林中文网 最新章节！请勿开启浏览器阅读模式</p>
+        </div>
+        """
+        guard let doc1 = try? SwiftSoup.parse(html1) else {
+            Issue.record("SwiftSoup failed")
+            return
+        }
+        let pRule = "class.word_read.0@tag.p.!-1@text"
+        let pResults = CSSSelectorParser.parse(element: doc1, rule: pRule)
+        #expect(pResults.count == 2)
+        #expect(pResults[0] == "第一段小说正文内容")
+        #expect(pResults[1] == "第二段小说正文内容")
+
+        // 2. 就爱文学: 排除表格表头行 tbody@tr!0
+        let html2 = """
+        <table id="author">
+            <tbody>
+                <tr><th>书名</th><th>作者</th></tr>
+                <tr><td>宿命之环</td><td>爱潜水的乌贼</td></tr>
+                <tr><td>诡秘之主</td><td>爱潜水的乌贼</td></tr>
+            </tbody>
+        </table>
+        """
+        guard let doc2 = try? SwiftSoup.parse(html2) else {
+            Issue.record("SwiftSoup failed")
+            return
+        }
+        let trRule = "#author@tbody@tr!0@text"
+        let trResults = CSSSelectorParser.parse(element: doc2, rule: trRule)
+        #expect(trResults.count == 2)
+        #expect(trResults[0].contains("宿命之环"))
+        #expect(trResults[1].contains("诡秘之主"))
+    }
 }

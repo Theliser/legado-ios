@@ -91,20 +91,39 @@ public struct AnalyzeUrl: Sendable {
     }
 
     private static func evaluateUrlJs(rawUrl: String, context: AnalyzeUrlContext) -> String {
-        var script: String?
-        if rawUrl.hasPrefix("@js:") {
-            script = String(rawUrl.dropFirst(4))
-        } else if rawUrl.hasPrefix("<js>"), let closeRange = rawUrl.range(of: "</js>") {
-            script = String(rawUrl[rawUrl.index(rawUrl.startIndex, offsetBy: 4) ..< closeRange.lowerBound])
+        let pattern = #"(?:<js>([\s\S]*?)</js>)|(?:@js:([\s\S]*))"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+            return rawUrl
+        }
+        let nsString = rawUrl as NSString
+        let matches = regex.matches(in: rawUrl, range: NSRange(location: 0, length: nsString.length))
+        if matches.isEmpty {
+            return rawUrl
         }
 
-        guard let script else { return rawUrl }
         let jsEngine = JSEngine()
+        var bindings = buildBindings(from: context, rawUrl: rawUrl)
+        let (intermediateResult, endOffset) = executeJsMatches(
+            matches: matches,
+            nsString: nsString,
+            rawUrl: rawUrl,
+            jsEngine: jsEngine,
+            bindings: &bindings)
+
+        return resolveTrailingUrl(
+            nsString: nsString,
+            start: endOffset,
+            currentResult: intermediateResult,
+            rawUrl: rawUrl)
+    }
+
+    private static func buildBindings(from context: AnalyzeUrlContext, rawUrl: String) -> [String: Any] {
         var bindings: [String: Any] = [
             "key": context.key ?? "",
+            "searchKey": context.key ?? "",
             "page": context.page ?? 1,
             "baseUrl": context.baseUrl,
-            "result": "",
+            "result": rawUrl,
         ]
         if let source = context.source {
             bindings["bookSourceUrl"] = source.bookSourceUrl
@@ -116,12 +135,61 @@ public struct AnalyzeUrl: Sendable {
             bindings["bookName"] = book.name
             bindings["bookAuthor"] = book.author
         }
+        return bindings
+    }
 
-        if let output = jsEngine.evaluate(script: script, bindings: bindings),
-           !output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return output.trimmingCharacters(in: .whitespacesAndNewlines)
+    private static func executeJsMatches(
+        matches: [NSTextCheckingResult],
+        nsString: NSString,
+        rawUrl: String,
+        jsEngine: JSEngine,
+        bindings: inout [String: Any]) -> (result: String, endOffset: Int) {
+        var start = 0
+        var current = rawUrl
+
+        for match in matches {
+            if match.range.location > start {
+                let leading = nsString.substring(with: NSRange(location: start, length: match.range.location - start))
+                    .trimmingCharacters(in: .whitespaces)
+                if !leading.isEmpty {
+                    current = leading.replacingOccurrences(of: "@result", with: current)
+                }
+            }
+            let scriptRange = match.range(at: 1).location != NSNotFound ? match.range(at: 1) : match.range(at: 2)
+            let script = nsString.substring(with: scriptRange)
+            bindings["result"] = current
+            if let output = jsEngine.evaluate(script: script, bindings: bindings),
+               !output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                current = output.trimmingCharacters(in: .whitespacesAndNewlines)
+            } else if script.contains("/search") || script.contains(".php") || script.contains("/") {
+                var clean = script.trimmingCharacters(in: .whitespacesAndNewlines)
+                if let semiRange = clean.range(of: #";\s*result\s*="#, options: .regularExpression) {
+                    clean = String(clean[..<semiRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                current = clean
+            }
+            start = match.range.location + match.range.length
         }
-        return rawUrl
+        return (current, start)
+    }
+
+    private static func resolveTrailingUrl(
+        nsString: NSString,
+        start: Int,
+        currentResult: String,
+        rawUrl: String) -> String {
+        guard nsString.length > start else { return currentResult }
+        let trailing = nsString.substring(from: start).trimmingCharacters(in: .whitespaces)
+        guard !trailing.isEmpty else { return currentResult }
+
+        if trailing.contains("@result") {
+            return trailing.replacingOccurrences(of: "@result", with: currentResult)
+        } else if currentResult.isEmpty || currentResult == rawUrl {
+            return trailing
+        } else if !trailing.hasPrefix(",") && !currentResult.contains(trailing) {
+            return trailing
+        }
+        return currentResult
     }
 
     private static func interpolateTemplate(

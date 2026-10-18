@@ -76,10 +76,21 @@ public final class JSEngine {
         let getLoginMap: @convention(block) () -> [String: String] = {
             [:]
         }
+        let getKey: @convention(block) () -> String = {
+            sourceUrl
+        }
         sourceObj?.setObject(getVar, forKeyedSubscript: "getVariable" as NSString)
         sourceObj?.setObject(setVar, forKeyedSubscript: "setVariable" as NSString)
         sourceObj?.setObject(getLoginMap, forKeyedSubscript: "getLoginInfoMap" as NSString)
+        sourceObj?.setObject(getKey, forKeyedSubscript: "getKey" as NSString)
+        sourceObj?.setObject(getKey, forKeyedSubscript: "getTag" as NSString)
         context.setObject(sourceObj, forKeyedSubscript: "source" as NSString)
+
+        // 绑定全局 Map(key) 辅助方法 (在很多书源中如番茄小说中用来读取 key)
+        let mapFunc: @convention(block) (String) -> String = { [weak self] key in
+            self?.memoryStorage[key] ?? ""
+        }
+        context.setObject(mapFunc, forKeyedSubscript: "Map" as NSString)
 
         // 绑定 book 辅助对象
         let bookObj = JSValue(newObjectIn: context)
