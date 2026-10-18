@@ -82,101 +82,27 @@ public final class ContentParser: Sendable {
         rule: RuleContent,
         baseUrl: String,
         source: BookSource) -> (String, String?) {
-        var intermediateBody = body
-        var contentRule = rule.content ?? ""
-
-        // 如果 content 规则包含前置/内置 <js> 脚本，先执行 JS
-        if contentRule.contains("<js>") || contentRule.contains("@js:") {
-            let (pureRule, jsScript) = extractScript(from: contentRule)
-            if let script = jsScript {
-                let jsEngine = JSEngine()
-                let bindings: [String: Any] = [
-                    "result": intermediateBody,
-                    "baseUrl": baseUrl,
-                    "bookSourceUrl": source.bookSourceUrl,
-                    "bookSourceName": source.bookSourceName,
-                    "loginUrl": source.loginUrl ?? "",
-                ]
-                if let jsOutput = jsEngine.evaluate(script: script, bindings: bindings) {
-                    intermediateBody = jsOutput
-                }
-            }
-            contentRule = pureRule
+        guard let contentRule = rule.content, !contentRule.isEmpty else {
+            return (cleanRawHtml(body), nil)
         }
 
-        let isJson = intermediateBody.trimmingCharacters(in: .whitespacesAndNewlines).starts(with: "{") ||
-            intermediateBody.trimmingCharacters(in: .whitespacesAndNewlines).starts(with: "[")
+        let analyzer = AnalyzeRule(source: source, baseUrl: baseUrl)
+        analyzer.setContent(body, baseUrl: baseUrl)
 
-        if isJson {
-            var text = ""
-            if !contentRule.isEmpty {
-                if let evaluated = RuleEvaluator.evaluate(json: intermediateBody, rule: contentRule, baseUrl: baseUrl) {
-                    text = evaluated
-                } else {
-                    text = JSONPathParser.parse(json: intermediateBody, path: contentRule).joined(separator: "\n")
-                }
-            } else {
-                text = intermediateBody
-            }
-
-            var nextUrl: String?
-            if let nextRule = rule.nextContentUrl {
-                nextUrl = RuleEvaluator.evaluate(json: intermediateBody, rule: nextRule, baseUrl: baseUrl)
-                    ?? JSONPathParser.parse(json: intermediateBody, path: nextRule).first
-            }
-            return (text, nextUrl)
-        } else {
-            return parseHtmlContent(html: intermediateBody, rule: rule, contentRule: contentRule, baseUrl: baseUrl)
-        }
-    }
-
-    private func extractScript(from input: String) -> (String, String?) {
-        if let jsRange = input.range(of: "@js:") {
-            let script = String(input[jsRange.upperBound...])
-            let pure = String(input[..<jsRange.lowerBound]).trimmingCharacters(in: .whitespaces)
-            return (pure, script)
-        } else if let openTag = input.range(of: "<js>"),
-                  let closeTag = input.range(of: "</js>") {
-            let script = String(input[openTag.upperBound ..< closeTag.lowerBound])
-            let before = String(input[..<openTag.lowerBound]).trimmingCharacters(in: .whitespaces)
-            let after = String(input[closeTag.upperBound...]).trimmingCharacters(in: .whitespaces)
-            let pure = before.isEmpty ? after : before
-            return (pure, script)
-        }
-        return (input, nil)
-    }
-
-    private func parseHtmlContent(
-        html: String,
-        rule: RuleContent,
-        contentRule: String,
-        baseUrl: String) -> (String, String?) {
-        guard let doc = try? SwiftSoup.parse(html, baseUrl) else {
-            return (cleanRawHtml(html), nil)
-        }
-
-        _ = try? doc.select("script, style, noscript, header, footer").remove()
-
-        var rawContent = ""
-        if !contentRule.isEmpty {
-            let texts = CSSSelectorParser.parse(element: doc, rule: contentRule, baseUrl: baseUrl)
-            if !texts.isEmpty {
-                let combined = texts.joined(separator: "\n")
-                rawContent = combined.contains("<") ? cleanRawHtml(combined) : combined
-            } else if let element = try? doc.select(contentRule).first() {
-                let htmlStr = (try? element.html()) ?? (try? element.text()) ?? ""
-                rawContent = cleanRawHtml(htmlStr)
-            }
-        } else {
-            rawContent = cleanRawHtml(html)
+        var pageText = analyzer.getString(contentRule)
+        if pageText.contains("<") {
+            pageText = cleanRawHtml(pageText)
         }
 
         var nextUrl: String?
         if let nextRule = rule.nextContentUrl, !nextRule.isEmpty {
-            nextUrl = CSSSelectorParser.parseSingle(element: doc, rule: nextRule, baseUrl: baseUrl)
+            let next = analyzer.getString(nextRule, isUrl: true)
+            if !next.isEmpty {
+                nextUrl = next
+            }
         }
 
-        return (rawContent, nextUrl)
+        return (pageText, nextUrl)
     }
 
     /// 清洗 HTML 标签并将文本段落规范化

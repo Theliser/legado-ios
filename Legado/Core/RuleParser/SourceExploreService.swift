@@ -119,7 +119,7 @@ public final class SourceExploreService: Sendable {
 
     private func parseBooks(
         content: String,
-        trimmed: String,
+        trimmed _: String,
         source: BookSource,
         baseUrl: String) -> [Book] {
         // 优先使用 ruleExplore，缺失时回退至 ruleSearch
@@ -142,109 +142,40 @@ public final class SourceExploreService: Sendable {
             coverUrl: coverUrlRule,
             bookUrl: bookUrlRule)
 
-        // JSON 响应解析
-        if trimmed.starts(with: "{") || trimmed.starts(with: "[") {
-            return parseJsonBooks(
-                json: trimmed,
-                source: source,
-                rule: rule,
-                baseUrl: baseUrl)
-        }
+        let analyzer = AnalyzeRule(source: source, baseUrl: baseUrl)
+        analyzer.setContent(content, baseUrl: baseUrl)
 
-        // HTML 响应解析
-        return parseHtmlBooks(
-            html: content,
-            source: source,
-            rule: rule,
-            baseUrl: baseUrl)
-    }
-
-    private func parseHtmlBooks(
-        html: String,
-        source: BookSource,
-        rule: ExploreBookRule,
-        baseUrl: String) -> [Book] {
-        guard let doc = try? SwiftSoup.parse(html, baseUrl) else {
-            return []
-        }
-
-        let elements = CSSSelectorParser.selectElements(element: doc, rule: rule.bookList)
-
+        let elements = analyzer.getElements(rule.bookList)
         var books: [Book] = []
-        for element in elements.array() {
-            guard let name = CSSSelectorParser.parseSingle(element: element, rule: rule.name, baseUrl: baseUrl),
-                  !name.isEmpty else {
-                continue
-            }
 
-            let author = CSSSelectorParser.parseSingle(
-                element: element,
-                rule: rule.author,
-                baseUrl: baseUrl) ?? "未知作者"
-            let bookUrl = CSSSelectorParser.parseSingle(
-                element: element,
-                rule: rule.bookUrl,
-                baseUrl: baseUrl) ?? baseUrl
-            let kind = rule.kind.flatMap {
-                CSSSelectorParser.parseSingle(element: element, rule: $0, baseUrl: baseUrl)
-            }
-            let intro = rule.intro.flatMap {
-                CSSSelectorParser.parseSingle(element: element, rule: $0, baseUrl: baseUrl)
-            }
-            let coverUrl = rule.coverUrl.flatMap {
-                CSSSelectorParser.parseSingle(element: element, rule: $0, baseUrl: baseUrl)
-            }
+        for element in elements {
+            let itemAnalyzer = AnalyzeRule(source: source, baseUrl: baseUrl)
+            itemAnalyzer.setContent(element, baseUrl: baseUrl)
+
+            let name = itemAnalyzer.getString(rule.name)
+            guard !name.isEmpty else { continue }
+
+            let author = itemAnalyzer.getString(rule.author)
+            let authorName = author.isEmpty ? "未知作者" : author
+
+            let bookUrl = itemAnalyzer.getString(rule.bookUrl, isUrl: true)
+            let finalBookUrl = bookUrl.isEmpty ? baseUrl : bookUrl
+
+            let kindStr = itemAnalyzer.getString(rule.kind)
+            let kind = kindStr.isEmpty ? nil : kindStr
+
+            let introStr = itemAnalyzer.getString(rule.intro)
+            let intro = introStr.isEmpty ? nil : introStr
+
+            let coverStr = itemAnalyzer.getString(rule.coverUrl, isUrl: true)
+            let coverUrl = coverStr.isEmpty ? nil : coverStr
 
             let book = Book(
-                bookUrl: bookUrl,
+                bookUrl: finalBookUrl,
                 origin: source.bookSourceUrl,
                 originName: source.bookSourceName,
                 name: name,
-                author: author,
-                kind: kind,
-                coverUrl: coverUrl,
-                intro: intro)
-            books.append(book)
-        }
-
-        return books
-    }
-
-    private func parseJsonBooks(
-        json: String,
-        source: BookSource,
-        rule: ExploreBookRule,
-        baseUrl: String) -> [Book] {
-        guard let array = JSONPathParser.parseArray(json: json, path: rule.bookList) else {
-            return []
-        }
-        var books: [Book] = []
-
-        for item in array {
-            guard let dict = item as? [String: Any] else { continue }
-            let eval: (String?) -> String? = { ruleStr in
-                RuleEvaluator.evaluate(dict: dict, rule: ruleStr, baseUrl: baseUrl)
-            }
-
-            guard let name = eval(rule.name), !name.isEmpty else {
-                continue
-            }
-
-            let author = eval(rule.author) ?? "未知作者"
-            let rawUrl = eval(rule.bookUrl) ?? baseUrl
-            let bookUrl = URL(string: rawUrl, relativeTo: URL(string: baseUrl))?.absoluteString ?? rawUrl
-
-            let kind = eval(rule.kind)
-            let intro = eval(rule.intro)
-            let rawCover = eval(rule.coverUrl)
-            let coverUrl = rawCover.flatMap { URL(string: $0, relativeTo: URL(string: baseUrl))?.absoluteString }
-
-            let book = Book(
-                bookUrl: bookUrl,
-                origin: source.bookSourceUrl,
-                originName: source.bookSourceName,
-                name: name,
-                author: author,
+                author: authorName,
                 kind: kind,
                 coverUrl: coverUrl,
                 intro: intro)

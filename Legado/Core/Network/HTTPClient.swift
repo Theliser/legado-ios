@@ -43,7 +43,6 @@ public final class HTTPClient: HTTPClientProtocol, Sendable {
         self.session = session
     }
 
-    /// 发起 GET 请求并自动进行编码转换
     public func get(
         url: URL,
         headers: [String: String]? = nil,
@@ -52,7 +51,10 @@ public final class HTTPClient: HTTPClientProtocol, Sendable {
         request.httpMethod = "GET"
         applyHeaders(to: &request, customHeaders: headers)
 
-        if let host = url.host, let cookie = await CookieJar.shared.cookieHeader(for: host) {
+        let persistentCookie = CookieStore.shared.getCookie(url: url.absoluteString)
+        if !persistentCookie.isEmpty {
+            request.setValue(persistentCookie, forHTTPHeaderField: "Cookie")
+        } else if let host = url.host, let cookie = await CookieJar.shared.cookieHeader(for: host) {
             request.setValue(cookie, forHTTPHeaderField: "Cookie")
         }
 
@@ -60,6 +62,9 @@ public final class HTTPClient: HTTPClientProtocol, Sendable {
         if let httpResponse = response as? HTTPURLResponse {
             if let allHeaders = httpResponse.allHeaderFields as? [String: String] {
                 await CookieJar.shared.saveCookies(from: allHeaders, for: url)
+                if let setCookie = allHeaders["Set-Cookie"] ?? allHeaders["set-cookie"] {
+                    CookieStore.shared.setCookie(url: url.absoluteString, cookie: setCookie)
+                }
             }
             return CharsetDetector.decode(data: data, response: httpResponse)
         }
@@ -78,7 +83,10 @@ public final class HTTPClient: HTTPClientProtocol, Sendable {
         request.httpBody = body
         applyHeaders(to: &request, customHeaders: headers)
 
-        if let host = url.host, let cookie = await CookieJar.shared.cookieHeader(for: host) {
+        let persistentCookie = CookieStore.shared.getCookie(url: url.absoluteString)
+        if !persistentCookie.isEmpty {
+            request.setValue(persistentCookie, forHTTPHeaderField: "Cookie")
+        } else if let host = url.host, let cookie = await CookieJar.shared.cookieHeader(for: host) {
             request.setValue(cookie, forHTTPHeaderField: "Cookie")
         }
 
@@ -86,6 +94,9 @@ public final class HTTPClient: HTTPClientProtocol, Sendable {
         if let httpResponse = response as? HTTPURLResponse {
             if let allHeaders = httpResponse.allHeaderFields as? [String: String] {
                 await CookieJar.shared.saveCookies(from: allHeaders, for: url)
+                if let setCookie = allHeaders["Set-Cookie"] ?? allHeaders["set-cookie"] {
+                    CookieStore.shared.setCookie(url: url.absoluteString, cookie: setCookie)
+                }
             }
             return CharsetDetector.decode(data: data, response: httpResponse)
         }
