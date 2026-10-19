@@ -150,6 +150,9 @@ public final class BrowserVerificationManager: @unchecked Sendable {
             var request = URLRequest(url: targetUrl)
             if let headers {
                 for (headerKey, headerValue) in headers {
+                    if headerKey.caseInsensitiveCompare("User-Agent") == .orderedSame {
+                        webView.customUserAgent = headerValue
+                    }
                     request.setValue(headerValue, forHTTPHeaderField: headerKey)
                 }
             }

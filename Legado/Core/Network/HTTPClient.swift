@@ -12,6 +12,8 @@ public protocol HTTPClientProtocol: Sendable {
         body: Data?,
         headers: [String: String]?,
         timeout: TimeInterval) async throws -> String
+
+    func fetch(analyzeUrl: AnalyzeUrl) async throws -> String
 }
 
 public extension HTTPClientProtocol {
@@ -28,6 +30,14 @@ public extension HTTPClientProtocol {
         headers: [String: String]? = nil,
         timeout: TimeInterval = 15) async throws -> String {
         try await post(url: url, body: body, headers: headers, timeout: timeout)
+    }
+
+    func fetch(analyzeUrl: AnalyzeUrl) async throws -> String {
+        if analyzeUrl.method == "POST" {
+            return try await post(url: analyzeUrl.url, body: analyzeUrl.body, headers: analyzeUrl.headers)
+        } else {
+            return try await get(url: analyzeUrl.url, headers: analyzeUrl.headers)
+        }
     }
 }
 
@@ -104,21 +114,33 @@ public final class HTTPClient: HTTPClientProtocol, Sendable {
         return CharsetDetector.decode(data: data)
     }
 
-    /// 支持 AnalyzeUrl 高级选项（如 useWebView / webJs / webViewDelayTime）的请求方法
+    /// 支持 AnalyzeUrl 高级选项（如 useWebView / webJs / webViewDelayTime / bodyJs）的请求方法
     public func fetch(analyzeUrl: AnalyzeUrl) async throws -> String {
+        let rawBody: String
         if analyzeUrl.useWebView {
             let res = try await BrowserVerificationManager.shared.executeHeadlessWeb(
                 url: analyzeUrl.url.absoluteString,
                 webJs: analyzeUrl.webJs,
                 delayTimeMs: analyzeUrl.webViewDelayTime ?? 0,
                 headers: analyzeUrl.headers)
-            return res.body
-        }
-        if analyzeUrl.method == "POST" {
-            return try await post(url: analyzeUrl.url, body: analyzeUrl.body, headers: analyzeUrl.headers)
+            rawBody = res.body
+        } else if analyzeUrl.method == "POST" {
+            rawBody = try await post(url: analyzeUrl.url, body: analyzeUrl.body, headers: analyzeUrl.headers)
         } else {
-            return try await get(url: analyzeUrl.url, headers: analyzeUrl.headers)
+            rawBody = try await get(url: analyzeUrl.url, headers: analyzeUrl.headers)
         }
+
+        // 如果配置了 bodyJs，执行二次 JS 结果变换处理 (对齐 Android Legado AnalyzeUrl.kt:524)
+        if let bodyJs = analyzeUrl.bodyJs, !bodyJs.isEmpty {
+            let engine = JSEngine()
+            let transformed = engine.evaluate(script: bodyJs, bindings: [
+                "result": rawBody,
+                "baseUrl": analyzeUrl.url.absoluteString,
+            ])
+            return transformed ?? rawBody
+        }
+
+        return rawBody
     }
 
     private func applyHeaders(to request: inout URLRequest, customHeaders: [String: String]?) {
@@ -127,8 +149,16 @@ public final class HTTPClient: HTTPClientProtocol, Sendable {
         request.setValue(acceptTypes, forHTTPHeaderField: "Accept")
 
         if let customHeaders {
+            var customUA: String?
             for (key, value) in customHeaders {
-                request.setValue(value, forHTTPHeaderField: key)
+                if key.caseInsensitiveCompare("User-Agent") == .orderedSame {
+                    customUA = value
+                } else {
+                    request.setValue(value, forHTTPHeaderField: key)
+                }
+            }
+            if let customUA {
+                request.setValue(customUA, forHTTPHeaderField: "User-Agent")
             }
         }
     }
