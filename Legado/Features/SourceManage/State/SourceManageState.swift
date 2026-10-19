@@ -12,6 +12,10 @@ public struct SourceManageState: ViewState, Equatable, Sendable {
     public var isLoading: Bool
     /// 导入弹窗是否弹出
     public var isImportSheetPresented: Bool
+    /// 当前正在编辑的书源
+    public var editingSource: BookSource?
+    /// 是否弹出新建书源弹窗
+    public var isNewSourceSheetPresented: Bool
     /// 当前正在调试的书源
     public var debuggingSource: BookSource?
     /// 调试诊断报告
@@ -45,6 +49,8 @@ public struct SourceManageState: ViewState, Equatable, Sendable {
         selectedGroup: String = "全部",
         isLoading: Bool = false,
         isImportSheetPresented: Bool = false,
+        editingSource: BookSource? = nil,
+        isNewSourceSheetPresented: Bool = false,
         debuggingSource: BookSource? = nil,
         debugReport: SourceDebugReport? = nil,
         isDebugging: Bool = false,
@@ -63,6 +69,8 @@ public struct SourceManageState: ViewState, Equatable, Sendable {
         self.selectedGroup = selectedGroup
         self.isLoading = isLoading
         self.isImportSheetPresented = isImportSheetPresented
+        self.editingSource = editingSource
+        self.isNewSourceSheetPresented = isNewSourceSheetPresented
         self.debuggingSource = debuggingSource
         self.debugReport = debugReport
         self.isDebugging = isDebugging
