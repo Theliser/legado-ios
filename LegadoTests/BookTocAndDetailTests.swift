@@ -31,12 +31,12 @@ struct BookTocAndDetailTests {
         let ruleInfo = RuleBookInfo(
             name: "h1.book-name@text",
             author: "span.author@text",
-            kind: "span.kind@text",
-            wordCount: "span.words@text",
-            lastChapter: "a.latest@text",
             intro: "p.intro@text",
+            kind: "span.kind@text",
+            lastChapter: "a.latest@text",
             coverUrl: "img.cover@src",
-            tocUrl: "a.toc-link@href")
+            tocUrl: "a.toc-link@href",
+            wordCount: "span.words@text")
 
         let doc = try SwiftSoupParserHelper.parseHtml(html, baseUrl: "https://biquge.example.com/book/123")
         let parsedName = CSSSelectorParser.parseSingle(element: doc, rule: ruleInfo.name ?? "", baseUrl: "https://biquge.example.com/book/123")

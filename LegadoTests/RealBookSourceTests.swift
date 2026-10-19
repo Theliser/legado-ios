@@ -237,8 +237,8 @@ struct RealBookSourceTests {
                 name: "tag.h3.0@tag.a.1@text",
                 author: "tag.p.0@tag.span.1@text",
                 intro: "class.intro@text",
-                coverUrl: "tag.img.0@src",
-                bookUrl: "tag.a.1@href"))
+                bookUrl: "tag.a.1@href",
+                coverUrl: "tag.img.0@src"))
 
         final class Mock69Client: HTTPClientProtocol, @unchecked Sendable {
             let html: String

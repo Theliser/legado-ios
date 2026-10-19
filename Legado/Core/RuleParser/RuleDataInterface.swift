@@ -89,4 +89,14 @@ public final class RuleData: RuleDataInterface, @unchecked Sendable {
         defer { lock.unlock() }
         return _variableMap[key]
     }
+
+    public func getVariable() -> String? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !_variableMap.isEmpty,
+              let data = try? JSONSerialization.data(withJSONObject: _variableMap, options: [.sortedKeys]) else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
 }

@@ -80,10 +80,10 @@ struct ExploreAndSourceManageTests {
                 bookList: ".item",
                 name: "a.name@text",
                 author: "span.author@text",
-                kind: "span.category@text",
                 intro: "p.desc@text",
-                coverUrl: "img@src",
-                bookUrl: "a.name@href"))
+                kind: "span.category@text",
+                bookUrl: "a.name@href",
+                coverUrl: "img@src"))
 
         let books = SourceExploreService.shared.parseBooks(
             content: html,
