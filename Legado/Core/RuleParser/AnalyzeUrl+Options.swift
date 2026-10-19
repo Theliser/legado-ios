@@ -8,13 +8,17 @@ extension AnalyzeUrl {
         var charset: String
         var headers: [String: String]
         var webJs: String?
+        var bodyJs: String?
         var webViewDelayTime: Int?
         var useWebView: Bool
+        var retry: Int
+        var type: String?
     }
 
     static func parseUrlAndOptions(
         workingUrl: String,
-        headerJson: String?) -> ParsedUrlOptions {
+        headerJson: String?,
+        baseUrl: String? = nil) -> ParsedUrlOptions {
         var options = ParsedUrlOptions(
             finalUrl: workingUrl,
             method: "GET",
@@ -24,15 +28,19 @@ extension AnalyzeUrl {
                 "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148",
             ],
             webJs: nil,
+            bodyJs: nil,
             webViewDelayTime: nil,
-            useWebView: false)
+            useWebView: false,
+            retry: 0,
+            type: nil)
 
-        if let headerJson, !headerJson.isEmpty,
-           let data = headerJson.data(using: .utf8),
-           let parsed = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
-            options.headers.merge(parsed) { _, new in new }
+        // 1. 解析 source.header (对齐 Android BaseSource.kt getHeaderMap，支持 @js: 与 <js></js>)
+        if let headerJson, !headerJson.isEmpty {
+            let parsedHeaders = parseHeaderJson(headerJson, baseUrl: baseUrl ?? workingUrl)
+            mergeHeaders(parsedHeaders, into: &options.headers)
         }
 
+        // 2. 解析 URL 选项 (url,{...})
         guard let commaIndex = workingUrl.firstIndex(of: ",") else {
             return options
         }
@@ -55,22 +63,118 @@ extension AnalyzeUrl {
         return options
     }
 
+    static func parseHeaderJson(_ rawHeader: String, baseUrl: String) -> [String: String] {
+        var trimmed = rawHeader.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("@js:") {
+            let script = String(trimmed.dropFirst(4))
+            let engine = JSEngine()
+            trimmed = engine.evaluate(script: script, bindings: [
+                "baseUrl": baseUrl,
+            ])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        } else if trimmed.hasPrefix("<js>"), trimmed.contains("</js>"),
+                  let start = trimmed.range(of: "<js>")?.upperBound,
+                  let end = trimmed.range(of: "</js>", options: .backwards)?.lowerBound {
+            let script = String(trimmed[start ..< end])
+            let engine = JSEngine()
+            trimmed = engine.evaluate(script: script, bindings: [
+                "baseUrl": baseUrl,
+            ])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        }
+
+        guard !trimmed.isEmpty,
+              let data = trimmed.data(using: .utf8),
+              let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return [:]
+        }
+
+        var result: [String: String] = [:]
+        for (headerKey, headerValue) in dict {
+            result[headerKey] = "\(headerValue)"
+        }
+        return result
+    }
+
+    static func mergeHeaders(_ newHeaders: [String: String], into target: inout [String: String]) {
+        for (key, val) in newHeaders {
+            if key.caseInsensitiveCompare("User-Agent") == .orderedSame {
+                let keysToRemove = target.keys.filter { $0.caseInsensitiveCompare("User-Agent") == .orderedSame }
+                for existingKey in keysToRemove {
+                    target.removeValue(forKey: existingKey)
+                }
+                target["User-Agent"] = val
+            } else {
+                target[key] = val
+            }
+        }
+    }
+
     private static func applyOptionsDictionary(_ dict: [String: Any], to options: inout ParsedUrlOptions) {
+        applyMethodAndBody(dict, to: &options)
+        applyHeadersFromDict(dict, to: &options)
+        applyScripts(dict, to: &options)
+        applyDelayAndExtraOptions(dict, to: &options)
+    }
+
+    private static func applyMethodAndBody(_ dict: [String: Any], to options: inout ParsedUrlOptions) {
         if let methodVal = dict["method"] as? String {
             options.method = methodVal.uppercased()
         }
         if let bodyVal = dict["body"] as? String {
             options.body = bodyVal
+        } else if let bodyDict = dict["body"] as? [String: Any],
+                  let bodyData = try? JSONSerialization.data(withJSONObject: bodyDict),
+                  let bodyStr = String(data: bodyData, encoding: .utf8) {
+            options.body = bodyStr
         }
         if let charsetVal = dict["charset"] as? String {
             options.charset = charsetVal.lowercased()
         }
-        if let headersVal = dict["headers"] as? [String: String] {
-            options.headers.merge(headersVal) { _, new in new }
+    }
+
+    private static func applyHeadersFromDict(_ dict: [String: Any], to options: inout ParsedUrlOptions) {
+        if let headersDict = dict["headers"] as? [String: Any] {
+            var extracted: [String: String] = [:]
+            for (headerKey, headerValue) in headersDict {
+                extracted[headerKey] = "\(headerValue)"
+            }
+            mergeHeaders(extracted, into: &options.headers)
+        } else if let headersStr = dict["headers"] as? String,
+                  let data = headersStr.data(using: .utf8),
+                  let headersDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            var extracted: [String: String] = [:]
+            for (headerKey, headerValue) in headersDict {
+                extracted[headerKey] = "\(headerValue)"
+            }
+            mergeHeaders(extracted, into: &options.headers)
         }
+
+        // 顶层平铺 HTTP 请求头支持
+        let knownHeaders = ["cookie", "referer", "authorization", "origin", "accept"]
+        for (headerKey, headerValue) in dict {
+            if headerKey.caseInsensitiveCompare("User-Agent") == .orderedSame {
+                mergeHeaders(["User-Agent": "\(headerValue)"], into: &options.headers)
+            } else if knownHeaders.contains(headerKey.lowercased()) {
+                mergeHeaders([headerKey: "\(headerValue)"], into: &options.headers)
+            }
+        }
+    }
+
+    private static func applyScripts(_ dict: [String: Any], to options: inout ParsedUrlOptions) {
         if let webJsVal = dict["webJs"] as? String {
             options.webJs = webJsVal
         }
+        if let bodyJsVal = dict["bodyJs"] as? String {
+            options.bodyJs = bodyJsVal
+        }
+        if let jsVal = dict["js"] as? String {
+            let jsEngine = JSEngine()
+            if let newUrl = jsEngine.evaluate(script: jsVal, bindings: ["result": options.finalUrl]) {
+                options.finalUrl = newUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+    }
+
+    private static func applyDelayAndExtraOptions(_ dict: [String: Any], to options: inout ParsedUrlOptions) {
         if let delayVal = dict["webViewDelayTime"] as? Int {
             options.webViewDelayTime = delayVal
         } else if let delayVal = dict["webViewDelayTime"] as? Double {
@@ -82,6 +186,12 @@ extension AnalyzeUrl {
             options.useWebView = useWebViewVal
         } else if let useWebViewVal = dict["webView"] as? Bool {
             options.useWebView = useWebViewVal
+        }
+        if let retryVal = dict["retry"] as? Int {
+            options.retry = retryVal
+        }
+        if let typeVal = dict["type"] as? String {
+            options.type = typeVal
         }
     }
 
@@ -117,15 +227,57 @@ extension AnalyzeUrl {
         return (bodyData, updatedHeaders)
     }
 
-    public static func resolveAbsoluteUrl(_ pathOrUrl: String, baseUrl: String) -> String {
+    public static func resolveAbsoluteUrl(_ pathOrUrl: String, baseUrl: String, charset: String = "utf-8") -> String {
         let trimmed = pathOrUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.lowercased().hasPrefix("http://") || trimmed.lowercased().hasPrefix("https://") {
-            return trimmed
+        var absolute = trimmed
+        if !trimmed.lowercased().hasPrefix("http://") && !trimmed.lowercased().hasPrefix("https://") {
+            if let base = URL(string: baseUrl),
+               let resolved = URL(string: trimmed, relativeTo: base) {
+                absolute = resolved.absoluteURL.absoluteString
+            }
         }
-        guard let base = URL(string: baseUrl),
-              let resolved = URL(string: trimmed, relativeTo: base) else {
-            return trimmed
+        return encodeUrlWithCharset(absolute, charset: charset)
+    }
+
+    private static func encodeUrlWithCharset(_ urlStr: String, charset: String) -> String {
+        guard let questionIndex = urlStr.firstIndex(of: "?") else {
+            return urlStr.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? urlStr
         }
-        return resolved.absoluteURL.absoluteString
+        let basePart = String(urlStr[..<questionIndex])
+        let queryPart = String(urlStr[urlStr.index(after: questionIndex)...])
+
+        let encodedBase = basePart.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? basePart
+        let isGbk = charset.lowercased() == "gbk" || charset.lowercased() == "gb2312"
+        let pairs = queryPart.components(separatedBy: "&")
+        let encodedPairs = pairs.map { pair -> String in
+            let pairComponents = pair.components(separatedBy: "=")
+            let key = pairComponents[0]
+            guard pairComponents.count > 1 else { return key }
+            let val = pairComponents.dropFirst().joined(separator: "=")
+            if isGbk && !val.contains("%") {
+                let encodedVal = CharsetDetector.percentEncodeGBK(val)
+                return "\(key)=\(encodedVal)"
+            } else if !val.contains("%") {
+                let encodedVal = val.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? val
+                return "\(key)=\(encodedVal)"
+            }
+            return pair
+        }
+        return "\(encodedBase)?\(encodedPairs.joined(separator: "&"))"
+    }
+}
+
+public extension BookSource {
+    /// 获取书源请求头规则字典 (对齐 Android Legado BaseSource.kt getHeaderMap)
+    func getHeaderMap(defaultUA: String? = nil) -> [String: String] {
+        var baseHeaders: [String: String] = [:]
+        if let defaultUA, !defaultUA.isEmpty {
+            baseHeaders["User-Agent"] = defaultUA
+        }
+        if let header, !header.isEmpty {
+            let parsed = AnalyzeUrl.parseHeaderJson(header, baseUrl: bookSourceUrl)
+            AnalyzeUrl.mergeHeaders(parsed, into: &baseHeaders)
+        }
+        return baseHeaders
     }
 }

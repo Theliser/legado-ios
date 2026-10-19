@@ -3,17 +3,11 @@ import CryptoKit
 import Foundation
 import JavaScriptCore
 
-struct SyncHTTPResponse {
-    let body: String
-    let headers: [String: String]
-    let cookies: [String: String]
-    let data: Data?
-}
-
 extension JSEngine {
     func setupBridges() {
         setupJavaBridge()
         setupCookieBridge()
+        setupCacheBridge()
     }
 
     private func setupJavaBridge() {
@@ -28,49 +22,6 @@ extension JSEngine {
         setupTimeAndCryptoMethods(on: javaObj)
         setupQueryTTFMethods(on: javaObj)
         context.setObject(javaObj, forKeyedSubscript: "java" as NSString)
-    }
-
-    private func setupJavaNetworkMethods(on javaObj: JSValue) {
-        let ajax: @convention(block) (String) -> String = { urlString in
-            guard let url = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)) else { return "" }
-            return Self.syncRequest(url: url).body
-        }
-        javaObj.setObject(ajax, forKeyedSubscript: "ajax" as NSString)
-        context.setObject(ajax, forKeyedSubscript: "ajax" as NSString)
-
-        let get: @convention(block) (String, JSValue?) -> JSValue = { [weak self] urlString, headersVal in
-            guard let self, let url = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-                return JSValue(newObjectIn: self?.context)
-            }
-            let headers = (headersVal?.toObject() as? [String: String]) ?? [:]
-            let res = Self.syncRequest(url: url, method: "GET", headers: headers)
-            return self.wrapResponse(res)
-        }
-        javaObj.setObject(get, forKeyedSubscript: "get" as NSString)
-        javaObj.setObject(get, forKeyedSubscript: "connect" as NSString)
-        javaObj.setObject(get, forKeyedSubscript: "head" as NSString)
-
-        let post: @convention(block) (String, String, JSValue?) -> JSValue = { [weak self] urlStr, body, headersVal in
-            guard let self, let url = URL(string: urlStr.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-                return JSValue(newObjectIn: self?.context)
-            }
-            let headers = (headersVal?.toObject() as? [String: String]) ?? [:]
-            let res = Self.syncRequest(url: url, method: "POST", body: body.data(using: .utf8), headers: headers)
-            return self.wrapResponse(res)
-        }
-        javaObj.setObject(post, forKeyedSubscript: "post" as NSString)
-
-        typealias BrowserAwaitBlock = @convention(block) (String, String, JSValue?) -> JSValue
-        let startBrowserAwait: BrowserAwaitBlock = { [weak self] urlStr, titleStr, refetchVal in
-            guard let self else { return JSValue(undefinedIn: self?.context) }
-            let refetch = refetchVal?.toBool() ?? true
-            let result = BrowserVerificationManager.shared.verifySync(
-                url: urlStr,
-                title: titleStr,
-                refetchAfterSuccess: refetch)
-            return self.wrapBrowserResponse(result)
-        }
-        javaObj.setObject(startBrowserAwait, forKeyedSubscript: "startBrowserAwait" as NSString)
     }
 
     private func setupJavaStorageMethods(on javaObj: JSValue) {
@@ -147,29 +98,16 @@ extension JSEngine {
         let s2t: @convention(block) (String) -> String = { input in
             input.applyingTransform(StringTransform("Hans-Hant"), reverse: false) ?? input
         }
-        let encodeURI: @convention(block) (String) -> String = { input in
-            input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? input
-        }
         let toNumChapterFunc: @convention(block) (String) -> String = { input in
             Self.toNumChapter(input)
-        }
-        let htmlFormatFunc: @convention(block) (String) -> String = { input in
-            input
-                .replacingOccurrences(of: "<br\\s*/?>", with: "\n", options: .regularExpression)
-                .replacingOccurrences(of: "</p>", with: "\n", options: .caseInsensitive)
-                .replacingOccurrences(of: "<p[^>]*>", with: "", options: .regularExpression)
-                .replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
         }
 
         javaObj.setObject(t2s, forKeyedSubscript: "t2s" as NSString)
         javaObj.setObject(s2t, forKeyedSubscript: "s2t" as NSString)
-        javaObj.setObject(encodeURI, forKeyedSubscript: "encodeURI" as NSString)
         javaObj.setObject(toNumChapterFunc, forKeyedSubscript: "toNumChapter" as NSString)
-        javaObj.setObject(htmlFormatFunc, forKeyedSubscript: "htmlFormat" as NSString)
 
         context.setObject(t2s, forKeyedSubscript: "t2s" as NSString)
         context.setObject(s2t, forKeyedSubscript: "s2t" as NSString)
-        context.setObject(encodeURI, forKeyedSubscript: "encodeURI" as NSString)
     }
 
     private func setupBase64AndHexMethods(on javaObj: JSValue) {
@@ -281,22 +219,6 @@ extension JSEngine {
     }
 
     private func setupTimeAndCryptoMethods(on javaObj: JSValue) {
-        let timeFormat: @convention(block) (Double) -> String = { timestamp in
-            let date = Date(timeIntervalSince1970: timestamp > 10_000_000_000 ? timestamp / 1000 : timestamp)
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-            return formatter.string(from: date)
-        }
-        let timeFormatUTC: @convention(block) (Double, String, Int) -> String = { timestamp, formatStr, hourOffset in
-            let date = Date(timeIntervalSince1970: timestamp > 10_000_000_000 ? timestamp / 1000 : timestamp)
-            let formatter = DateFormatter()
-            formatter.dateFormat = formatStr.isEmpty ? "yyyy-MM-dd HH:mm:ss" : formatStr
-            formatter.timeZone = TimeZone(secondsFromGMT: hourOffset * 3600)
-            return formatter.string(from: date)
-        }
-        let randomUUID: @convention(block) () -> String = {
-            UUID().uuidString
-        }
         let createCrypto: @convention(block) (String, String, JSValue?) -> JSValue? = { [weak self] trans, key, ivVal in
             guard let self else { return nil }
             let ivStr = ivVal?.isString == true ? ivVal?.toString() : nil
@@ -317,15 +239,10 @@ extension JSEngine {
             }
             return decryptFunc.call(withArguments: [dStr])?.toString() ?? ""
         }
-        let androidId: @convention(block) () -> String = { "legado_ios_device" }
         let log: @convention(block) (String) -> Void = { _ in }
 
-        javaObj.setObject(timeFormat, forKeyedSubscript: "timeFormat" as NSString)
-        javaObj.setObject(timeFormatUTC, forKeyedSubscript: "timeFormatUTC" as NSString)
-        javaObj.setObject(randomUUID, forKeyedSubscript: "randomUUID" as NSString)
         javaObj.setObject(createCrypto, forKeyedSubscript: "createSymmetricCrypto" as NSString)
         javaObj.setObject(aesDecode, forKeyedSubscript: "aesBase64DecodeToString" as NSString)
-        javaObj.setObject(androidId, forKeyedSubscript: "androidId" as NSString)
         javaObj.setObject(log, forKeyedSubscript: "toast" as NSString)
         javaObj.setObject(log, forKeyedSubscript: "longToast" as NSString)
         javaObj.setObject(log, forKeyedSubscript: "log" as NSString)
@@ -342,95 +259,58 @@ extension JSEngine {
         let setCookie: @convention(block) (String, String) -> Void = { url, cookie in
             CookieStore.shared.setCookie(url: url, cookie: cookie)
         }
+        let replaceCookie: @convention(block) (String, String) -> Void = { url, cookie in
+            CookieStore.shared.replaceCookie(url: url, cookie: cookie)
+        }
+        let getKey: @convention(block) (String, String) -> String = { url, key in
+            CookieStore.shared.getKey(url: url, key: key)
+        }
+        let cookieToMap: @convention(block) (String) -> [String: String] = { cookie in
+            CookieStore.shared.cookieToMap(cookie)
+        }
+        let mapToCookie: @convention(block) ([String: String]) -> String = { map in
+            CookieStore.shared.mapToCookie(map)
+        }
+
         cookieObj.setObject(removeCookie, forKeyedSubscript: "removeCookie" as NSString)
         cookieObj.setObject(getCookie, forKeyedSubscript: "getCookie" as NSString)
         cookieObj.setObject(setCookie, forKeyedSubscript: "setCookie" as NSString)
+        cookieObj.setObject(replaceCookie, forKeyedSubscript: "replaceCookie" as NSString)
+        cookieObj.setObject(getKey, forKeyedSubscript: "getKey" as NSString)
+        cookieObj.setObject(cookieToMap, forKeyedSubscript: "cookieToMap" as NSString)
+        cookieObj.setObject(mapToCookie, forKeyedSubscript: "mapToCookie" as NSString)
         context.setObject(cookieObj, forKeyedSubscript: "cookie" as NSString)
     }
 
-    private func wrapBrowserResponse(_ res: BrowserVerificationResult) -> JSValue {
-        guard let respObj = JSValue(newObjectIn: context) else {
-            return JSValue(undefinedIn: context)
+    private func setupCacheBridge() {
+        guard let cacheObj = JSValue(newObjectIn: context) else { return }
+        let put: @convention(block) (String, JSValue, JSValue?) -> Void = { key, val, saveTime in
+            let saveSeconds = saveTime?.toInt32() ?? 0
+            CacheManager.shared.put(key, val.toObject() ?? "", saveTime: Int(saveSeconds))
         }
-        let bodyFunc: @convention(block) () -> String = { res.body }
-        let urlFunc: @convention(block) () -> String = { res.url }
-        respObj.setObject(bodyFunc, forKeyedSubscript: "body" as NSString)
-        respObj.setObject(urlFunc, forKeyedSubscript: "url" as NSString)
-        return respObj
-    }
-
-    private func wrapResponse(_ res: SyncHTTPResponse) -> JSValue {
-        guard let respObj = JSValue(newObjectIn: context) else {
-            return JSValue(undefinedIn: context)
+        let get: @convention(block) (String) -> String? = { key in
+            CacheManager.shared.get(key)
         }
-        let bodyFunc: @convention(block) () -> String = { res.body }
-        let headerFunc: @convention(block) (String) -> String = { key in
-            res.headers[key] ?? res.headers[key.lowercased()] ?? ""
+        let delete: @convention(block) (String) -> Void = { key in
+            CacheManager.shared.delete(key)
         }
-        let cookieFunc: @convention(block) (String) -> String = { key in
-            res.cookies[key] ?? ""
+        let putMemory: @convention(block) (String, JSValue) -> Void = { key, val in
+            CacheManager.shared.putMemory(key, val.toObject() ?? "")
         }
-        respObj.setObject(bodyFunc, forKeyedSubscript: "body" as NSString)
-        respObj.setObject(headerFunc, forKeyedSubscript: "header" as NSString)
-        respObj.setObject(cookieFunc, forKeyedSubscript: "cookie" as NSString)
-        return respObj
-    }
-
-    static func syncRequest(
-        url: URL,
-        method: String = "GET",
-        body: Data? = nil,
-        headers: [String: String] = [:]) -> SyncHTTPResponse {
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.httpBody = body
-        request.timeoutInterval = 8.0
-        let userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) " +
-            "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
-        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
-        for (key, val) in headers {
-            request.setValue(val, forHTTPHeaderField: key)
+        let getFromMemory: @convention(block) (String) -> Any? = { key in
+            CacheManager.shared.getFromMemory(key)
+        }
+        let deleteMemory: @convention(block) (String) -> Void = { key in
+            CacheManager.shared.deleteMemory(key)
         }
 
-        let persistentCookie = CookieStore.shared.getCookie(url: url.absoluteString)
-        if !persistentCookie.isEmpty {
-            request.setValue(persistentCookie, forHTTPHeaderField: "Cookie")
-        }
-
-        var resultData: Data?
-        var httpResponse: HTTPURLResponse?
-        let semaphore = DispatchSemaphore(value: 0)
-
-        let task = URLSession.shared.dataTask(with: request) { data, response, _ in
-            resultData = data
-            httpResponse = response as? HTTPURLResponse
-            semaphore.signal()
-        }
-        task.resume()
-        _ = semaphore.wait(timeout: .now() + 8.0)
-
-        var headerDict: [String: String] = [:]
-        var cookieDict: [String: String] = [:]
-        if let httpResponse {
-            for (headerKey, headerVal) in httpResponse.allHeaderFields {
-                headerDict[String(describing: headerKey)] = String(describing: headerVal)
-            }
-            if let stringHeaders = httpResponse.allHeaderFields as? [String: String] {
-                if let setCookie = stringHeaders["Set-Cookie"] ?? stringHeaders["set-cookie"] {
-                    CookieStore.shared.setCookie(url: url.absoluteString, cookie: setCookie)
-                }
-                let cookies = HTTPCookie.cookies(withResponseHeaderFields: stringHeaders, for: url)
-                for cookie in cookies {
-                    cookieDict[cookie.name] = cookie.value
-                }
-            }
-        }
-
-        guard let data = resultData else {
-            return SyncHTTPResponse(body: "", headers: headerDict, cookies: cookieDict, data: nil)
-        }
-        let bodyStr = CharsetDetector.decode(data: data, response: httpResponse)
-        return SyncHTTPResponse(body: bodyStr, headers: headerDict, cookies: cookieDict, data: data)
+        cacheObj.setObject(put, forKeyedSubscript: "put" as NSString)
+        cacheObj.setObject(get, forKeyedSubscript: "get" as NSString)
+        cacheObj.setObject(delete, forKeyedSubscript: "delete" as NSString)
+        cacheObj.setObject(putMemory, forKeyedSubscript: "putMemory" as NSString)
+        cacheObj.setObject(getFromMemory, forKeyedSubscript: "getFromMemory" as NSString)
+        cacheObj.setObject(deleteMemory, forKeyedSubscript: "deleteMemory" as NSString)
+        context.setObject(cacheObj, forKeyedSubscript: "cache" as NSString)
     }
 
     private func setupQueryTTFMethods(on javaObj: JSValue) {

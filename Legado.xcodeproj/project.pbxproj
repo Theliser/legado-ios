@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0075E7E109F26A20CBD41E6A /* JSEngine+Network.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B8CD5C11D7A657357B190 /* JSEngine+Network.swift */; };
 		037502E513769F1051A14258 /* ChangeSourceState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3493A17D1785E598ED821D58 /* ChangeSourceState.swift */; };
 		03AF360CB2D64647EBBB9C49 /* CookieJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F0D52F259EE065DB61E0384 /* CookieJar.swift */; };
 		0492BBF8FD0B595BCE761188 /* BookCacheRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1347262FD6D0A9CA33FA76B2 /* BookCacheRepositoryImpl.swift */; };
@@ -42,6 +43,7 @@
 		23DD1E64DA1E6327D288E537 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD97F0BD7D3018C88C3DCBED /* ExploreView.swift */; };
 		25FE15E6C07AEE6A637077DA /* ManageBookCacheUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4EDFCE14A8C74E98799A983 /* ManageBookCacheUseCase.swift */; };
 		274FCCF76691A49EA24B43C4 /* ImportLocalBookUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D993C5EDF1163820591F196 /* ImportLocalBookUseCase.swift */; };
+		28CC306B139787069EE0F6AE /* JSEngine+Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92E9524AB69F537FB8456E8 /* JSEngine+Utils.swift */; };
 		296C9F3A97EAEADE231C9CB6 /* BookDetailIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155CD78609421146C639E897 /* BookDetailIntent.swift */; };
 		296F4BB5E5DCA5478974EAA7 /* BookshelfBookRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BDB53A8853145B981B46441 /* BookshelfBookRowView.swift */; };
 		29729EBE5CC26669C1C9D2E9 /* BookSourceEditState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46BD4A69256F209A6AF90DC7 /* BookSourceEditState.swift */; };
@@ -163,6 +165,7 @@
 		BB1E2A54CECCBB42A5831646 /* TextLayoutEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0709CA4776F76CD42EAFD6D0 /* TextLayoutEngine.swift */; };
 		BC4F3DBE6AE72F01D9ACE782 /* LegadoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 605CC8429F35E3D40CB97EC7 /* LegadoApp.swift */; };
 		BDA15C9B7F4EEF47E33BE978 /* EndToEndMockFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E067C47943B79F83074583A /* EndToEndMockFlowTests.swift */; };
+		BDA8968F2AFA7FFDFB2B314C /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16CE22E688DE63D687906D41 /* CacheManager.swift */; };
 		BE2C420FCA62A34E63FDAC1D /* BookSearchContentSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F338BEF0039F2AA34B9EDF2B /* BookSearchContentSheet.swift */; };
 		BF3C32FCCB2249A2A7C74DF4 /* GetBookDetailUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 136415F10FA7185A70B1C98F /* GetBookDetailUseCase.swift */; };
 		C0142B27767B6D30687E8856 /* SettingsState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D237603D6A13475365F850F /* SettingsState.swift */; };
@@ -214,6 +217,7 @@
 		F5629BFB2202159DC07188B9 /* ReaderHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7583F6DEB948F606F443366B /* ReaderHUDView.swift */; };
 		F5D152BF2A74CBF5087E68BB /* BookGroupRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 985B125259674E4F37FF76DE /* BookGroupRepository.swift */; };
 		F784DDDA7AC50644C7E5E9AF /* RealBookSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3402E3C087B9477463F09123 /* RealBookSourceTests.swift */; };
+		F969A45AFCE6D86D3A80100A /* AndroidEngineParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FD977ECF7DC09DBCC6EAA9F /* AndroidEngineParityTests.swift */; };
 		FC58BCA459239072E7A74ACC /* SettingsIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCB0CC7B5655232D853BC31 /* SettingsIntent.swift */; };
 		FCCC968B3F3B6C3F0D712D43 /* GlassFloatingBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21DD55CED5927B17EB1DC7 /* GlassFloatingBar.swift */; };
 		FD77389D7FC5B4F148D4D7EA /* BookTocAndDetailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C321D3634EA8A34DFC246F6A /* BookTocAndDetailTests.swift */; };
@@ -259,6 +263,7 @@
 		155CD78609421146C639E897 /* BookDetailIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailIntent.swift; sourceTree = "<group>"; };
 		157A1884A93EFBF4BC1D5A53 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		15E2D7AF2E95CCA1BDF19A57 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		16CE22E688DE63D687906D41 /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
 		16CE8C2C19C278801E608CB1 /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
 		1749A176BC7F26F49D5D9E38 /* BookSourceEditViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookSourceEditViewModel.swift; sourceTree = "<group>"; };
 		17BF1FAA23E1C9B8F6199B2B /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
@@ -320,6 +325,7 @@
 		5222B17F904023767DBC01CC /* BookSourceEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookSourceEditView.swift; sourceTree = "<group>"; };
 		52E9C56A48D751E57EFE2C4E /* SaveBookGroupUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveBookGroupUseCase.swift; sourceTree = "<group>"; };
 		52EA00E331CF8452CB87DC57 /* BookTocSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookTocSheet.swift; sourceTree = "<group>"; };
+		537B8CD5C11D7A657357B190 /* JSEngine+Network.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSEngine+Network.swift"; sourceTree = "<group>"; };
 		553ECAC0C5A6CC8DA4C025B3 /* BookChapterReview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookChapterReview.swift; sourceTree = "<group>"; };
 		573C593053758CC0B8622030 /* SourceDebugReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceDebugReport.swift; sourceTree = "<group>"; };
 		57ABDF2A437EA5C01C1DE456 /* DeleteBookGroupUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteBookGroupUseCase.swift; sourceTree = "<group>"; };
@@ -352,6 +358,7 @@
 		7D19B918137E163267DB3305 /* BookshelfIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfIntent.swift; sourceTree = "<group>"; };
 		7E067C47943B79F83074583A /* EndToEndMockFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndToEndMockFlowTests.swift; sourceTree = "<group>"; };
 		7E76E1BD29B54462C3A6B0A0 /* TTSConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSConfig.swift; sourceTree = "<group>"; };
+		7FD977ECF7DC09DBCC6EAA9F /* AndroidEngineParityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AndroidEngineParityTests.swift; sourceTree = "<group>"; };
 		8151ACD752C019E5920CAD92 /* TTSPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSPlayer.swift; sourceTree = "<group>"; };
 		83AF2723E52D1022AF88137F /* BookshelfViewModel+Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BookshelfViewModel+Import.swift"; sourceTree = "<group>"; };
 		83B9106DCC4AF3CDD5B5FA6E /* SourceExploreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceExploreService.swift; sourceTree = "<group>"; };
@@ -433,6 +440,7 @@
 		E290260CF2A7F39A92FBF22E /* AnalyzeByRegex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzeByRegex.swift; sourceTree = "<group>"; };
 		E4EDFCE14A8C74E98799A983 /* ManageBookCacheUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageBookCacheUseCase.swift; sourceTree = "<group>"; };
 		E5583C0330F17E55CD07F107 /* TTSControlSheet+VoiceSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TTSControlSheet+VoiceSection.swift"; sourceTree = "<group>"; };
+		E92E9524AB69F537FB8456E8 /* JSEngine+Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JSEngine+Utils.swift"; sourceTree = "<group>"; };
 		E97ADD677600FE79267256CC /* BookSourceEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookSourceEntity.swift; sourceTree = "<group>"; };
 		E9DCCD619E5CC1C18079DA27 /* DebugBookSourceUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBookSourceUseCase.swift; sourceTree = "<group>"; };
 		ED6C2FE71957AB0EE2F544A6 /* BookRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookRepositoryImpl.swift; sourceTree = "<group>"; };
@@ -949,6 +957,7 @@
 			isa = PBXGroup;
 			children = (
 				76053674238E169A6066CFA4 /* AsyncSemaphore.swift */,
+				16CE22E688DE63D687906D41 /* CacheManager.swift */,
 				AAA210EEDD7392F9405D4D46 /* LegadoLog.swift */,
 			);
 			path = Utilities;
@@ -990,6 +999,7 @@
 			isa = PBXGroup;
 			children = (
 				D7392233E84534E270964956 /* AnalyzeRuleTests.swift */,
+				7FD977ECF7DC09DBCC6EAA9F /* AndroidEngineParityTests.swift */,
 				5E5E5F64B04CE029AD043122 /* BookCacheAndBatchDownloadTests.swift */,
 				D8627CE4F35BEBF8F7C85917 /* BookmarkTests.swift */,
 				FF617A922DD50290E9890510 /* BookshelfAdvancedTests.swift */,
@@ -1089,6 +1099,8 @@
 				4D38C56D6EE9C6C7CE33E1B7 /* JSEngine.swift */,
 				F5FE431F82D63E312ABEBF77 /* JSEngine+Bridge.swift */,
 				BBFA88885C513D00C17AA1FE /* JSEngine+Crypto.swift */,
+				537B8CD5C11D7A657357B190 /* JSEngine+Network.swift */,
+				E92E9524AB69F537FB8456E8 /* JSEngine+Utils.swift */,
 			);
 			path = ScriptEngine;
 			sourceTree = "<group>";
@@ -1568,6 +1580,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3BECAA496AFE69E96ABE6522 /* AnalyzeRuleTests.swift in Sources */,
+				F969A45AFCE6D86D3A80100A /* AndroidEngineParityTests.swift in Sources */,
 				37170510AC6C44B7BBEC4BB3 /* BookCacheAndBatchDownloadTests.swift in Sources */,
 				7250DD0FCAD2CAA2F23E4428 /* BookSourceAPITests.swift in Sources */,
 				DA527B7304F752EAF00BD76C /* BookSourceEditorTests.swift in Sources */,
@@ -1656,6 +1669,7 @@
 				7E911D5D277DEC79E5FC678D /* BrowserVerificationManager.swift in Sources */,
 				728A4A86AC640AE4BFA54CB3 /* CSSSelectorParser+Script.swift in Sources */,
 				385A62FC83CE45B963A8D79C /* CSSSelectorParser.swift in Sources */,
+				BDA8968F2AFA7FFDFB2B314C /* CacheManager.swift in Sources */,
 				0C1ACF52E66AA4370C8ACFEA /* ChangeBookSourceUseCase.swift in Sources */,
 				93A30F5DC042049464EBAB61 /* ChangeSourceCandidate.swift in Sources */,
 				9BAF2E4827CB0061A43DD69B /* ChangeSourceIntent.swift in Sources */,
@@ -1698,6 +1712,8 @@
 				274FCCF76691A49EA24B43C4 /* ImportLocalBookUseCase.swift in Sources */,
 				0AABC258821FE60A976963BB /* JSEngine+Bridge.swift in Sources */,
 				91BEF34798025AC5A47D5A65 /* JSEngine+Crypto.swift in Sources */,
+				0075E7E109F26A20CBD41E6A /* JSEngine+Network.swift in Sources */,
+				28CC306B139787069EE0F6AE /* JSEngine+Utils.swift in Sources */,
 				C80CB720B93D55ADAE23CC6D /* JSEngine.swift in Sources */,
 				36A679B29B3AC90A9D0DE4B2 /* JSONPathParser.swift in Sources */,
 				BC4F3DBE6AE72F01D9ACE782 /* LegadoApp.swift in Sources */,

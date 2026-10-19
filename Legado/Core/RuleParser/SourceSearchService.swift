@@ -31,18 +31,8 @@ public final class SourceSearchService: Sendable {
             headerJson: source.header,
             source: source)
 
-        // 2. 发起网络抓取
-        let responseBody: String
-        if requestInfo.method == "POST" {
-            responseBody = try await httpClient.post(
-                url: requestInfo.url,
-                body: requestInfo.body,
-                headers: requestInfo.headers)
-        } else {
-            responseBody = try await httpClient.get(
-                url: requestInfo.url,
-                headers: requestInfo.headers)
-        }
+        // 2. 发起网络抓取 (统一通过 fetch 支持 useWebView / webJs / bodyJs / POST / GET)
+        let responseBody = try await httpClient.fetch(analyzeUrl: requestInfo)
 
         let elapsedMs = Int((CFAbsoluteTimeGetCurrent() - startTime) * 1000)
 
