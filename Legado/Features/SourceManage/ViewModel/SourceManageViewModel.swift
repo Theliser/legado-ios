@@ -36,7 +36,8 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
         case .loadSources, .updateSearchKeyword, .toggleSourceEnabled, .deleteSource:
             handleDataIntent(intent)
 
-        case .openImportSheet, .closeImportSheet, .importFromText:
+        case .openImportSheet, .closeImportSheet, .importFromText,
+             .openEdit, .closeEdit, .openNewSource, .closeNewSource:
             handleSheetIntent(intent)
 
         case .openDebug, .closeDebug, .selectDebugTarget, .updateDebugQuery,
@@ -93,6 +94,22 @@ public final class SourceManageViewModel: BaseMVIViewModel<SourceManageState, So
 
         case let .importFromText(text):
             importSources(text: text)
+
+        case let .openEdit(source):
+            updateState { $0.editingSource = source }
+            emitEffect(.hapticFeedback)
+
+        case .closeEdit:
+            updateState { $0.editingSource = nil }
+            loadAllSources()
+
+        case .openNewSource:
+            updateState { $0.isNewSourceSheetPresented = true }
+            emitEffect(.hapticFeedback)
+
+        case .closeNewSource:
+            updateState { $0.isNewSourceSheetPresented = false }
+            loadAllSources()
 
         default:
             break

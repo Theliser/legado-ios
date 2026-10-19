@@ -20,6 +20,10 @@ public enum SourceManageIntent: ViewIntent, Sendable {
     case clearDebugLogs
     case selectPayloadLog(SourceDebugLog?)
     case runDebug(source: BookSource, keyword: String)
+    case openEdit(BookSource)
+    case closeEdit
+    case openNewSource
+    case closeNewSource
     case selectGroup(String)
     case startHealthCheck
     case stopHealthCheck
