@@ -203,21 +203,23 @@ flowchart TD
 ### 阶段七：字体动态解密与高级书源引擎 (Epic 7: Advanced Source Engine & Font Decryption)
 > **对标 MD3 模块**：`model/analyzeRule/QueryTTF.java`, `help/http/AnalyzeUrl.kt`, `data/entities/BookChapterReview.kt`
 
-- [ ] **7.1 QueryTTF 动态字体文件解析与字符混淆还原**
-  - 对标文件：`io/legado/app/model/analyzeRule/QueryTTF.java`
+- [x] **7.1 QueryTTF 动态字体文件解析与字符混淆还原** (已完成，Commit: `0039bee`, Issue #21)
+  - 对标文件：`io/legado/app/model/analyzeRule/QueryTTF.java`, `JsExtensions.kt`
   - 核心功能：
     - 下载网页附带的动态 TrueType / OpenType 字体文件（`.ttf` / `.woff` / `.otf`）；
-    - 解析 cmap 表、glyf 表与字形轮廓，通过字体字形特征比对或 base 字模哈希，将私有区（PUA）混淆字符自动映射还原为标准 Unicode 汉字；
-    - 支持笔趣阁、起点移动端等动态字体反爬机制。
-- [ ] **7.2 AnalyzeUrl WebView 高级选项 (webJs & webViewDelayTime)**
+    - 解析 `cmap`（格式 0/4/6）、`loca` 与 `glyf` 表（单轮廓与复合字形），通过字形轮廓特征序列序列化与比对，将私有区（PUA）混淆字符自动映射还原为标准 Unicode 汉字；
+    - 注入 JavaScriptCore 桥接（`java.queryTTF`, `java.queryBase64TTF`, `replaceFont`），支持全局 SHA-256 线程安全缓存；
+    - 支持笔趣阁、起点等动态字体反爬机制。
+- [x] **7.2 AnalyzeUrl WebView 高级选项 (webJs & webViewDelayTime)** (已完成，Commit: `0039bee`, Issue #21)
   - 核心功能：
-    - 支持 `webJs`：针对客户端 CSR 动态渲染网页，在 WebKit 中注入书源自定义 JS 代码后再提取 DOM；
+    - 支持 `webJs`：针对客户端 CSR 动态渲染网页，在 WebKit 内核中注入书源自定义 JS 代码后再提取 DOM；
     - 支持 `webViewDelayTime`：配置延迟捕获等待时间（毫秒）；
-    - 支持 `dnsIp`：自定义域名直连解析。
-- [ ] **7.3 ruleReview 段落评语与章评解析**
+    - `BrowserVerificationManager` 与 `HTTPClient` 无缝调度 Headless WKWebView。
+- [x] **7.3 ruleReview 段落评语与章评解析** (已完成，Commit: `0039bee`, Issue #21)
   - 对标文件：`BookChapterReview.kt`、`ruleReview`
   - 核心功能：
-    - 增加 `ruleReview` 数据模型与解析器，支持抓取段落评论数与章节评论列表。
+    - 增加 `BookChapterReview` 与 `RuleReview` 数据模型；
+    - 实现 `SourceReviewService` 解析段落评论数与章节评论列表。
 
 ---
 
