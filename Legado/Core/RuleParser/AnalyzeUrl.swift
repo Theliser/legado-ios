@@ -37,8 +37,10 @@ public struct AnalyzeUrl: Sendable {
     public let useWebView: Bool
     public let retry: Int
     public let type: String?
+    public let context: AnalyzeUrlContext
 
     public init(rawUrl: String, context: AnalyzeUrlContext) throws {
+        self.context = context
         var workingUrl = rawUrl.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // 0. 处理 @get:{...} 变量替换
@@ -107,7 +109,7 @@ public struct AnalyzeUrl: Sendable {
             key: key,
             page: page,
             baseUrl: baseUrl,
-            headerJson: headerJson,
+            headerJson: headerJson ?? source?.header,
             source: source,
             book: book)
         try self.init(rawUrl: rawUrl, context: ctx)

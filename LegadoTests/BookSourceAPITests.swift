@@ -215,10 +215,10 @@ final class BookSourceAPITests: XCTestCase {
                 bookList: "$.data.list",
                 name: "title@put:{bookId: '$.id'}",
                 author: "author_name",
-                lastChapter: "last_ch",
                 intro: "summary",
-                coverUrl: "img",
-                bookUrl: "https://api.booktest.com/book/@get:{bookId}"))
+                lastChapter: "last_ch",
+                bookUrl: "https://api.booktest.com/book/@get:{bookId}",
+                coverUrl: "img"))
 
         let results = try await searchService.search(source: source, keyword: "星空", page: 1)
         XCTAssertEqual(results.count, 2)
@@ -271,8 +271,8 @@ final class BookSourceAPITests: XCTestCase {
                 name: "h3.name a@text##【精选】|（全本）##",
                 author: "p.author@text##作者：##",
                 intro: "p.desc@text",
-                coverUrl: "img.pic@src",
-                bookUrl: "h3.name a@href"))
+                bookUrl: "h3.name a@href",
+                coverUrl: "img.pic@src"))
 
         let results = try await searchService.search(source: source, keyword: "诡秘", page: 1)
         XCTAssertEqual(results.count, 1)
@@ -317,8 +317,8 @@ final class BookSourceAPITests: XCTestCase {
             ruleBookInfo: RuleBookInfo(
                 name: "#info h1@text",
                 author: "#info p:matches(作者)@text##作者：##",
-                kind: "p.tag@text",
                 intro: "div.intro@text",
+                kind: "p.tag@text",
                 coverUrl: "img#fm@src"))
 
         let rawBook = Book(

@@ -11,59 +11,28 @@ public final class ContentParser: Sendable {
         self.httpClient = httpClient
     }
 
-    /// 抓取并清洗指定章节的正文文本
+    /// 抓取并清洗指定章节的正文文本 (全面通过 WebBook 统一中枢执行，支持多页与正则替换)
     public func fetchAndParseContent(
         chapterUrl: String,
         source: BookSource,
         baseUrl: String) async throws -> String {
-        var fullContent = ""
-        var currentUrlStr = chapterUrl
-        var visited = Set<String>()
-        var page = 0
-        let maxPages = 10
-
-        while page < maxPages && !visited.contains(currentUrlStr) {
-            visited.insert(currentUrlStr)
-            page += 1
-
-            let requestInfo = try AnalyzeUrl(
-                rawUrl: currentUrlStr,
-                baseUrl: baseUrl.isEmpty ? source.bookSourceUrl : baseUrl,
-                headerJson: source.header,
-                source: source)
-
-            let responseBody = try await httpClient.fetch(analyzeUrl: requestInfo)
-
-            let trimmed = responseBody.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard let ruleContent = source.ruleContent else {
-                fullContent += cleanRawHtml(responseBody)
-                break
-            }
-
-            let (pageText, nextUrlStr) = parsePageContent(
-                body: responseBody,
-                trimmed: trimmed,
-                rule: ruleContent,
-                baseUrl: requestInfo.url.absoluteString,
-                source: source)
-
-            fullContent += pageText
-
-            if let nextUrlStr,
-               !nextUrlStr.isEmpty,
-               !visited.contains(nextUrlStr) {
-                currentUrlStr = nextUrlStr
-            } else {
-                break
-            }
-        }
-
-        // 应用书源正文替换正则净化 (例如 ##广告.*##)
-        if let sourceRegex = source.ruleContent?.sourceRegex, !sourceRegex.isEmpty {
-            fullContent = RuleAnalyzer.applyRegexReplace(text: fullContent, regexRule: sourceRegex)
-        }
-
-        return formatParagraphs(fullContent)
+        let dummyBook = Book(
+            bookUrl: baseUrl.isEmpty ? source.bookSourceUrl : baseUrl,
+            origin: source.bookSourceUrl,
+            originName: source.bookSourceName,
+            name: "",
+            author: "")
+        var chapter = Chapter(
+            url: chapterUrl,
+            title: "",
+            bookUrl: dummyBook.bookUrl,
+            index: 0,
+            baseUrl: baseUrl.isEmpty ? source.bookSourceUrl : baseUrl)
+        return try await WebBook.getContentAwait(
+            bookSource: source,
+            book: dummyBook,
+            bookChapter: &chapter,
+            httpClient: httpClient)
     }
 
     private func parsePageContent(
@@ -139,5 +108,9 @@ public final class ContentParser: Sendable {
 
     public func cleanContent(_ html: String) -> String {
         formatParagraphs(cleanRawHtml(html))
+    }
+
+    public static func clean(_ html: String) -> String {
+        shared.cleanContent(html)
     }
 }

@@ -14,6 +14,7 @@ public protocol HTTPClientProtocol: Sendable {
         timeout: TimeInterval) async throws -> String
 
     func fetch(analyzeUrl: AnalyzeUrl) async throws -> String
+    func fetchStrResponse(analyzeUrl: AnalyzeUrl) async throws -> StrResponse
 }
 
 public extension HTTPClientProtocol {
@@ -38,6 +39,20 @@ public extension HTTPClientProtocol {
         } else {
             return try await get(url: analyzeUrl.url, headers: analyzeUrl.headers)
         }
+    }
+
+    func fetchStrResponse(analyzeUrl: AnalyzeUrl) async throws -> StrResponse {
+        let startTime = Date()
+        let body = try await fetch(analyzeUrl: analyzeUrl)
+        let duration = Int(Date().timeIntervalSince(startTime) * 1000)
+        return StrResponse(
+            url: analyzeUrl.url.absoluteString,
+            body: body,
+            code: 200,
+            message: "OK",
+            headers: analyzeUrl.headers,
+            isRedirect: false,
+            callTime: duration)
     }
 }
 
@@ -141,6 +156,97 @@ public final class HTTPClient: HTTPClientProtocol, Sendable {
         }
 
         return rawBody
+    }
+
+    /// 支持返回完整响应元数据的请求方法 (对齐 Android newCallStrResponse)
+    public func fetchStrResponse(analyzeUrl: AnalyzeUrl) async throws -> StrResponse {
+        let startTime = Date()
+        if analyzeUrl.useWebView {
+            return try await executeHeadlessStrResponse(analyzeUrl: analyzeUrl, startTime: startTime)
+        }
+        return try await executeHttpStrResponse(analyzeUrl: analyzeUrl, startTime: startTime)
+    }
+
+    private func executeHeadlessStrResponse(analyzeUrl: AnalyzeUrl, startTime: Date) async throws -> StrResponse {
+        let res = try await BrowserVerificationManager.shared.executeHeadlessWeb(
+            url: analyzeUrl.url.absoluteString,
+            webJs: analyzeUrl.webJs,
+            delayTimeMs: analyzeUrl.webViewDelayTime ?? 0,
+            headers: analyzeUrl.headers)
+        var body = res.body
+        if let bodyJs = analyzeUrl.bodyJs, !bodyJs.isEmpty {
+            let engine = JSEngine()
+            body = engine.evaluate(script: bodyJs, bindings: [
+                "result": body,
+                "baseUrl": res.url,
+            ]) ?? body
+        }
+        let duration = Int(Date().timeIntervalSince(startTime) * 1000)
+        return StrResponse(
+            url: res.url,
+            body: body,
+            code: 200,
+            message: "OK",
+            headers: analyzeUrl.headers,
+            isRedirect: res.url != analyzeUrl.url.absoluteString,
+            callTime: duration)
+    }
+
+    private func executeHttpStrResponse(analyzeUrl: AnalyzeUrl, startTime: Date) async throws -> StrResponse {
+        var request = URLRequest(url: analyzeUrl.url, timeoutInterval: 15)
+        request.httpMethod = analyzeUrl.method
+        request.httpBody = analyzeUrl.body
+        applyHeaders(to: &request, customHeaders: analyzeUrl.headers)
+
+        let persistentCookie = CookieStore.shared.getCookie(url: analyzeUrl.url.absoluteString)
+        if !persistentCookie.isEmpty {
+            request.setValue(persistentCookie, forHTTPHeaderField: "Cookie")
+        } else if let host = analyzeUrl.url.host, let cookie = await CookieJar.shared.cookieHeader(for: host) {
+            request.setValue(cookie, forHTTPHeaderField: "Cookie")
+        }
+
+        let (data, response) = try await session.data(for: request)
+        var statusCode = 200
+        var finalUrl = analyzeUrl.url.absoluteString
+        var resHeaders: [String: String] = [:]
+        var isRedirect = false
+        var rawBody: String
+
+        if let httpResponse = response as? HTTPURLResponse {
+            statusCode = httpResponse.statusCode
+            if let resUrl = httpResponse.url?.absoluteString {
+                finalUrl = resUrl
+                isRedirect = resUrl != analyzeUrl.url.absoluteString
+            }
+            if let allHeaders = httpResponse.allHeaderFields as? [String: String] {
+                resHeaders = allHeaders
+                await CookieJar.shared.saveCookies(from: allHeaders, for: analyzeUrl.url)
+                if let setCookie = allHeaders["Set-Cookie"] ?? allHeaders["set-cookie"] {
+                    CookieStore.shared.setCookie(url: analyzeUrl.url.absoluteString, cookie: setCookie)
+                }
+            }
+            rawBody = CharsetDetector.decode(data: data, response: httpResponse)
+        } else {
+            rawBody = CharsetDetector.decode(data: data)
+        }
+
+        if let bodyJs = analyzeUrl.bodyJs, !bodyJs.isEmpty {
+            let engine = JSEngine()
+            rawBody = engine.evaluate(script: bodyJs, bindings: [
+                "result": rawBody,
+                "baseUrl": finalUrl,
+            ]) ?? rawBody
+        }
+
+        let duration = Int(Date().timeIntervalSince(startTime) * 1000)
+        return StrResponse(
+            url: finalUrl,
+            body: rawBody,
+            code: statusCode,
+            message: "OK",
+            headers: resHeaders,
+            isRedirect: isRedirect,
+            callTime: duration)
     }
 
     private func applyHeaders(to request: inout URLRequest, customHeaders: [String: String]?) {

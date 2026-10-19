@@ -75,4 +75,8 @@ public final class CacheManager: @unchecked Sendable {
         memoryCache.removeAll()
         expirationMap.removeAll()
     }
+
+    public func clearSourceVariables() {
+        clear()
+    }
 }

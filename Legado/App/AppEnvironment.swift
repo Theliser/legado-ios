@@ -139,30 +139,30 @@ public final class AppEnvironment: ObservableObject {
             bookSourceUrl: "https://biquge.example.com",
             bookSourceName: "笔趣阁官方",
             bookSourceType: 0,
+            bookSourceComment: "内置演示书源",
             exploreUrl: """
             玄幻奇幻::/sort/1_{{page}}.html
             武侠仙侠::/sort/2_{{page}}.html
             都市言情::/sort/3_{{page}}.html
             历史军事::/sort/4_{{page}}.html
             """,
-            bookSourceComment: "内置演示书源",
+            ruleExplore: RuleExplore(
+                bookList: ".item",
+                name: "dt a@text",
+                author: "dt span@text",
+                intro: ".intro@text",
+                kind: ".book-kind@text",
+                bookUrl: "dt a@href",
+                coverUrl: "img@src"),
             ruleSearch: RuleSearch(
                 checkKeyWord: "宿命",
                 bookList: ".item",
                 name: "dt a@text",
                 author: "dt span@text",
-                kind: ".book-kind@text",
                 intro: ".intro@text",
-                coverUrl: "img@src",
-                bookUrl: "dt a@href"),
-            ruleExplore: RuleExplore(
-                bookList: ".item",
-                name: "dt a@text",
-                author: "dt span@text",
                 kind: ".book-kind@text",
-                intro: ".intro@text",
-                coverUrl: "img@src",
-                bookUrl: "dt a@href"),
+                bookUrl: "dt a@href",
+                coverUrl: "img@src"),
             ruleBookInfo: RuleBookInfo(
                 name: "h1.book-name@text",
                 author: "span.author@text",
