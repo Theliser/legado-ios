@@ -102,60 +102,14 @@ public struct SourceManageView: View {
                 viewModel.send(.loadSources)
             }
             .sensoryFeedback(.impact(weight: .light), trigger: hapticTrigger)
-            .sheet(isPresented: Binding(
-                get: { viewModel.state.isImportSheetPresented },
-                set: {
-                    if !$0 {
-                        viewModel.send(.closeImportSheet)
-                    }
-                })) {
-                    SourceImportSheet { text in
-                        viewModel.send(.importFromText(text))
-                    }
-            }
-            .sheet(item: Binding<BookSource?>(
-                get: { viewModel.state.editingSource },
+            .sheet(item: Binding(
+                get: { activeSheet },
                 set: {
                     if $0 == nil {
-                        viewModel.send(.closeEdit)
+                        dismissActiveSheet()
                     }
-                })) { source in
-                    BookSourceEditView(
-                        source: source,
-                        onDismiss: { viewModel.send(.closeEdit) },
-                        onOpenDebug: { sourceToDebug in
-                            viewModel.send(.closeEdit)
-                            viewModel.send(.openDebug(sourceToDebug))
-                        })
-            }
-            .sheet(isPresented: Binding(
-                get: { viewModel.state.isNewSourceSheetPresented },
-                set: {
-                    if !$0 {
-                        viewModel.send(.closeNewSource)
-                    }
-                })) {
-                    BookSourceEditView(
-                        source: nil,
-                        onDismiss: { viewModel.send(.closeNewSource) },
-                        onOpenDebug: { sourceToDebug in
-                            viewModel.send(.closeNewSource)
-                            viewModel.send(.openDebug(sourceToDebug))
-                        })
-            }
-            .sheet(item: Binding<BookSource?>(
-                get: { viewModel.state.debuggingSource },
-                set: {
-                    if $0 == nil {
-                        viewModel.send(.closeDebug)
-                    }
-                })) { source in
-                    SourceDebugSheet(
-                        source: source,
-                        state: viewModel.state,
-                        onIntent: { intent in
-                            viewModel.send(intent)
-                        })
+                })) { sheet in
+                    sheetDestinationView(for: sheet)
             }
             .onAppear {
                 viewModel.send(.loadSources)
@@ -199,6 +153,98 @@ public struct SourceManageView: View {
         }
     }
 
+    // MARK: - 模态弹窗路由分发
+
+    private enum ActiveSheet: Identifiable {
+        case importSheet
+        case edit(BookSource)
+        case newSource
+        case debug(BookSource)
+
+        var id: String {
+            switch self {
+            case .importSheet:
+                return "import"
+
+            case let .edit(sourceItem):
+                return "edit_\(sourceItem.bookSourceUrl)"
+
+            case .newSource:
+                return "newSource"
+
+            case let .debug(sourceItem):
+                return "debug_\(sourceItem.bookSourceUrl)"
+            }
+        }
+    }
+
+    private var activeSheet: ActiveSheet? {
+        if viewModel.state.isImportSheetPresented {
+            return .importSheet
+        }
+        if let editing = viewModel.state.editingSource {
+            return .edit(editing)
+        }
+        if viewModel.state.isNewSourceSheetPresented {
+            return .newSource
+        }
+        if let debugging = viewModel.state.debuggingSource {
+            return .debug(debugging)
+        }
+        return nil
+    }
+
+    private func dismissActiveSheet() {
+        if viewModel.state.isImportSheetPresented {
+            viewModel.send(.closeImportSheet)
+        }
+        if viewModel.state.editingSource != nil {
+            viewModel.send(.closeEdit)
+        }
+        if viewModel.state.isNewSourceSheetPresented {
+            viewModel.send(.closeNewSource)
+        }
+        if viewModel.state.debuggingSource != nil {
+            viewModel.send(.closeDebug)
+        }
+    }
+
+    @ViewBuilder
+    private func sheetDestinationView(for sheet: ActiveSheet) -> some View {
+        switch sheet {
+        case .importSheet:
+            SourceImportSheet { text in
+                viewModel.send(.importFromText(text))
+            }
+
+        case let .edit(source):
+            BookSourceEditView(
+                source: source,
+                onDismiss: { viewModel.send(.closeEdit) },
+                onOpenDebug: { sourceToDebug in
+                    viewModel.send(.closeEdit)
+                    viewModel.send(.openDebug(sourceToDebug))
+                })
+
+        case .newSource:
+            BookSourceEditView(
+                source: nil,
+                onDismiss: { viewModel.send(.closeNewSource) },
+                onOpenDebug: { sourceToDebug in
+                    viewModel.send(.closeNewSource)
+                    viewModel.send(.openDebug(sourceToDebug))
+                })
+
+        case let .debug(source):
+            SourceDebugSheet(
+                source: source,
+                state: viewModel.state,
+                onIntent: { intent in
+                    viewModel.send(intent)
+                })
+        }
+    }
+
     // MARK: - 书源卡片列表
 
     private var sourcesListView: some View {
@@ -211,31 +257,36 @@ public struct SourceManageView: View {
 
     private func sourceCardView(source: BookSource) -> some View {
         HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 8) {
-                    Text(source.bookSourceName)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
+            Button {
+                viewModel.send(.openEdit(source))
+            } label: {
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 8) {
+                        Text(source.bookSourceName)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
 
-                    if let explore = source.exploreUrl, !explore.isEmpty {
-                        Text("发现")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(.blue)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(Color.blue.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        if let explore = source.exploreUrl, !explore.isEmpty {
+                            Text("发现")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(.blue)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(Color.blue.opacity(0.12))
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                        }
                     }
+
+                    Text(source.bookSourceUrl)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
-
-                Text(source.bookSourceUrl)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-
-            Spacer()
+            .buttonStyle(.plain)
 
             // 启用开关
             Toggle("", isOn: Binding(
@@ -249,10 +300,6 @@ public struct SourceManageView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(Color.white.opacity(0.18), lineWidth: 0.5))
-        .contentShape(Rectangle())
-        .onTapGesture {
-            viewModel.send(.openEdit(source))
-        }
         .contextMenu {
             Button {
                 viewModel.send(.openEdit(source))
