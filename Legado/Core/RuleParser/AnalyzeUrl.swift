@@ -31,6 +31,9 @@ public struct AnalyzeUrl: Sendable {
     public let method: String
     public let body: Data?
     public let headers: [String: String]
+    public let webJs: String?
+    public let webViewDelayTime: Int?
+    public let useWebView: Bool
 
     public init(rawUrl: String, context: AnalyzeUrlContext) throws {
         var workingUrl = rawUrl.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -74,6 +77,9 @@ public struct AnalyzeUrl: Sendable {
         self.method = options.method
         self.body = bodyData
         self.headers = finalHeaders
+        self.webJs = options.webJs
+        self.webViewDelayTime = options.webViewDelayTime
+        self.useWebView = options.useWebView || (options.webJs != nil)
     }
 
     public init(
@@ -253,106 +259,5 @@ public struct AnalyzeUrl: Sendable {
             result.replaceSubrange(range0, with: val)
         }
         return result
-    }
-
-    private struct ParsedUrlOptions {
-        var finalUrl: String
-        var method: String
-        var body: String?
-        var charset: String
-        var headers: [String: String]
-    }
-
-    private static func parseUrlAndOptions(
-        workingUrl: String,
-        headerJson: String?) -> ParsedUrlOptions {
-        var requestMethod = "GET"
-        var requestBodyStr: String?
-        var requestCharset = "utf-8"
-        var finalUrlStr = workingUrl
-        var mergedHeaders: [String: String] = [
-            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148",
-        ]
-
-        if let headerJson, !headerJson.isEmpty,
-           let data = headerJson.data(using: .utf8),
-           let parsed = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
-            mergedHeaders.merge(parsed) { _, new in new }
-        }
-
-        if let commaIndex = workingUrl.firstIndex(of: ",") {
-            let optionsCandidate = String(workingUrl[workingUrl.index(after: commaIndex)...])
-                .trimmingCharacters(in: .whitespaces)
-            if optionsCandidate.hasPrefix("{") {
-                finalUrlStr = String(workingUrl[..<commaIndex]).trimmingCharacters(in: .whitespaces)
-                let jsEngine = JSEngine()
-                if let jsonStr = jsEngine.evaluate(script: "JSON.stringify(" + optionsCandidate + ")"),
-                   let data = jsonStr.data(using: .utf8),
-                   let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                    if let methodVal = dict["method"] as? String {
-                        requestMethod = methodVal.uppercased()
-                    }
-                    if let bodyVal = dict["body"] as? String {
-                        requestBodyStr = bodyVal
-                    }
-                    if let charsetVal = dict["charset"] as? String {
-                        requestCharset = charsetVal.lowercased()
-                    }
-                    if let headersVal = dict["headers"] as? [String: String] {
-                        mergedHeaders.merge(headersVal) { _, new in new }
-                    }
-                }
-            }
-        }
-        return ParsedUrlOptions(
-            finalUrl: finalUrlStr,
-            method: requestMethod,
-            body: requestBodyStr,
-            charset: requestCharset,
-            headers: mergedHeaders)
-    }
-
-    private static func buildRequestBody(
-        options: ParsedUrlOptions,
-        rawKey: String,
-        pageStr: String) -> (Data?, [String: String]) {
-        guard let bStr = options.body else {
-            return (nil, options.headers)
-        }
-
-        var updatedHeaders = options.headers
-        let resolvedBody = bStr
-            .replacingOccurrences(of: "{{key}}", with: rawKey)
-            .replacingOccurrences(of: "{{searchKey}}", with: rawKey)
-            .replacingOccurrences(of: "{{page}}", with: pageStr)
-
-        let bodyData: Data?
-        if options.charset == "gbk" || options.charset == "gb2312" {
-            bodyData = resolvedBody.data(using: CharsetDetector.gbkEncoding) ?? resolvedBody.data(using: .utf8)
-        } else {
-            bodyData = resolvedBody.data(using: .utf8)
-        }
-
-        if options.method == "POST", updatedHeaders["Content-Type"] == nil {
-            if resolvedBody.trimmingCharacters(in: .whitespaces).hasPrefix("{") {
-                updatedHeaders["Content-Type"] = "application/json; charset=\(options.charset)"
-            } else {
-                updatedHeaders["Content-Type"] = "application/x-www-form-urlencoded; charset=\(options.charset)"
-            }
-        }
-
-        return (bodyData, updatedHeaders)
-    }
-
-    public static func resolveAbsoluteUrl(_ pathOrUrl: String, baseUrl: String) -> String {
-        let trimmed = pathOrUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.lowercased().hasPrefix("http://") || trimmed.lowercased().hasPrefix("https://") {
-            return trimmed
-        }
-        guard let base = URL(string: baseUrl),
-              let resolved = URL(string: trimmed, relativeTo: base) else {
-            return trimmed
-        }
-        return resolved.absoluteURL.absoluteString
     }
 }
