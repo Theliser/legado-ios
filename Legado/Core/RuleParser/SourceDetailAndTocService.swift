@@ -13,33 +13,14 @@ public final class SourceDetailAndTocService: Sendable {
 
     // MARK: - 书籍详情解析
 
-    /// 抓取并解析书籍详情信息
+    /// 抓取并解析书籍详情信息 (全面通过 WebBook 统一中枢执行)
     public func fetchBookDetail(book: Book, source: BookSource) async throws -> Book {
-        let requestInfo = try AnalyzeUrl(
-            rawUrl: book.bookUrl,
-            baseUrl: source.bookSourceUrl,
-            headerJson: source.header,
-            source: source,
-            book: book)
-
-        let responseBody = try await httpClient.fetch(analyzeUrl: requestInfo)
-        var updatedBook = book
-        guard let ruleInfo = source.ruleBookInfo else {
-            return updatedBook
-        }
-
-        let baseUrl = requestInfo.url.absoluteString
-        let analyzer = AnalyzeRule(book: updatedBook, source: source, baseUrl: baseUrl)
-        analyzer.setContent(responseBody, baseUrl: baseUrl)
-
-        if let initRule = ruleInfo.bookInfoInit, !initRule.isEmpty {
-            if let initElement = analyzer.getElement(initRule) {
-                analyzer.setContent(initElement, baseUrl: baseUrl)
-            }
-        }
-
-        populateBookMetadata(analyzer: analyzer, ruleInfo: ruleInfo, book: &updatedBook)
-        return updatedBook
+        var mutableBook = book
+        return try await WebBook.getBookInfoAwait(
+            bookSource: source,
+            book: &mutableBook,
+            canReName: true,
+            httpClient: httpClient)
     }
 
     private func populateBookMetadata(analyzer: AnalyzeRule, ruleInfo: RuleBookInfo, book: inout Book) {
@@ -89,54 +70,13 @@ public final class SourceDetailAndTocService: Sendable {
 
     // MARK: - 目录 (TOC) 解析
 
-    /// 抓取书籍全部章节目录（支持 nextTocUrl 自动分页抓取）
+    /// 抓取书籍全部章节目录（全面通过 WebBook 统一中枢执行，支持 preUpdateJs 与自动分页）
     public func fetchBookToc(book: Book, source: BookSource) async throws -> [Chapter] {
-        let initialUrl = book.tocUrl.isEmpty ? book.bookUrl : book.tocUrl
-        guard let ruleToc = source.ruleToc,
-              let rawChapterListRule = ruleToc.chapterList,
-              !rawChapterListRule.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return []
-        }
-
-        var isReverse = false
-        var chapterListRule = rawChapterListRule.trimmingCharacters(in: .whitespacesAndNewlines)
-        if chapterListRule.hasPrefix("-") {
-            isReverse = true
-            chapterListRule = String(chapterListRule.dropFirst())
-        } else if chapterListRule.hasPrefix("+") {
-            chapterListRule = String(chapterListRule.dropFirst())
-        }
-
-        var chapters: [Chapter] = []
-        var currentUrlString: String? = initialUrl
-        var visitedUrls = Set<String>()
-        var pageCount = 0
-        let maxPages = 40
-
-        while let targetUrlStr = currentUrlString, pageCount < maxPages {
-            guard !visitedUrls.contains(targetUrlStr) else { break }
-            visitedUrls.insert(targetUrlStr)
-            pageCount += 1
-
-            let (pageChapters, nextUrl) = try await fetchSingleTocPage(
-                targetUrlStr: targetUrlStr,
-                ruleToc: ruleToc,
-                chapterListRule: chapterListRule,
-                book: book,
-                source: source)
-            chapters.append(contentsOf: pageChapters)
-            currentUrlString = nextUrl
-        }
-
-        if isReverse {
-            chapters.reverse()
-        }
-
-        for index in chapters.indices {
-            chapters[index].index = index
-        }
-
-        return chapters
+        try await WebBook.getChapterListAwait(
+            bookSource: source,
+            book: book,
+            runPreJs: true,
+            httpClient: httpClient)
     }
 
     private func fetchSingleTocPage(

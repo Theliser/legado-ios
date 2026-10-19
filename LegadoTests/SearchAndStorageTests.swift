@@ -15,9 +15,9 @@ struct SearchAndStorageTests {
             bookSourceName: "测试笔趣阁",
             bookSourceGroup: "优质",
             bookSourceType: 0,
-            searchUrl: "https://www.example.com/search?q={{key}}",
+            customOrder: 1,
             enabled: true,
-            customOrder: 1)
+            searchUrl: "https://www.example.com/search?q={{key}}")
 
         try await repo.saveSources([sampleSource])
 

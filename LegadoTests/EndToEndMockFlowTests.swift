@@ -103,16 +103,16 @@ struct EndToEndMockFlowTests {
             bookSourceUrl: sourceAUrl,
             bookSourceName: "笔趣阁官方源",
             bookSourceType: 0,
-            searchUrl: "https://biquge.example.com/search?keyword={{key}}",
             enabled: true,
+            searchUrl: "https://biquge.example.com/search?keyword={{key}}",
             ruleSearch: RuleSearch(
                 bookList: ".book-item",
                 name: "h3.title a@text",
                 author: "span.author@text",
-                kind: "span.kind@text",
                 intro: "p.intro@text",
-                coverUrl: "img@src",
-                bookUrl: "h3.title a@href"),
+                kind: "span.kind@text",
+                bookUrl: "h3.title a@href",
+                coverUrl: "img@src"),
             ruleBookInfo: RuleBookInfo(
                 name: "h1.book-name@text",
                 author: "span.author@text",
@@ -127,14 +127,14 @@ struct EndToEndMockFlowTests {
             bookSourceUrl: sourceBUrl,
             bookSourceName: "API书源B",
             bookSourceType: 0,
-            searchUrl: "https://api.sourceb.example.com/search?q={{key}}",
             enabled: true,
+            searchUrl: "https://api.sourceb.example.com/search?q={{key}}",
             ruleSearch: RuleSearch(
                 bookList: "$[*]",
                 name: "$.book_name",
                 author: "$.writer",
-                kind: "$.category",
                 intro: "$.description",
+                kind: "$.category",
                 bookUrl: "$.detail_url"))
 
         try await sourceRepo.saveSources([sourceA, sourceB])

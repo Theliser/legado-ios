@@ -64,24 +64,17 @@ public final class SourceExploreService: Sendable {
         return results
     }
 
-    /// 抓取指定分类和分页的书籍列表
+    /// 抓取指定分类和分页的书籍列表 (全面通过 WebBook 统一中枢执行)
     public func fetchExploreBooks(
         source: BookSource,
         category: ExploreCategory,
         page: Int = 1) async throws -> [Book] {
-        let ctx = AnalyzeUrlContext(
+        let results = try await WebBook.exploreBookAwait(
+            bookSource: source,
+            url: category.categoryUrl,
             page: page,
-            baseUrl: source.bookSourceUrl,
-            headerJson: source.header,
-            source: source)
-        let requestInfo = try AnalyzeUrl(rawUrl: category.categoryUrl, context: ctx)
-
-        let responseBody = try await httpClient.fetch(analyzeUrl: requestInfo)
-
-        return parseBooks(
-            content: responseBody,
-            source: source,
-            baseUrl: requestInfo.url.absoluteString)
+            httpClient: httpClient)
+        return results.map { $0.toBook() }
     }
 
     /// 解析书籍内容公开接口（供分类流和测试复用）

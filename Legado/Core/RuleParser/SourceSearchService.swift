@@ -11,7 +11,7 @@ public final class SourceSearchService: Sendable {
         self.httpClient = httpClient
     }
 
-    /// 执行单个书源搜索
+    /// 执行单个书源搜索 (全面通过 WebBook 统一中枢执行)
     public func search(
         source: BookSource,
         keyword: String,
@@ -19,43 +19,11 @@ public final class SourceSearchService: Sendable {
         guard let rawSearchUrl = source.searchUrl, !rawSearchUrl.isEmpty else {
             return []
         }
-
-        let startTime = CFAbsoluteTimeGetCurrent()
-
-        // 1. 构建搜索请求
-        let requestInfo = try AnalyzeUrl(
-            rawUrl: rawSearchUrl,
+        return try await WebBook.searchBookAwait(
+            bookSource: source,
             key: keyword,
             page: page,
-            baseUrl: source.bookSourceUrl,
-            headerJson: source.header,
-            source: source)
-
-        // 2. 发起网络抓取 (统一通过 fetch 支持 useWebView / webJs / bodyJs / POST / GET)
-        let responseBody = try await httpClient.fetch(analyzeUrl: requestInfo)
-
-        let elapsedMs = Int((CFAbsoluteTimeGetCurrent() - startTime) * 1000)
-
-        // 3. 解析搜索列表
-        guard let ruleSearch = source.ruleSearch,
-              let bookListRule = ruleSearch.bookList,
-              !bookListRule.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return []
-        }
-
-        let baseUrl = requestInfo.url.absoluteString
-        let analyzer = AnalyzeRule(source: source, baseUrl: baseUrl)
-        analyzer.setContent(responseBody, baseUrl: baseUrl)
-
-        let elements = analyzer.getElements(bookListRule)
-        return elements.compactMap { element in
-            mapSearchResult(
-                element: element,
-                ruleSearch: ruleSearch,
-                source: source,
-                baseUrl: baseUrl,
-                elapsedMs: elapsedMs)
-        }
+            httpClient: httpClient)
     }
 
     private func mapSearchResult(
