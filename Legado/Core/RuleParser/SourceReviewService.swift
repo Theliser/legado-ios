@@ -56,20 +56,7 @@ public final class SourceReviewService: Sendable {
     }
 
     private func fetchHtml(for analyzeUrl: AnalyzeUrl) async throws -> String {
-        if let client = httpClient as? HTTPClient {
-            return try await client.fetch(analyzeUrl: analyzeUrl)
-        } else if analyzeUrl.method == "POST" {
-            return try await httpClient.post(
-                url: analyzeUrl.url,
-                body: analyzeUrl.body,
-                headers: analyzeUrl.headers,
-                timeout: 15)
-        } else {
-            return try await httpClient.get(
-                url: analyzeUrl.url,
-                headers: analyzeUrl.headers,
-                timeout: 15)
-        }
+        try await httpClient.fetch(analyzeUrl: analyzeUrl)
     }
 
     private func parseReviewItems(

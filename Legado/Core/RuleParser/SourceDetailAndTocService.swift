@@ -22,7 +22,7 @@ public final class SourceDetailAndTocService: Sendable {
             source: source,
             book: book)
 
-        let responseBody = try await httpClient.get(url: requestInfo.url, headers: requestInfo.headers)
+        let responseBody = try await httpClient.fetch(analyzeUrl: requestInfo)
         var updatedBook = book
         guard let ruleInfo = source.ruleBookInfo else {
             return updatedBook
@@ -152,17 +152,7 @@ public final class SourceDetailAndTocService: Sendable {
             source: source,
             book: book)
 
-        let responseBody: String
-        if requestInfo.method == "POST" {
-            responseBody = try await httpClient.post(
-                url: requestInfo.url,
-                body: requestInfo.body,
-                headers: requestInfo.headers)
-        } else {
-            responseBody = try await httpClient.get(
-                url: requestInfo.url,
-                headers: requestInfo.headers)
-        }
+        let responseBody = try await httpClient.fetch(analyzeUrl: requestInfo)
 
         let baseUrl = requestInfo.url.absoluteString
         let analyzer = AnalyzeRule(book: book, source: source, baseUrl: baseUrl)

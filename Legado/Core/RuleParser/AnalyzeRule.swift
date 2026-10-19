@@ -156,11 +156,9 @@ public final class AnalyzeRule: @unchecked Sendable {
             bindings["src"] = contentStr
         }
         if let source {
-            bindings["source"] = [
-                "bookSourceUrl": source.bookSourceUrl,
-                "bookSourceName": source.bookSourceName,
-                "loginUrl": source.loginUrl ?? "",
-            ]
+            bindings["source"] = source
+            bindings["headerJson"] = source.header ?? ""
+            bindings["header"] = source.header ?? ""
         }
 
         return jsEngine.evaluate(script: jsStr, bindings: bindings)
@@ -334,14 +332,17 @@ extension AnalyzeRule {
         }
         let fullRange = NSRange(location: 0, length: (text as NSString).length)
         if sourceRule.replaceFirst {
-            if let first = regex.firstMatch(in: text, options: [], range: fullRange) {
+            if let first = regex.firstMatch(in: text, options: [], range: fullRange),
+               let matchRange = Range(first.range, in: text) {
+                let matchValue = String(text[matchRange])
+                let matchNsRange = NSRange(location: 0, length: (matchValue as NSString).length)
                 return regex.stringByReplacingMatches(
-                    in: text,
+                    in: matchValue,
                     options: [],
-                    range: first.range,
+                    range: matchNsRange,
                     withTemplate: sourceRule.replacement)
             }
-            return text
+            return ""
         } else {
             return regex.stringByReplacingMatches(
                 in: text,

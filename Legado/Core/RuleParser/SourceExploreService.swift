@@ -76,17 +76,7 @@ public final class SourceExploreService: Sendable {
             source: source)
         let requestInfo = try AnalyzeUrl(rawUrl: category.categoryUrl, context: ctx)
 
-        let responseBody: String
-        if requestInfo.method == "POST" {
-            responseBody = try await httpClient.post(
-                url: requestInfo.url,
-                body: requestInfo.body,
-                headers: requestInfo.headers)
-        } else {
-            responseBody = try await httpClient.get(
-                url: requestInfo.url,
-                headers: requestInfo.headers)
-        }
+        let responseBody = try await httpClient.fetch(analyzeUrl: requestInfo)
 
         return parseBooks(
             content: responseBody,

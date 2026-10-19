@@ -32,17 +32,7 @@ public final class ContentParser: Sendable {
                 headerJson: source.header,
                 source: source)
 
-            let responseBody: String
-            if requestInfo.method == "POST" {
-                responseBody = try await httpClient.post(
-                    url: requestInfo.url,
-                    body: requestInfo.body,
-                    headers: requestInfo.headers)
-            } else {
-                responseBody = try await httpClient.get(
-                    url: requestInfo.url,
-                    headers: requestInfo.headers)
-            }
+            let responseBody = try await httpClient.fetch(analyzeUrl: requestInfo)
 
             let trimmed = responseBody.trimmingCharacters(in: .whitespacesAndNewlines)
             guard let ruleContent = source.ruleContent else {

@@ -32,8 +32,11 @@ public struct AnalyzeUrl: Sendable {
     public let body: Data?
     public let headers: [String: String]
     public let webJs: String?
+    public let bodyJs: String?
     public let webViewDelayTime: Int?
     public let useWebView: Bool
+    public let retry: Int
+    public let type: String?
 
     public init(rawUrl: String, context: AnalyzeUrlContext) throws {
         var workingUrl = rawUrl.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -56,13 +59,20 @@ public struct AnalyzeUrl: Sendable {
             pageStr: pageStr,
             baseUrl: context.baseUrl)
 
-        // 3. 解析 URL 与附加配置 (url,{"method": "POST", "body": "...", "headers": {...}, "charset": "gbk"})
+        // 3. 处理页码列表规则: <1,2,3> 或 <,index_2.html,index_3.html> (对齐 Android AnalyzeUrl pagePattern)
+        workingUrl = Self.replacePageListPattern(url: workingUrl, page: context.page)
+
+        // 4. 解析 URL 与附加配置 (url,{"method": "POST", "body": "...", "headers": {...}, "charset": "gbk"})
         let options = Self.parseUrlAndOptions(
             workingUrl: workingUrl,
-            headerJson: context.headerJson)
+            headerJson: context.headerJson,
+            baseUrl: context.baseUrl)
 
-        // 4. 解析绝对 URL
-        let resolvedUrlStr = Self.resolveAbsoluteUrl(options.finalUrl, baseUrl: context.baseUrl)
+        // 5. 解析绝对 URL 并按字符集处理 Query 编码 (支持 GBK / UTF-8)
+        let resolvedUrlStr = Self.resolveAbsoluteUrl(
+            options.finalUrl,
+            baseUrl: context.baseUrl,
+            charset: options.charset)
         guard let finalUrl = URL(string: resolvedUrlStr) else {
             throw URLError(.badURL)
         }
@@ -78,8 +88,11 @@ public struct AnalyzeUrl: Sendable {
         self.body = bodyData
         self.headers = finalHeaders
         self.webJs = options.webJs
+        self.bodyJs = options.bodyJs
         self.webViewDelayTime = options.webViewDelayTime
         self.useWebView = options.useWebView || (options.webJs != nil)
+        self.retry = options.retry
+        self.type = options.type
     }
 
     public init(
@@ -257,6 +270,33 @@ public struct AnalyzeUrl: Sendable {
                 val = jsEngine.evaluate(script: evalScript) ?? ""
             }
             result.replaceSubrange(range0, with: val)
+        }
+        return result
+    }
+
+    static func replacePageListPattern(url: String, page: Int?) -> String {
+        guard let page, url.contains("<"), url.contains(">"),
+              let regex = try? NSRegularExpression(pattern: #"<([^>]+)>"#, options: []) else {
+            return url
+        }
+        var result = url
+        let matches = regex.matches(in: url, options: [], range: NSRange(location: 0, length: url.utf16.count))
+        for match in matches.reversed() {
+            guard let fullRange = Range(match.range(at: 0), in: result),
+                  let groupRange = Range(match.range(at: 1), in: url) else { continue }
+            let inner = String(url[groupRange])
+            if inner.contains(",") {
+                let pages = inner.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                let replacement: String
+                if page > 0 && page <= pages.count {
+                    replacement = pages[page - 1]
+                } else if let last = pages.last {
+                    replacement = last
+                } else {
+                    replacement = ""
+                }
+                result.replaceSubrange(fullRange, with: replacement)
+            }
         }
         return result
     }

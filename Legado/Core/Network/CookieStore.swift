@@ -22,6 +22,22 @@ public final class CookieStore: @unchecked Sendable {
         shared.setCookie(url: url, cookie: cookie)
     }
 
+    public static func replaceCookie(url: String, cookie: String) {
+        shared.replaceCookie(url: url, cookie: cookie)
+    }
+
+    public static func getKey(url: String, key: String) -> String {
+        shared.getKey(url: url, key: key)
+    }
+
+    public static func cookieToMap(_ cookie: String) -> [String: String] {
+        shared.cookieToMap(cookie)
+    }
+
+    public static func mapToCookie(_ map: [String: String]) -> String {
+        shared.mapToCookie(map)
+    }
+
     public static func removeCookie(url: String) {
         shared.removeCookie(url: url)
     }
@@ -31,6 +47,23 @@ public final class CookieStore: @unchecked Sendable {
         defer { lock.unlock() }
         guard let host = extractHost(url) else { return "" }
         return cookieCache[host] ?? ""
+    }
+
+    public func getKey(url: String, key: String) -> String {
+        let cookieStr = getCookie(url: url)
+        return cookieToMap(cookieStr)[key] ?? ""
+    }
+
+    public func replaceCookie(url: String, cookie: String) {
+        setCookie(url: url, cookie: cookie)
+    }
+
+    public func cookieToMap(_ cookieStr: String) -> [String: String] {
+        parseCookies(cookieStr)
+    }
+
+    public func mapToCookie(_ map: [String: String]) -> String {
+        map.map { "\($0.key)=\($0.value)" }.joined(separator: "; ")
     }
 
     public func setCookie(url: String, cookie: String) {

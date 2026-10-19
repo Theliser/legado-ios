@@ -83,4 +83,24 @@ public enum CharsetDetector {
             return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(cfEncoding))
         }
     }
+
+    /// 使用指定编码进行百分号 URL 编码 (对齐 Android URLEncoder.encode(str, enc))
+    public static func percentEncode(string: String, encoding: String.Encoding) -> String {
+        guard let data = string.data(using: encoding) else { return string }
+        return data.map { byte -> String in
+            if (byte >= 0x41 && byte <= 0x5A) ||
+                (byte >= 0x61 && byte <= 0x7A) ||
+                (byte >= 0x30 && byte <= 0x39) ||
+                byte == 0x2D || byte == 0x5F || byte == 0x2E || byte == 0x7E {
+                return String(UnicodeScalar(byte))
+            } else {
+                return String(format: "%%%02X", byte)
+            }
+        }.joined()
+    }
+
+    /// GBK / GB2312 百分号编码
+    public static func percentEncodeGBK(_ string: String) -> String {
+        percentEncode(string: string, encoding: gbkEncoding)
+    }
 }
