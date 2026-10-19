@@ -79,8 +79,18 @@ public struct SourceManageView: View {
                                 .symbolRenderingMode(.hierarchical)
                         }
 
-                        Button {
-                            viewModel.send(.openImportSheet)
+                        Menu {
+                            Button {
+                                viewModel.send(.openNewSource)
+                            } label: {
+                                Label("新建书源", systemImage: "plus.circle")
+                            }
+
+                            Button {
+                                viewModel.send(.openImportSheet)
+                            } label: {
+                                Label("导入书源", systemImage: "square.and.arrow.down")
+                            }
                         } label: {
                             Image(systemName: "plus")
                                 .font(.body.weight(.semibold))
@@ -102,6 +112,36 @@ public struct SourceManageView: View {
                     SourceImportSheet { text in
                         viewModel.send(.importFromText(text))
                     }
+            }
+            .sheet(item: Binding<BookSource?>(
+                get: { viewModel.state.editingSource },
+                set: {
+                    if $0 == nil {
+                        viewModel.send(.closeEdit)
+                    }
+                })) { source in
+                    BookSourceEditView(
+                        source: source,
+                        onDismiss: { viewModel.send(.closeEdit) },
+                        onOpenDebug: { sourceToDebug in
+                            viewModel.send(.closeEdit)
+                            viewModel.send(.openDebug(sourceToDebug))
+                        })
+            }
+            .sheet(isPresented: Binding(
+                get: { viewModel.state.isNewSourceSheetPresented },
+                set: {
+                    if !$0 {
+                        viewModel.send(.closeNewSource)
+                    }
+                })) {
+                    BookSourceEditView(
+                        source: nil,
+                        onDismiss: { viewModel.send(.closeNewSource) },
+                        onOpenDebug: { sourceToDebug in
+                            viewModel.send(.closeNewSource)
+                            viewModel.send(.openDebug(sourceToDebug))
+                        })
             }
             .sheet(item: Binding<BookSource?>(
                 get: { viewModel.state.debuggingSource },
@@ -211,9 +251,15 @@ public struct SourceManageView: View {
                 .stroke(Color.white.opacity(0.18), lineWidth: 0.5))
         .contentShape(Rectangle())
         .onTapGesture {
-            viewModel.send(.openDebug(source))
+            viewModel.send(.openEdit(source))
         }
         .contextMenu {
+            Button {
+                viewModel.send(.openEdit(source))
+            } label: {
+                Label("编辑书源", systemImage: "pencil.and.list.clipboard")
+            }
+
             Button {
                 viewModel.send(.openDebug(source))
             } label: {

@@ -170,6 +170,13 @@ public extension Container {
         }.shared
     }
 
+    /// 保存与更新书源用例
+    var saveBookSourceUseCase: Factory<SaveBookSourceUseCase> {
+        self { @MainActor in
+            SaveBookSourceUseCase(sourceRepository: self.bookSourceRepository())
+        }.shared
+    }
+
     /// 实时调试书源用例
     var debugBookSourceUseCase: Factory<DebugBookSourceUseCase> {
         self {
