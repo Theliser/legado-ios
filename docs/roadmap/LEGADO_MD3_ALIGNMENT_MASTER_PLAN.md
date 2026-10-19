@@ -226,16 +226,18 @@ flowchart TD
 ### 阶段八：书源可视化编辑与实时调试工作台 (Epic 8: Book Source Editor & Live Debugger Studio)
 > **对标 MD3 模块**：`ui/book/source/edit/`, `ui/book/source/debug/`
 
-- [ ] **8.1 书源可视化编辑工作台 (BookSourceEditor MVI)**
+- [x] **8.1 书源可视化编辑工作台 (BookSourceEditor MVI)** (已完成，Commit: `ab6a5bc`, Issue #22)
   - 对标文件：`BookSourceEditScreen.kt`, `BookSourceEditViewModel.kt`
   - 核心功能：
-    - 多分段编辑流：基本信息、搜索规则 (`ruleSearch`)、发现规则 (`ruleExplore`)、详情规则 (`ruleBookInfo`)、目录规则 (`ruleToc`)、正文规则 (`ruleContent`)、高级配置；
-    - 快速语法助手：常用选择器标记胶囊、`@js:` / `{{...}}` 快捷插入；
-    - 实时语法校验与 JSON 格式检查，防手抖误修改。
-- [ ] **8.2 调试工作台增强 (Live Source Debugger Studio)**
-  - 支持单规则断点求值（单独调试某一个规则字段）；
-  - 实时网络响应与请求头查看器；
-  - 规则抓取可视化结果高亮对比。
+    - 多分段编辑流：基本信息、搜索规则 (`ruleSearch`)、发现规则 (`ruleExplore`)、详情规则 (`ruleBookInfo`)、目录规则 (`ruleToc`)、正文规则 (`ruleContent`)、评语规则 (`ruleReview`) 与高级配置；
+    - 快速语法助手：横向可滑动语法标记胶囊 (`@json:`, `@css:`, `@xpath:`, `@js:`, `<js></js>`, `##pattern##`, `{{}}`, `&&`, `||`, `%%`, `text`, `href`, `src`, `html`) 快捷插入聚焦输入框；
+    - 实时表单/JSON 源码模式双向无缝切换，语法校验与美化格式化 (`formatJson`)；
+    - 脏数据追踪 (`isDirty`) 与未保存修改防误退二次确认弹窗；
+    - 业务用例 `SaveBookSourceUseCase` 驱动持久化与主键 URL 重命名安全处理。
+- [x] **8.2 调试工作台增强 (Live Source Debugger Studio)** (已完成，Commit: `ab6a5bc`, Issue #22)
+  - 在编辑器中支持即时「调试」与「保存并调试」草稿无缝联动；
+  - 结合 `SourceDebugSheet` 与 `SourceDebugPayloadSheet` 检查网络请求与各阶段 payload；
+  - `SourceManageView` 深度集成：支持新建空白书源、卡片点击编辑、右键上下文菜单编辑。
 
 ---
 
