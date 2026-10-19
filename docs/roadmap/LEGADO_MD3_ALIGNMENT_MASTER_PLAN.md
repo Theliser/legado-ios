@@ -33,10 +33,20 @@
 
 ```mermaid
 flowchart TD
-    Phase1["阶段一: 核心阅读体验对齐 (Core Reader Experience)"] --> Phase2["阶段二: 书架高阶形态与书籍管理 (Advanced Bookshelf)"]
-    Phase2 --> Phase3["阶段三: 离线缓存与批量下载队列 (Offline Cache & Batch)"]
-    Phase3 --> Phase4["阶段四: 听书朗读高阶特性对齐 (Audio & ReadAloud Advanced)"]
-    Phase4 --> Phase5["阶段五: 书源生态与本地书籍导入 (Advanced Source & Local Import)"]
+    Phase1["阶段一: 核心阅读体验对齐 [已闭环]"] --> Phase2["阶段二: 书架高阶形态与书籍管理 [已闭环]"]
+    Phase2 --> Phase3["阶段三: 离线缓存与批量下载队列 [已闭环]"]
+    Phase3 --> Phase4["阶段四: 听书朗读高阶特性对齐 [已闭环]"]
+    Phase4 --> Phase5["阶段五: 书源生态与本地书籍导入 [已闭环]"]
+    Phase5 --> Phase5_5["阶段5.5: 真实书源复杂 DSL 与高级解析 [已闭环]"]
+    Phase5_5 --> Phase6["阶段六: MD3 规则解析架构移植与过盾 [已闭环]"]
+    Phase6 --> Phase7["阶段七: 字体动态解密与高级书源引擎 (Epic 7)"]
+    Phase7 --> Phase8["阶段八: 书源可视化编辑与调试工作台 (Epic 8)"]
+    Phase8 --> Phase9["阶段九: EPUB 原生排版与本地书籍深度支持 (Epic 9)"]
+    Phase9 --> Phase10["阶段十: 替换规则与划词词典/AI翻译 (Epic 10)"]
+    Phase10 --> Phase11["阶段十一: RSS 订阅与网页源规则引擎 (Epic 11)"]
+    Phase11 --> Phase12["阶段十二: 独立有声书播放器与后台音频中枢 (Epic 12)"]
+    Phase12 --> Phase13["阶段十三: 局域网 Web 服务与 Wi-Fi 传书 (Epic 13)"]
+    Phase13 --> Phase14["阶段十四: 极致阅读排版与拟真翻页动效 (Epic 14)"]
 ```
 
 ---
@@ -152,14 +162,185 @@ flowchart TD
 
 ---
 
-## 四、执行排期与第一步实施目标
+### 阶段 5.5：全量真实书源复杂 DSL 与高级动态解析 (Complex Real-World Source DSL)
+> **对标 MD3 模块**：`model/analyzeRule/`, `help/http/`
 
-按照用户指示，先制定完整方案，然后立即开始执行：
-- **首要实施目标**：启动 **阶段一（1.1 多源聚合一键换源 Change Source MVI）** 的开发；
-- **落地步骤**：
-  1. 在 GitHub 创建对应的 Phase 1 追踪 Issue；
-  2. 新建分支 `feature/change-source-mvi`；
-  3. 实现 `SearchBooksUseCase` 聚合检索同名同作者书籍能力；
-  4. 构建 `ChangeSourceViewModel`、`ChangeSourceState`、`ChangeSourceIntent`、`ChangeSourceSheet`（液态玻璃半屏弹窗）；
-  5. 接入书籍详情页与阅读器 HUD；
-  6. 编写单元测试并验证 `make test` 与 `make format-check`。
+- [x] **5.5.1 DOMStepEvaluator 规则步进引擎** (已完成，Commit: `584965e`, Issue #19)
+  - 完整支持 `@` 级联步进分词、索引与逆序切片（如 `tag.div!-1:10`）、类名/ID/子节点/文本检索；
+  - XPath 智能快速降级转译为 CSS 选择器；
+  - 跨脚本分支拆分，保护 `<js>` 与 `@js:` 内部逻辑运算符。
+- [x] **5.5.2 JSEngine 沙箱原生能力增强** (已完成，Commit: `584965e`, Issue #19)
+  - DOM 动态提取 API：`java.setContent`、`java.getString`、`java.getElements`；
+  - 繁简互转：`java.t2s` / `t2s`（繁转简）与 `java.s2t` / `s2t`（简转繁）；
+  - 全局快速网络与加解密：`ajax(url)`、`java.encodeURI`、`java.md5Encode`、`java.base64Encode/Decode`；
+  - 变量快速存取：`java.put` / `java.get` 运行时存储池。
+- [x] **5.5.3 真实书源合集（XIU2、十大灰狼、二月无雪、altergu等）测试验证** (已完成，Commit: `584965e`, Issue #19)
+  - 宽容容错解码（`decodeLenientInt/Bool`），数千条书源导入零崩溃；
+  - 覆盖酷我、69书吧、话本小说、哔哩轻小说等真实书源。
+
+---
+
+### 阶段六：深度移植 Legado MD3 规则解析器架构与全量 API 数据层测试覆盖
+> **对标 MD3 模块**：`model/analyzeRule/`, `model/webBook/`, `help/http/`
+
+- [x] **6.1 规则解析分发核心对齐 (AnalyzeRule / RuleAnalyzer)** (已完成，Commit: `9c13ec5`, Issue #20)
+  - 对标 `AnalyzeRule.kt`、`RuleAnalyzer.kt`、`RuleDataInterface.kt`、`AnalyzeByRegex.kt`；
+  - 完整支持规则组合器 `&&`（拼接）、`||`（备选降级）、`%%`（并列拉链）；
+  - 动态模板 `{$.json.path}`、`{{ js expression }}`、正则分组捕获 `$0`~`$9`；
+  - `@put:{key: rule}` 规则求值存储与 `@get:{key}` 上下文提取；
+  - 子对象规则初始化 `ruleBookInfo.init`；
+  - 正则清洗管道 `##pattern##replacement##replaceFirst` 与 `pattern=>replacement`。
+- [x] **6.2 Cloudflare 403 交互式过盾与 Cookie 持久化** (已完成，Commit: `9c13ec5`, Issue #20)
+  - `BrowserVerificationManager` 基于系统 `WKWebView` 拦截 Cloudflare 403 / Turnstile challenge；
+  - 过盾成功后自动捕获 `cf_clearance` 写入持久化 `CookieStore`，并同步至 `HTTPCookieStorage` 与 `UserDefaults`；
+  - JS 沙箱注入 `java.startBrowserAwait(url, title, refetch)`，返回 `StrResponse` 支持 `.body()` 与 `.url()`；
+  - 自动重放挂起请求，实现真实书源过盾无缝续读。
+- [x] **6.3 纯数据层全 API 单元测试覆盖** (已完成，Commit: `9c13ec5`, Issue #20)
+  - `BookSourceAPITests.swift` 与 `AnalyzeRuleTests.swift` 涵盖 28 个针对性单元测试，覆盖搜索、发现、详情、目录、正文及翻页抓取全 API 链路。
+
+---
+
+### 阶段七：字体动态解密与高级书源引擎 (Epic 7: Advanced Source Engine & Font Decryption)
+> **对标 MD3 模块**：`model/analyzeRule/QueryTTF.java`, `help/http/AnalyzeUrl.kt`, `data/entities/BookChapterReview.kt`
+
+- [ ] **7.1 QueryTTF 动态字体文件解析与字符混淆还原**
+  - 对标文件：`io/legado/app/model/analyzeRule/QueryTTF.java`
+  - 核心功能：
+    - 下载网页附带的动态 TrueType / OpenType 字体文件（`.ttf` / `.woff` / `.otf`）；
+    - 解析 cmap 表、glyf 表与字形轮廓，通过字体字形特征比对或 base 字模哈希，将私有区（PUA）混淆字符自动映射还原为标准 Unicode 汉字；
+    - 支持笔趣阁、起点移动端等动态字体反爬机制。
+- [ ] **7.2 AnalyzeUrl WebView 高级选项 (webJs & webViewDelayTime)**
+  - 核心功能：
+    - 支持 `webJs`：针对客户端 CSR 动态渲染网页，在 WebKit 中注入书源自定义 JS 代码后再提取 DOM；
+    - 支持 `webViewDelayTime`：配置延迟捕获等待时间（毫秒）；
+    - 支持 `dnsIp`：自定义域名直连解析。
+- [ ] **7.3 ruleReview 段落评语与章评解析**
+  - 对标文件：`BookChapterReview.kt`、`ruleReview`
+  - 核心功能：
+    - 增加 `ruleReview` 数据模型与解析器，支持抓取段落评论数与章节评论列表。
+
+---
+
+### 阶段八：书源可视化编辑与实时调试工作台 (Epic 8: Book Source Editor & Live Debugger Studio)
+> **对标 MD3 模块**：`ui/book/source/edit/`, `ui/book/source/debug/`
+
+- [ ] **8.1 书源可视化编辑工作台 (BookSourceEditor MVI)**
+  - 对标文件：`BookSourceEditScreen.kt`, `BookSourceEditViewModel.kt`
+  - 核心功能：
+    - 多分段编辑流：基本信息、搜索规则 (`ruleSearch`)、发现规则 (`ruleExplore`)、详情规则 (`ruleBookInfo`)、目录规则 (`ruleToc`)、正文规则 (`ruleContent`)、高级配置；
+    - 快速语法助手：常用选择器标记胶囊、`@js:` / `{{...}}` 快捷插入；
+    - 实时语法校验与 JSON 格式检查，防手抖误修改。
+- [ ] **8.2 调试工作台增强 (Live Source Debugger Studio)**
+  - 支持单规则断点求值（单独调试某一个规则字段）；
+  - 实时网络响应与请求头查看器；
+  - 规则抓取可视化结果高亮对比。
+
+---
+
+### 阶段九：EPUB 原生排版与本地书籍深度支持 (Epic 9: Native EPUB & Local Book Engine)
+> **对标 MD3 模块**：`model/localBook/`, `ui/file/`
+
+- [ ] **9.1 原生 EPUB 容器解包与排版渲染**
+  - 对标文件：`EpubFile.kt`
+  - 核心功能：
+    - 原生解压 EPUB 归档，解析 `container.xml`、`content.opf`、`toc.ncx` / `nav.xhtml`；
+    - 解析 XHTML/HTML 节点并抽取段落、内嵌插图 (`<img src="...">`)、CSS 样式排版；
+    - 阅读器内嵌图片查看器与原生图文混排。
+- [ ] **9.2 PDF 原生阅读支持**
+  - 对标文件：`PdfFile.kt`
+  - 核心功能：基于 Apple `PDFKit` 提供原生 PDF 缩放、目录书签与沉浸式阅读。
+- [ ] **9.3 TXT 智能目录切分规则自定义 (TxtTocRule)**
+  - 对标文件：`TxtTocRule.kt`, `TxtTocRuleSelector.kt`
+  - 核心功能：支持用户自定义与内置多套章节切分正则规则（如 `第[0-9一二三四五六七八九十百千]+[章卷回节]` 等），支持切分规则权重与测试。
+
+---
+
+### 阶段十：替换规则系统与划词词典/AI翻译 (Epic 10: Replace Rules & Dictionary / Translation)
+> **对标 MD3 模块**：`ui/replace/`, `ui/dict/`, `model/translation/`
+
+- [ ] **10.1 全局与单书文本净化替换规则 (ReplaceRule MVI)**
+  - 对标文件：`ReplaceRuleScreen.kt`, `ReplaceRule.kt`
+  - 核心功能：
+    - SwiftData `ReplaceRuleEntity` 持久化管理；
+    - 支持全局生效与限定书名/作者生效；
+    - 支持正则表达式、全词匹配、范围排除；
+    - 正则沙箱实时测试器（输入原文字符串与规则，实时查看清洗结果）。
+- [ ] **10.2 划词长按菜单与词典查询 (DictRule MVI)**
+  - 对标文件：`DictActivity.kt`, `DictSheet.kt`, `DictRule.kt`
+  - 核心功能：
+    - 阅读器正文长按选中文本唤起原生液态玻璃上下文菜单；
+    - 快速查词：支持自定义词典源规则 (`DictRule`)，在半屏浮层中展示网络/离线词典释义；
+    - 划词划线、高亮标注、一键朗读选中句、复制与分享。
+- [ ] **10.3 AI 智能翻译与辅助阅读**
+  - 对标文件：`ui/config/translation/`
+  - 核心功能：轻量接入系统 Translation 框架及外部 API，一键翻译段落。
+
+---
+
+### 阶段十一：RSS 订阅与网页源规则引擎 (Epic 11: RSS Subscriptions & Rule Feeds)
+> **对标 MD3 模块**：`ui/rss/`, `data/entities/RssSource.kt`, `data/entities/RssArticle.kt`
+
+- [ ] **11.1 RSS 源定义与订阅管理 (RssSource MVI)**
+  - 对标文件：`RssSource.kt`, `RssArticle.kt`, `RssStar.kt`
+  - 核心功能：
+    - SwiftData 持久化存储 RSS 源规则模型；
+    - 支持标准 XML RSS 2.0 / Atom 协议以及基于 CSS/XPath 自定义规则网页源抓取；
+    - RSS 源分组、定时轮询更新与未读徽标提示。
+- [ ] **11.2 RSS 文章列表与净化阅读器 (RssReader MVI)**
+  - 对标文件：`RssArticleActivity.kt`, `RssReadActivity.kt`
+  - 核心功能：
+    - 液态玻璃文章卡片瀑布流，支持收藏加星与已读标记；
+    - 原生净化排版模式与嵌入式 Web 浏览双模切换。
+
+---
+
+### 阶段十二：独立有声书播放器与后台音频中枢 (Epic 12: Dedicated Audio Book Player & Remote Control)
+> **对标 MD3 模块**：`ui/book/audio/`, `model/AudioPlay.kt`, `service/AudioPlayService.kt`
+
+- [ ] **12.1 独立有声书引擎与流媒体播放器 (AudioPlay MVI)**
+  - 对标文件：`AudioPlayScreen.kt`, `AudioPlayViewModel.kt`, `AudioPlay.kt`
+  - 核心功能：
+    - 针对有声书源（非合成 TTS，而是 MP3/M4A/AAC/HLS 网络音频流）；
+    - 支持音频章节连播、自动解析下一音频章播放直链；
+    - 播放倍速调节（0.5x ~ 3.0x）、跳过片头片尾秒数设置；
+    - 原生液态玻璃独立全屏/迷你播放器（黑胶唱片/封面流体光影、波形交互进度条）。
+- [ ] **12.2 系统控制中心与后台会话管理**
+  - 对标文件：`AudioPlayService.kt`
+  - 核心功能：
+    - 深度集成 `AVAudioSession` 与 `MPRemoteCommandCenter`；
+    - 锁屏封面展示、秒级精确快进快退、耳麦拔出暂停、来电打断恢复。
+
+---
+
+### 阶段十三：局域网 Web 服务与 Wi-Fi 传书 (Epic 13: Embedded Web Server & Wi-Fi Transfer)
+> **对标 MD3 模块**：`web/KtorServer.kt`, `web/Server.kt`
+
+- [ ] **13.1 原生轻量嵌入式 HTTP 服务器**
+  - 基于 Swift 现代化网络框架（`NWListener` 或轻量级纯 Swift HTTP 服务引擎）构建本地 Web 服务器；
+  - 动态分配端口并生成局域网访问 IP 与二维码。
+- [ ] **13.2 Wi-Fi 传书与多端管理网页**
+  - 在同一局域网下用电脑/平板浏览器访问手机 IP：
+    - 网页端拖拽直接上传本地 TXT/EPUB 图书至手机书架；
+    - 网页端一键批量导入、导出和编辑书源；
+    - 网页端阅读器（在电脑大屏浏览器上直接阅读手机书架上的书籍）。
+
+---
+
+### 阶段十四：极致阅读排版与拟真动效 (Epic 14: Reading Typography & Realistic Simulation Flip)
+> **对标 MD3 模块**：`ui/book/read/page/`, `ui/config/readConfig/`
+
+- [ ] **14.1 拟真 3D 仿真翻页 (Realistic 3D Simulation Page Flip)**
+  - 基于 Metal 着色器与物理阴影，实现指尖跟随的 3D 卷页弯曲与背透阴影翻页动效。
+- [ ] **14.2 自定义材质背景与排版系统**
+  - 提供牛皮纸、羊皮纸、宣纸纹理、深邃星空等高质量液态纹理背景；
+  - 支持用户自定义字体文件导入（`.ttf` / `.otf`），精细段首缩进、段间距、行间距与两端对齐排版。
+- [ ] **14.3 自动滚屏与沉浸阅读**
+  - 支持自动平滑匀速滚屏阅读，支持速度微调与点击暂停。
+
+---
+
+## 四、执行路线与原则
+
+1. **坚持最高研发铁律**：展示层强制 MVI 架构，业务逻辑沉淀于 `Domain/UseCases`，遵循 iOS 18+ 原生液态玻璃（Liquid Glass）美学规范，严禁 Android Material Design 风格；
+2. **测试驱动与双轨留档**：每一个阶段与特性均创建对应的 GitHub Issue 进行追踪，编写完整的单元测试与自动化测试，确保 `make test` 与 `make format-check` 100% 保持通过；
+3. **分阶段迭代落地**：后续开发按 Phase 7 -> Phase 8 -> ... 循序渐进，确保每走一步都具备极高的代码质量与工程稳定性。

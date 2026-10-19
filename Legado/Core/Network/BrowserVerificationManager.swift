@@ -121,6 +121,117 @@ public final class BrowserVerificationManager: @unchecked Sendable {
 
         continuation?.resume(throwing: error)
     }
+
+    /// 后台无头 WebKit 执行指定页面的渲染与 webJs 注入 (对标 Android Legado BackstageWebView)
+    @MainActor
+    public func executeHeadlessWeb(
+        url: String,
+        webJs: String? = nil,
+        delayTimeMs: Int = 0,
+        headers: [String: String]? = nil) async throws -> BrowserVerificationResult {
+        if let mock = mockVerificationHandler {
+            return try await mock(url, "HeadlessWeb")
+        }
+
+        return try await withCheckedThrowingContinuation { continuation in
+            let webView = WKWebView(frame: .zero)
+            let delegate = HeadlessWebDelegate(
+                webJs: webJs,
+                delayTimeMs: delayTimeMs,
+                continuation: continuation)
+            objc_setAssociatedObject(webView, &headlessDelegateKey, delegate, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            webView.navigationDelegate = delegate
+
+            guard let targetUrl = URL(string: url) else {
+                continuation.resume(throwing: URLError(.badURL))
+                return
+            }
+
+            var request = URLRequest(url: targetUrl)
+            if let headers {
+                for (headerKey, headerValue) in headers {
+                    request.setValue(headerValue, forHTTPHeaderField: headerKey)
+                }
+            }
+            let cookie = CookieStore.shared.getCookie(url: url)
+            if !cookie.isEmpty {
+                request.setValue(cookie, forHTTPHeaderField: "Cookie")
+            }
+            webView.load(request)
+        }
+    }
+
+    /// 同步阻塞方式执行无头 WebKit 渲染 (供规则引擎内部调用)
+    public func executeHeadlessWebSync(
+        url: String,
+        webJs: String? = nil,
+        delayTimeMs: Int = 0,
+        headers: [String: String]? = nil) -> BrowserVerificationResult {
+        var finalResult = BrowserVerificationResult(url: url, body: "")
+        let semaphore = DispatchSemaphore(value: 0)
+        Task { @MainActor in
+            do {
+                finalResult = try await self.executeHeadlessWeb(
+                    url: url,
+                    webJs: webJs,
+                    delayTimeMs: delayTimeMs,
+                    headers: headers)
+            } catch {
+                finalResult = BrowserVerificationResult(url: url, body: "")
+            }
+            semaphore.signal()
+        }
+        _ = semaphore.wait(timeout: .now() + 20.0)
+        return finalResult
+    }
+}
+
+private var headlessDelegateKey: UInt8 = 0
+
+private final class HeadlessWebDelegate: NSObject, WKNavigationDelegate {
+    private let webJs: String?
+    private let delayTimeMs: Int
+    private var continuation: CheckedContinuation<BrowserVerificationResult, Error>?
+
+    init(
+        webJs: String?,
+        delayTimeMs: Int,
+        continuation: CheckedContinuation<BrowserVerificationResult, Error>) {
+        self.webJs = webJs
+        self.delayTimeMs = delayTimeMs
+        self.continuation = continuation
+    }
+
+    func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
+        Task { @MainActor in
+            if self.delayTimeMs > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(self.delayTimeMs) * 1_000_000)
+            }
+            if let script = self.webJs, !script.isEmpty {
+                _ = try? await webView.evaluateJavaScript(script)
+            }
+            let html = (try? await webView.evaluateJavaScript("document.documentElement.outerHTML")) as? String ?? ""
+            let currentUrl = webView.url?.absoluteString ?? ""
+
+            let cookies = await webView.configuration.websiteDataStore.httpCookieStore.allCookies()
+            for cookie in cookies {
+                CookieStore.shared.setCookie(url: currentUrl, cookie: "\(cookie.name)=\(cookie.value)")
+            }
+
+            self.continuation?.resume(returning: BrowserVerificationResult(url: currentUrl, body: html))
+            self.continuation = nil
+        }
+    }
+
+    func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error) {
+        continuation?.resume(throwing: error)
+        continuation = nil
+    }
+
+    func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError error: Error) {
+        continuation?.resume(throwing: error)
+        continuation = nil
+    }
 }
 
 public extension Notification.Name {

@@ -104,6 +104,23 @@ public final class HTTPClient: HTTPClientProtocol, Sendable {
         return CharsetDetector.decode(data: data)
     }
 
+    /// 支持 AnalyzeUrl 高级选项（如 useWebView / webJs / webViewDelayTime）的请求方法
+    public func fetch(analyzeUrl: AnalyzeUrl) async throws -> String {
+        if analyzeUrl.useWebView {
+            let res = try await BrowserVerificationManager.shared.executeHeadlessWeb(
+                url: analyzeUrl.url.absoluteString,
+                webJs: analyzeUrl.webJs,
+                delayTimeMs: analyzeUrl.webViewDelayTime ?? 0,
+                headers: analyzeUrl.headers)
+            return res.body
+        }
+        if analyzeUrl.method == "POST" {
+            return try await post(url: analyzeUrl.url, body: analyzeUrl.body, headers: analyzeUrl.headers)
+        } else {
+            return try await get(url: analyzeUrl.url, headers: analyzeUrl.headers)
+        }
+    }
+
     private func applyHeaders(to request: inout URLRequest, customHeaders: [String: String]?) {
         request.setValue(defaultUserAgent, forHTTPHeaderField: "User-Agent")
         let acceptTypes = "text/html,application/xhtml+xml,application/xml;q=0.9,application/json,*/*;q=0.8"
