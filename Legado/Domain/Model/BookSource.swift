@@ -212,6 +212,34 @@ public struct RuleContent: Codable, Equatable, Sendable {
     }
 }
 
+/// 段评与章评规则 (对齐 Android Legado ReviewRule.kt)
+public struct RuleReview: Codable, Equatable, Sendable {
+    public var reviewUrl: String?
+    public var avatarRule: String?
+    public var contentRule: String?
+    public var postTimeRule: String?
+    public var reviewQuoteUrl: String?
+    public var voteUpUrl: String?
+    public var voteDownUrl: String?
+
+    public init(
+        reviewUrl: String? = nil,
+        avatarRule: String? = nil,
+        contentRule: String? = nil,
+        postTimeRule: String? = nil,
+        reviewQuoteUrl: String? = nil,
+        voteUpUrl: String? = nil,
+        voteDownUrl: String? = nil) {
+        self.reviewUrl = reviewUrl
+        self.avatarRule = avatarRule
+        self.contentRule = contentRule
+        self.postTimeRule = postTimeRule
+        self.reviewQuoteUrl = reviewQuoteUrl
+        self.voteUpUrl = voteUpUrl
+        self.voteDownUrl = voteDownUrl
+    }
+}
+
 /// Legado 3.0 书源核心领域模型
 public struct BookSource: Identifiable, Codable, Equatable, Sendable {
     public var id: String {
@@ -239,6 +267,7 @@ public struct BookSource: Identifiable, Codable, Equatable, Sendable {
     public var ruleBookInfo: RuleBookInfo?
     public var ruleToc: RuleToc?
     public var ruleContent: RuleContent?
+    public var ruleReview: RuleReview?
 
     public init(
         bookSourceUrl: String,
@@ -260,7 +289,8 @@ public struct BookSource: Identifiable, Codable, Equatable, Sendable {
         ruleExplore: RuleExplore? = nil,
         ruleBookInfo: RuleBookInfo? = nil,
         ruleToc: RuleToc? = nil,
-        ruleContent: RuleContent? = nil) {
+        ruleContent: RuleContent? = nil,
+        ruleReview: RuleReview? = nil) {
         self.bookSourceUrl = bookSourceUrl
         self.bookSourceName = bookSourceName
         self.bookSourceGroup = bookSourceGroup
@@ -281,6 +311,7 @@ public struct BookSource: Identifiable, Codable, Equatable, Sendable {
         self.ruleBookInfo = ruleBookInfo
         self.ruleToc = ruleToc
         self.ruleContent = ruleContent
+        self.ruleReview = ruleReview
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -304,6 +335,7 @@ public struct BookSource: Identifiable, Codable, Equatable, Sendable {
         case ruleBookInfo
         case ruleToc
         case ruleContent
+        case ruleReview
     }
 
     public init(from decoder: Decoder) throws {
@@ -328,6 +360,7 @@ public struct BookSource: Identifiable, Codable, Equatable, Sendable {
         self.ruleBookInfo = try container.decodeIfPresent(RuleBookInfo.self, forKey: .ruleBookInfo)
         self.ruleToc = try container.decodeIfPresent(RuleToc.self, forKey: .ruleToc)
         self.ruleContent = try container.decodeIfPresent(RuleContent.self, forKey: .ruleContent)
+        self.ruleReview = try container.decodeIfPresent(RuleReview.self, forKey: .ruleReview)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -352,6 +385,7 @@ public struct BookSource: Identifiable, Codable, Equatable, Sendable {
         try container.encodeIfPresent(ruleBookInfo, forKey: .ruleBookInfo)
         try container.encodeIfPresent(ruleToc, forKey: .ruleToc)
         try container.encodeIfPresent(ruleContent, forKey: .ruleContent)
+        try container.encodeIfPresent(ruleReview, forKey: .ruleReview)
     }
 }
 

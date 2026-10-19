@@ -7,6 +7,7 @@ struct SyncHTTPResponse {
     let body: String
     let headers: [String: String]
     let cookies: [String: String]
+    let data: Data?
 }
 
 extension JSEngine {
@@ -25,6 +26,7 @@ extension JSEngine {
         setupHashingMethods(on: javaObj)
         setupHMacMethods(on: javaObj)
         setupTimeAndCryptoMethods(on: javaObj)
+        setupQueryTTFMethods(on: javaObj)
         context.setObject(javaObj, forKeyedSubscript: "java" as NSString)
     }
 
@@ -425,9 +427,64 @@ extension JSEngine {
         }
 
         guard let data = resultData else {
-            return SyncHTTPResponse(body: "", headers: headerDict, cookies: cookieDict)
+            return SyncHTTPResponse(body: "", headers: headerDict, cookies: cookieDict, data: nil)
         }
         let bodyStr = CharsetDetector.decode(data: data, response: httpResponse)
-        return SyncHTTPResponse(body: bodyStr, headers: headerDict, cookies: cookieDict)
+        return SyncHTTPResponse(body: bodyStr, headers: headerDict, cookies: cookieDict, data: data)
+    }
+
+    private func setupQueryTTFMethods(on javaObj: JSValue) {
+        let queryTTFBlock: @convention(block) (JSValue?, JSValue?) -> JSValue? = { [weak self] dataVal, useCacheVal in
+            guard let self, let dataVal, !dataVal.isNull, !dataVal.isUndefined else { return nil }
+            let useCache = useCacheVal?.toBool() ?? true
+
+            var fontData: Data?
+
+            if dataVal.isString {
+                let str = dataVal.toString() ?? ""
+                let trimmed = str.trimmingCharacters(in: .whitespacesAndNewlines)
+                if trimmed.lowercased().hasPrefix("http://") || trimmed.lowercased().hasPrefix("https://") {
+                    if useCache, let cached = QueryTTFCache.shared.get(key: trimmed) {
+                        return JSValue(object: cached, in: self.context)
+                    }
+                    if let url = URL(string: trimmed) {
+                        fontData = Self.syncRequest(url: url).data
+                    }
+                } else {
+                    fontData = Data(base64Encoded: trimmed, options: .ignoreUnknownCharacters)
+                }
+            } else if let bytes = dataVal.toArray() as? [UInt8] {
+                fontData = Data(bytes)
+            } else if let bytes = dataVal.toArray() as? [Int] {
+                fontData = Data(bytes.map { UInt8($0 & 0xFF) })
+            }
+
+            guard let fontData, let ttf = QueryTTF(data: fontData) else { return nil }
+            if useCache {
+                let key = QueryTTFCache.cacheKey(for: fontData)
+                QueryTTFCache.shared.put(key: key, ttf: ttf)
+            }
+            return JSValue(object: ttf, in: self.context)
+        }
+
+        javaObj.setObject(queryTTFBlock, forKeyedSubscript: "queryTTF" as NSString)
+        javaObj.setObject(queryTTFBlock, forKeyedSubscript: "queryBase64TTF" as NSString)
+        context.setObject(queryTTFBlock, forKeyedSubscript: "queryTTF" as NSString)
+        context.setObject(queryTTFBlock, forKeyedSubscript: "queryBase64TTF" as NSString)
+
+        typealias ReplaceFontBlock = @convention(block) (String, JSValue?, JSValue?, JSValue?) -> String
+        let replaceFontBlock: ReplaceFontBlock = { text, errVal, corrVal, filterVal in
+            let errTTF = errVal?.toObject() as? QueryTTF
+            let corrTTF = corrVal?.toObject() as? QueryTTF
+            let filter = filterVal?.toBool() ?? false
+            return QueryTTF.replaceFont(
+                text: text,
+                errorQueryTTF: errTTF,
+                correctQueryTTF: corrTTF,
+                filter: filter)
+        }
+
+        javaObj.setObject(replaceFontBlock, forKeyedSubscript: "replaceFont" as NSString)
+        context.setObject(replaceFontBlock, forKeyedSubscript: "replaceFont" as NSString)
     }
 }
