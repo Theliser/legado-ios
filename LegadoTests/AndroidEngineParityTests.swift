@@ -125,9 +125,17 @@ final class AndroidEngineParityTests: XCTestCase {
         let htmlResult = engine.evaluate(script: "java.htmlFormat('<p>第一段<br/>第二段</p>')")
         XCTAssertTrue(htmlResult?.contains("第一段\n第二段") == true)
 
-        // 3. timeFormat
+        // 3. timeFormat & timeFormatUTC
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "yyyy-MM-dd"
+        let expectedLocal = formatter.string(from: Date(timeIntervalSince1970: 1_700_000_000))
         let timeResult = engine.evaluate(script: "java.timeFormat(1700000000, 'yyyy-MM-dd')")
-        XCTAssertEqual(timeResult, "2023-11-15")
+        XCTAssertEqual(timeResult, expectedLocal)
+
+        // 验证 UTC 与时区偏移计算（+8 时区固定产出 2023-11-15）
+        let utcResult = engine.evaluate(script: "java.timeFormatUTC(1700000000 * 1000, 'yyyy-MM-dd', 8 * 3600 * 1000)")
+        XCTAssertEqual(utcResult, "2023-11-15")
 
         // 4. randomUUID & androidId
         let uuidResult = engine.evaluate(script: "java.randomUUID()")

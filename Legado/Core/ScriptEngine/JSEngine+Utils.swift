@@ -71,9 +71,32 @@ extension JSEngine {
         }
         javaObj.setObject(timeFormatBlock, forKeyedSubscript: "timeFormat" as NSString)
         context.setObject(timeFormatBlock, forKeyedSubscript: "timeFormat" as NSString)
-        javaObj.setObject(timeFormatBlock, forKeyedSubscript: "timeFormatUTC" as NSString)
-        context.setObject(timeFormatBlock, forKeyedSubscript: "timeFormatUTC" as NSString)
 
+        let timeFormatUTCBlock: @convention(block) (
+            JSValue,
+            JSValue?,
+            JSValue?) -> String = { timeVal, formatVal, shVal in
+            let rawTime = timeVal.toDouble()
+            let timeSec = rawTime > 10_000_000_000 ? rawTime / 1000.0 : rawTime
+            let date = Date(timeIntervalSince1970: timeSec)
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "zh_CN")
+            formatter.dateFormat = formatVal?.toString() ?? "yyyy-MM-dd HH:mm:ss"
+            if let shVal, !shVal.isUndefined, !shVal.isNull {
+                let offsetSec = Int(shVal.toDouble() / 1000.0)
+                formatter.timeZone = TimeZone(secondsFromGMT: offsetSec)
+            } else {
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            }
+            return formatter.string(from: date)
+        }
+        javaObj.setObject(timeFormatUTCBlock, forKeyedSubscript: "timeFormatUTC" as NSString)
+        context.setObject(timeFormatUTCBlock, forKeyedSubscript: "timeFormatUTC" as NSString)
+
+        setupIDAndUABlocks(on: javaObj)
+    }
+
+    private func setupIDAndUABlocks(on javaObj: JSValue) {
         let uuidBlock: @convention(block) () -> String = { UUID().uuidString.lowercased() }
         javaObj.setObject(uuidBlock, forKeyedSubscript: "randomUUID" as NSString)
         context.setObject(uuidBlock, forKeyedSubscript: "randomUUID" as NSString)
