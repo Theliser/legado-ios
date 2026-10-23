@@ -2,9 +2,11 @@ import SwiftUI
 
 /// 搜索页面视图 (纯声明式渲染 View = f(State))
 public struct SearchView: View {
+    @EnvironmentObject private var environment: AppEnvironment
     @StateObject private var viewModel: SearchViewModel
     @State private var toastMessage: String?
     @State private var hapticTrigger = false
+    @State private var selectedBookForDetail: Book?
 
     public init(viewModel: SearchViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -89,6 +91,9 @@ public struct SearchView: View {
                 case .hapticFeedback:
                     hapticTrigger.toggle()
                 }
+            }
+            .navigationDestination(item: $selectedBookForDetail) { book in
+                BookDetailView(viewModel: environment.makeBookDetailViewModel(book: book))
             }
             .overlay(alignment: .bottom) {
                 if let toastMessage {
@@ -211,6 +216,9 @@ public struct SearchView: View {
                     },
                     onAddSource: { source in
                         viewModel.send(.addToBookshelf(source))
+                    },
+                    onSelectBook: { book in
+                        selectedBookForDetail = book
                     })
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
@@ -229,6 +237,7 @@ private struct SearchResultGroupRow: View {
     let addedBookUrls: Set<String>
     let onToggleExpand: () -> Void
     let onAddSource: (SearchResult) -> Void
+    var onSelectBook: ((Book) -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -305,6 +314,12 @@ private struct SearchResultGroupRow: View {
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if let first = group.sources.first {
+                    onSelectBook?(first.toBook())
                 }
             }
 
